@@ -3,7 +3,7 @@
       <div class="breadcrumbs">
          <div class="container">
 
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center py-3">
                <h2>{{ props.title }}</h2>
 
                <div class="d-flex flex-row-reverse">

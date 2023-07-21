@@ -34,8 +34,8 @@
                      </li>
                      <li>
                         <a href="#">Orientation et choix de vie</a>
-                        <a href="#">Témoignages </a>
-                        <a href="#">Equipe d'animation</a>
+                        <router-link to="/temoignages">Témoignages</router-link>
+                        <router-link to="/equipe-animation">Equipe d'animation</router-link>
                      </li>
                      <li>
                         <a href="#">Galerie d'image & videos </a>
@@ -55,8 +55,8 @@
                         <router-link to="/e-book" class="nav-link scrollto">Nos e-books</router-link>
                      </li>
                      <li>
-                           <router-link to="/e-book" class="nav-link scrollto">Objets en Vente</router-link>
-                        </li>
+                        <router-link to="/objets" class="nav-link scrollto">Objets en Vente</router-link>
+                     </li>
                   </ul>
                </li>
                <li>

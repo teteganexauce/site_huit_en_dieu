@@ -1,13 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import accueil from '../views/accueil.vue'
-import centreFormation from "../views/centre-formation.vue";
 import ebook from "../views/e-books.vue";
 import ebookDetail from "../views/e-book-detail.vue";
 import services from "../views/services.vue";
 import formations from "../views/formations.vue";
 import publications from "../views/publications.vue";
 import contact from "../views/contact.vue";
+import objets from "../views/objets.vue";
 import pubDetail from "../views/pub-detail.vue";
+import teamAnimation from "../views/teamAnimation.vue";
+import temoignage from "../views/temoignage.vue";
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,11 +19,6 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: accueil,
-    },
-    {
-      path: "/centre-de-formation",
-      name: "about",
-      component: centreFormation,
     },
     {
       path: "/e-book",
@@ -56,6 +54,21 @@ const router = createRouter({
       path: "/contact",
       name: "contactl",
       component: contact,
+    },
+    {
+      path: "/objets",
+      name: "objets",
+      component: objets,
+    },
+    {
+      path: "/equipe-animation",
+      name: "equipe",
+      component: teamAnimation,
+    },
+    {
+      path: "/temoignages",
+      name: "temoignage",
+      component: temoignage,
     },
   ],
 });

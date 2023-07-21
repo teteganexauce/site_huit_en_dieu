@@ -28,7 +28,7 @@ const services = ref([
 
          <div class="row gy-4">
 
-            <div v-for="(item, index) in services" :key="index" class="col-md-6 d-flex aos-init aos-animate" data-aos="zoom-out">
+            <div v-for="(item, index) in services" :key="index" class="col-md-3 d-flex aos-init aos-animate" data-aos="zoom-out">
                <div class="border service-item position-relative w-100 px-4">
                   <div class="icon p-0 bg-ps-primary d-flex justify-content-center align-items-center rounded-circle"><i class="bi bi-star text-white icon p-0 m-0"></i></div>
                   <h4 class="mb-2"><a href="" class="stretched-link">{{item.title}}</a></h4>
