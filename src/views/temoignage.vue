@@ -205,8 +205,8 @@ function show2(idx) {
                   <div class="content-file d-flex mt-2 justify-content-center align-items-center">
                      <div>
                         <video width="320" height="240" controls>
-                           <source src="movie.mp4" type="video/mp4">
-                           <source src="movie.ogg" type="video/ogg">
+                           <source src="" type="video/mp4">
+                           <source src="" type="video/ogg">
                            Your browser does not support the video tag.
                         </video>
                      </div>
