@@ -16,7 +16,6 @@ import "/src/assets/css/main.css";
 
 import "/src/assets/vendor/bootstrap/js/bootstrap.bundle.min.js";
 import "/src/assets/vendor/glightbox/js/glightbox.min.js";
-import "/src/assets/vendor/isotope-layout/isotope.pkgd.min.js";
 import "/src/assets/vendor/swiper/swiper-bundle.min.js";
 import "/src/assets/vendor/php-email-form/validate.js";
 import "./assets/js/main";
