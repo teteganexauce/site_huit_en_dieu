@@ -3,8 +3,7 @@ import { ref, watch } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import img2 from '../assets/audio1.mp3'
 import img3 from '../assets/audio2.mp3'
-import img4 from '../assets/audio4.mp3'   
-
+import img4 from '../assets/audio4.mp3'
 
 const sousMenu = ref(['Témoignage écrits', 'Témoignages audios', 'Témoignages vidéos'])
 
@@ -33,12 +32,13 @@ const audios = ref([
 
 const currentModal = ref('');
 
+
 function show(idx) {
    currentModal.value = audios.value[idx];
    console.log(currentModal.value.text);
 
    $("#audio").attr('src', currentModal.value.text);
-   $('#staticBackdrop').modal('show');
+   // $('#staticBackdrop').modal('show');
 }
 
 function show2(idx) {
@@ -46,7 +46,7 @@ function show2(idx) {
    console.log(currentModal.value.text);
 
    $("#audio").attr('src', currentModal.value.text);
-   $('#staticBackdrop1').modal('show');
+   // $('#staticBackdrop1').modal('show');
 
 }
 
@@ -118,7 +118,8 @@ function show2(idx) {
                                  </div>
                               </div>
                               <div class="play-file px-3">
-                                 <div class="btn btn-warning" @click="show(idx1)">Jouer</div>
+                                 <div class="btn btn-warning bes" @click="show(idx1)" data-bs-toggle="modal"
+                                       data-bs-target="#staticBackdrop">Jouer</div>
                               </div>
                            </div>
                         </div>
@@ -146,7 +147,8 @@ function show2(idx) {
                                  </div>
                               </div>
                               <div class="play-file px-3">
-                                 <div class="btn btn-warning" @click="show2(idx2)">Voir</div>
+                                 <div class="btn btn-warning" @click="show2(idx2)" data-bs-toggle="modal"
+                                       data-bs-target="#staticBackdrop1">Voir</div>
                               </div>
                            </div>
                         </div>

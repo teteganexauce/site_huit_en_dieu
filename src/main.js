@@ -15,8 +15,8 @@ import "/src/assets/css/variables.css";
 import "/src/assets/css/main.css";
 
 
-// import $ from "jquery";
-// window.$ = $;
+import $ from "jquery/dist/jquery.min";
+window.$ = $;
 
 import "/src/assets/vendor/bootstrap/js/bootstrap.bundle.min.js";
 import "/src/assets/vendor/glightbox/js/glightbox.min.js";
