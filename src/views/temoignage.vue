@@ -1,10 +1,9 @@
 <script setup>
 import { ref, watch } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import img1 from '../assets/audio.mp3'
 import img2 from '../assets/audio1.mp3'
 import img3 from '../assets/audio2.mp3'
-import img4 from '../assets/audio4.mp3'
+import img4 from '../assets/audio4.mp3'   
 
 
 const sousMenu = ref(['Témoignage écrits', 'Témoignages audios', 'Témoignages vidéos'])
@@ -40,8 +39,8 @@ function show(idx) {
 
    $("#audio").attr('src', currentModal.value.text);
    $('#staticBackdrop').modal('show');
-
 }
+
 function show2(idx) {
    currentModal.value = audios.value[idx];
    console.log(currentModal.value.text);

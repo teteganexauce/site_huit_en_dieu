@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "aos": "^3.0.0-beta.6",
+    "jquery": "^3.7.0",
     "swiper": "^10.0.4",
     "vue": "^3.3.4",
     "vue-router": "^4.2.2"
