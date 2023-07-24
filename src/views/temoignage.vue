@@ -60,8 +60,7 @@ function show2(idx) {
       <div class="">
          <!-- Tabs -->
          <div class="bg-ps-primary">
-            <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
-
+            <ul class="nav nav-pills d-flex justify-content-md-start justify-content-center mb-3 sub-menu container" role="tablist">
                <li class="py-0 d-flex" v-for="(item, index) in sousMenu" :key="index">
                   <div class="vr text-white d-lg-block d-none"></div>
 
@@ -70,7 +69,6 @@ function show2(idx) {
                      {{ item }}
                   </a>
                   <div class="vr text-white d-lg-block d-none"></div>
-
                </li>
 
 
