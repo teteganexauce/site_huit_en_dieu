@@ -10,6 +10,7 @@ import objets from "../views/objets.vue";
 import pubDetail from "../views/pub-detail.vue";
 import teamAnimation from "../views/teamAnimation.vue";
 import temoignage from "../views/temoignage.vue";
+import galerie from "../views/galerie.vue";
 
 
 const router = createRouter({
@@ -46,6 +47,11 @@ const router = createRouter({
       component: publications,
     },
     {
+      path: "/publications/:key",
+      name: "publicatons",
+      component: publications,
+    },
+    {
       path: "/publications/detail",
       name: "pub-detail",
       component: pubDetail,
@@ -69,6 +75,11 @@ const router = createRouter({
       path: "/temoignages",
       name: "temoignage",
       component: temoignage,
+    },
+    {
+      path: "/galerie",
+      name: "galerie",
+      component: galerie,
     },
   ],
 });

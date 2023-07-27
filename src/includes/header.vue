@@ -38,7 +38,7 @@
                         <router-link to="/equipe-animation">Equipe d'animation</router-link>
                      </li>
                      <li>
-                        <a href="#">Galerie d'image & videos </a>
+                        <router-link to="/galerie">Galerie d'image & videos</router-link>
                         <a href="#">Nos Partenaires</a>
                         <router-link to="/formations">Nos Formations</router-link>
                      </li>

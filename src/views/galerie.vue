@@ -1,151 +1,167 @@
+<script setup>
+import { ref } from 'vue'
+import BreadcombsComponent from '../includes/breadcombs.vue'
+import BookComponent from '../components/book.vue'
+
+import Lightgallery from 'lightgallery/vue';
+import lgThumbnail from 'lightgallery/plugins/thumbnail';
+import lgZoom from 'lightgallery/plugins/zoom';
+import lgVideo from 'lightgallery/plugins/video';
+
+import "lightgallery/css/lightgallery.css";
+import "lightgallery/css/lg-thumbnail.css";
+import "lightgallery/css/lg-zoom.css";
+import "lightgallery/css/lg-video.css";
+
+
+const plugins = [lgThumbnail, lgZoom, lgVideo]
+
+const sousMenu = ref(['Images', 'Videos'])
+const categories = ref(['Sortie pédagogique', 'Formations', 'Séminaires'])
+
+
+</script>
+
+
 <template>
+   <BreadcombsComponent title="Galeries" />
    <div>
-      <section id="portfolio" class="portfolio aos-init aos-animate" data-aos="fade-up">
+      <div class="">
+         <!-- Tabs -->
+         <div class="bg-ps-primary">
+            <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
 
-         <div class="container">
+               <li class="py-0" v-for="(item, index) in sousMenu" :key="index">
+                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == 0 }" data-bs-toggle="pill"
+                     :href="`#tab${index + 1}`" aria-selected="{{ (index==0) ? 'false':'' }}" role="tab" tabindex="-1">
+                     {{ item }}
+                  </a>
+               </li>
 
-           <div class="section-header">
-             <h2>Portfolio</h2>
-             <p>Non hic nulla eum consequatur maxime ut vero memo vero totam officiis pariatur eos dolorum sed fug dolorem est possimus esse quae repudiandae. Dolorem id enim officiis sunt deserunt esse soluta consequatur quaerat</p>
-           </div>
-
+            </ul><!-- End Tabs -->
          </div>
 
-         <div class="container-fluid aos-init aos-animate" data-aos="fade-up" data-aos-delay="200">
+         <!-- Tab Content -->
+         <div class="tab-content container p-0">
+            <div v-for="(item, index) in sousMenu" :key="index" class="tab-pane fade p-0 m-0"
+               :class="{ 'active show': index == 0 }" :id="`tab${index + 1}`" role="tabpanel">
+               <div v-if="index === 0" class="row container-fluid my-5 p-0 m-0">
+                  <div class="col-md-2 px-0">
+                     <div class="d-flex justify-content-between">
+                        <h4>Evenements</h4>
+                        <div class="search d-none">
+                           <span class="bg-light py-2 px-3"><i class="bi bi-search"></i></span>
+                        </div>
+                     </div>
+                     <ul class="list-unstyled s-menu p-0 m-0 h-auto w-100 d-flex flex-column">
+                        <li v-for="(item, index) in categories" :key="index" class=""><a href=""
+                              class="px-3 py-2 d-block">{{ item }}</a></li>
+                     </ul>
+                  </div>
+                  <div class="offset-1 col-md-9">
+                     <div class="row gallery">
+                        <lightgallery class="row" :settings="{ speed: 500, plugins: plugins }">
+                           <a v-for="n in 10" href="/src/assets/img/blog/blog-3.jpg"
+                              class="gallery-item col-lg-4 col-md-6 mb-2 px-1">
+                              <img alt="img1" class="p-image" src="../assets/img/blog/blog-3.jpg" width="100%"
+                                 height="100%" />
+                           </a>
+                        </lightgallery>
+                     </div>
+                  </div>
+               </div>
+               <div v-if="index === 1" class="row container-fluid my-5 p-0 m-0">
+                  <div class="col-md-2 px-0">
+                     <div class="d-flex justify-content-between">
+                        <h4>Evenements</h4>
+                        <div class="search d-none">
+                           <span class="bg-light py-2 px-3"><i class="bi bi-search"></i></span>
+                        </div>
+                     </div>
+                     <ul class="list-unstyled s-menu p-0 m-0 h-auto w-100 d-flex flex-column">
+                        <li v-for="(item, index) in categories" :key="index" class=""><a href=""
+                              class="px-3 py-2 d-block">{{ item }}</a>
+                        </li>
+                     </ul>
+                  </div>
+                  <div class="offset-1 col-md-9">
+                     <div class="row gallery">
+                        <lightgallery class="row" :settings="{ speed: 500, plugins: plugins }">
+                           <a v-for="n in 10" class="gallery-item col-lg-4 col-md-6 mb-2 px-1" data-lg-size="1280-720"
+                              data-video='{"source": [{"src":"/src/assets/a.mp4", "type":"video/mp4"}], "attributes": {"preload": false, "controls": true}}'
+                              data-poster="/src/assets/img/blog/blog-3.jpg"
+                              data-sub-html="<h4>Hello</h4>">
+                              <img width="300" height="100" class="img-responsive"
+                                 src="/src/assets/img/blog/blog-3.jpg" />
+                           </a>
+                        </lightgallery>
 
-           <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry" data-portfolio-sort="original-order">
-
-             <ul class="portfolio-flters">
-               <li data-filter="*" class="">All</li>
-               <li data-filter=".filter-app" class="">App</li>
-               <li data-filter=".filter-product" class="">Product</li>
-               <li data-filter=".filter-branding" class="">Branding</li>
-               <li data-filter=".filter-books" class="filter-active">Books</li>
-             </ul><!-- End Portfolio Filters -->
-
-             <div class="row g-0 portfolio-container" style="position: relative; height: 249.984px;">
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-app" style="position: absolute; left: 0px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/app-1.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>App 1</h4>
-                   <a href="assets/img/portfolio/app-1.jpg" title="App 1" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-product" style="position: absolute; left: 0px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/product-1.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Product 1</h4>
-                   <a href="assets/img/portfolio/product-1.jpg" title="Product 1" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-branding" style="position: absolute; left: 0px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/branding-1.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Branding 1</h4>
-                   <a href="assets/img/portfolio/branding-1.jpg" title="Branding 1" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-books" style="position: absolute; left: 0px; top: 0px;">
-                 <img src="assets/img/portfolio/books-1.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Books 1</h4>
-                   <a href="assets/img/portfolio/books-1.jpg" title="Branding 1" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-app" style="position: absolute; left: 331.25px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/app-2.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>App 2</h4>
-                   <a href="assets/img/portfolio/app-2.jpg" title="App 2" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-product" style="position: absolute; left: 331.25px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/product-2.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Product 2</h4>
-                   <a href="assets/img/portfolio/product-2.jpg" title="Product 2" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-branding" style="position: absolute; left: 331.25px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/branding-2.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Branding 2</h4>
-                   <a href="assets/img/portfolio/branding-2.jpg" title="Branding 2" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-books" style="position: absolute; left: 332.656px; top: 0px;">
-                 <img src="assets/img/portfolio/books-2.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Books 2</h4>
-                   <a href="assets/img/portfolio/books-2.jpg" title="Branding 2" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-app" style="position: absolute; left: 662.5px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/app-3.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>App 3</h4>
-                   <a href="assets/img/portfolio/app-3.jpg" title="App 3" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-product" style="position: absolute; left: 662.5px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/product-3.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Product 3</h4>
-                   <a href="assets/img/portfolio/product-3.jpg" title="Product 3" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-branding" style="position: absolute; left: 662.5px; top: 0px; display: none;">
-                 <img src="assets/img/portfolio/branding-3.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Branding 3</h4>
-                   <a href="assets/img/portfolio/branding-3.jpg" title="Branding 2" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-               <div class="col-xl-3 col-lg-4 col-md-6 portfolio-item filter-books" style="position: absolute; left: 665.312px; top: 0px;">
-                 <img src="assets/img/portfolio/books-3.jpg" class="img-fluid" alt="">
-                 <div class="portfolio-info">
-                   <h4>Books 3</h4>
-                   <a href="assets/img/portfolio/books-3.jpg" title="Branding 3" data-gallery="portfolio-gallery" class="glightbox preview-link"><i class="bi bi-zoom-in"></i></a>
-                   <a href="portfolio-details.html" title="More Details" class="details-link"><i class="bi bi-link-45deg"></i></a>
-                 </div>
-               </div><!-- End Portfolio Item -->
-
-             </div><!-- End Portfolio Container -->
-
-           </div>
-
+                     </div>
+                  </div>
+               </div>
+            </div><!-- End Tab 1 Content -->
          </div>
-       </section>
+
+      </div>
    </div>
 </template>
-<script>
-export default {
-   
+
+<style scoped>
+.sub-menu .nav-link {
+   border-bottom: 3px solid transparent;
+   color: grey;
+   margin-right: 20px;
 }
-</script>
-<style>
-   
+
+.sub-menu .nav-link:hover {
+   background-color: #485664;
+   border-radius: 0px;
+   color: var(--color-primary);
+}
+
+.sub-menu .nav-link.active {
+   background-color: #485664;
+   border-radius: 0px;
+   color: white;
+}
+
+.bg-ps-light {
+   background-color: rgba(238, 238, 238, 0.233);
+}
+
+.gallery-item img,
+.gallery-item video {
+   width: 100%;
+   height: 100%;
+   transition: .3s;
+}
+
+.gallery-item img:hover {
+   transform: scale(1.05);
+}
+
+.gallery-item {
+   overflow: hidden;
+}
+
+.s-menu li:hover a {
+   transition: .3s;
+   color: rgb(15, 15, 139);
+   /* transform: translateX(10px); */
+}
+
+.search i {
+   font-size: 12px;
+}
+
+.search span:hover {
+   background-color: rgb(218, 218, 218) !important;
+   cursor: pointer;
+}
+
+.p-image {
+   width: 100% !important;
+   height: 100% !important;
+   object-fit: cover;
+}
 </style>

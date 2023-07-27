@@ -22,6 +22,7 @@ import FooterComponent from './includes/footer.vue'
 <style>
 :root{
    --ps-primary-hover: #1a92a7;
+   --ps-primary-link: #1a92a70c;
    --ps-primary: #1a92a7e5;
 }
 .text-ps-primary{

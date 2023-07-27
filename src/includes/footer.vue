@@ -7,10 +7,10 @@
 
           <div class="col-lg-3 col-md-6">
             <div class="footer-info">
-              <h3>HeroBiz</h3>
+              <h3>Ecole HED</h3>
               <p>
-                A108 Adam Street <br>
-                NY 535022, USA<br><br>
+                Dirigé par <br>
+               <b>Firmin AMADJI</b><br><br>
                 <strong>Phone:</strong> +1 5589 55488 55<br>
                 <strong>Email:</strong> info@example.com<br>
               </p>

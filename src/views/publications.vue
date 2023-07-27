@@ -3,8 +3,7 @@ import { ref } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import BookComponent from '../components/book.vue'
 
-
-const formations = ref([
+const categories = ref([
    {
       title: "Travaux de recherches"
    },
@@ -27,9 +26,9 @@ const formations = ref([
          <div class="bg-ps-primary">
             <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
 
-               <li class="py-0" v-for="(item, index) in formations" :key="index">
-                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == 0 }" data-bs-toggle="pill"
-                     :href="`#tab${index + 1}`" aria-selected="{{ (index==0) ? 'false':'' }}" role="tab" tabindex="-1">
+               <li class="py-0" v-for="(item, index) in categories" :key="index">
+                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == $route.params.key }" data-bs-toggle="pill"
+                     :href="`#tab${index + 1}`" aria-selected="{{ (index==$route.params.key) ? 'false':'' }}" role="tab" tabindex="-1">
                      {{ item.title }}
                   </a>
                </li>
@@ -39,8 +38,8 @@ const formations = ref([
 
          <!-- Tab Content -->
          <div class="tab-content container p-0">
-            <div v-for="(item, index) in formations" :key="index" class="tab-pane fade p-0 m-0"
-               :class="{ 'active show': index == 0 }" :id="`tab${index + 1}`" role="tabpanel">
+            <div v-for="(item, index) in categories" :key="index" class="tab-pane fade p-0 m-0"
+               :class="{ 'active show': index == $route.params.key }" :id="`tab${index + 1}`" role="tabpanel">
                <div class="d-flex mt-4 align-items-center justify-content-between">
                   <h3 class="text-secondary mb-0">{{ item.title }}</h3>
                   <div class="search">
