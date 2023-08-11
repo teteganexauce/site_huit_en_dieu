@@ -27,12 +27,12 @@ const categories = ref([
             <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
 
                <li class="py-0" v-for="(item, index) in categories" :key="index">
-                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == $route.params.key }" data-bs-toggle="pill"
-                     :href="`#tab${index + 1}`" aria-selected="{{ (index==$route.params.key) ? 'false':'' }}" role="tab" tabindex="-1">
+                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == $route.params.key }"
+                     data-bs-toggle="pill" :href="`#tab${index + 1}`"
+                     aria-selected="{{ (index==$route.params.key) ? 'false':'' }}" role="tab" tabindex="-1">
                      {{ item.title }}
                   </a>
                </li>
-
             </ul><!-- End Tabs -->
          </div>
 
@@ -43,10 +43,25 @@ const categories = ref([
                <div class="d-flex mt-4 align-items-center justify-content-between">
                   <h3 class="text-secondary mb-0">{{ item.title }}</h3>
                   <div class="search">
-                     <span class="bg-light py-2 px-3"><i class="bi bi-search"></i></span>
+                     <span class="bg-light py-2 px-3" data-bs-toggle="collapse" data-bs-target="#collapseExample"
+                        aria-expanded="false" aria-controls="collapseExample"><i class="bi bi-search"></i></span>
                   </div>
                </div>
-               <section id="blog" class="blog mt-0 pt-4">
+               <div>
+                  <div class="collapse mt-4" id="collapseExample">
+                     <form action="" class="d-flex">
+                        <div class="w-100">
+                           <input class="form-control rounded-1 shadow-none" type="text" name="search" id="search"
+                              placeholder="Faites un recherche">
+                        </div>
+                        <div class="d-flex">
+                           <button class="btn btn-primary mx-1 rounded-1" type="submit">Rechercher</button>
+                           <button class="btn btn-danger rounded-1" type="reset">Annuler</button>
+                        </div>
+                     </form>
+                  </div>
+               </div>
+               <section id="blog" class="blog mt-4 pt-4">
                   <div class="container aos-init aos-animate" data-aos="fade-up">
                      <div class="row g-5">
                         <div class="col-lg-12">
@@ -176,4 +191,5 @@ const categories = ref([
 
 .post-img:hover img {
    transform: scale(1.05);
-}</style>
+}
+</style>

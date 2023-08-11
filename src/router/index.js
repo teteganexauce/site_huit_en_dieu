@@ -11,6 +11,8 @@ import pubDetail from "../views/pub-detail.vue";
 import teamAnimation from "../views/teamAnimation.vue";
 import temoignage from "../views/temoignage.vue";
 import galerie from "../views/galerie.vue";
+import formationDetail from '../views/formationDetail.vue';
+import profileInscrit from "../views/profileInscrit.vue";
 
 
 const router = createRouter({
@@ -35,6 +37,11 @@ const router = createRouter({
       path: "/services",
       name: "services",
       component: services,
+    },
+    {
+      path: "/formation-detail",
+      name: "formationDetail",
+      component: formationDetail,
     },
     {
       path: "/formations",
@@ -80,6 +87,11 @@ const router = createRouter({
       path: "/galerie",
       name: "galerie",
       component: galerie,
+    },
+    {
+      path: "/profile-inscrit",
+      name: "profileInscrit",
+      component: profileInscrit,
     },
   ],
 });

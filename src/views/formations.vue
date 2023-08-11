@@ -112,13 +112,13 @@ const formations = ref([
    object-fit: cover;
    transition: .5s;
 }
-.formation-image:hover img{
-   transform: scale(.9);
-   /* transition: .5s; */
+
+.formation:hover {
+   box-shadow: 0px 0px 15px 1px rgb(224, 224, 224) !important;
+   transition: .4s;
 }
 .formation:hover .formation-title{
    color: var(--color-primary);
-
 }
 .formation-description{
       -webkit-line-clamp: 2;
