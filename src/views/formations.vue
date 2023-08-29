@@ -47,28 +47,30 @@ const formations = ref([
                <div class="row container-fluid my-5 p-0 m-0">
                   <div class="row m-0 p-0">
                      <div class="col-lg-6 mb-4" v-for="n in 4" data-aos="fade-up" data-aos-delay="2000ms">
-                           <div class="formation d-flex py-2 shadow-sm text-secondary">
-                              <div class="formation-image px-2 w-25">
-                                 <img src="../assets/img/blog/blog-4.jpg" width="100%" height="100%" alt="">
-                              </div>
-                              <div class="formation-content w-75 text-capitalize mb-0 px-1">
-                                    <h5 class="formation-title">formation en pensée positive</h5>
-                                    <div class="mb-2">
-                                       <div class="foramtion-duration d-flex justify-content-between">
-                                          <small class="w-50">
-                                             Durée: <b>3 mois</b>
-                                          </small>
-                                          <small class="w-50">
-                                             Prix: <b>20 000 fcfa</b>
-                                          </small>
-                                       </div>
-                                    </div>
-                                    <p class="small formation-description mb-0 text-grey">
-                                       Lorem, ipsum dolor sit amet consectetur adipisicing elit. Delectus impedit, suscipit, rerum rem quam alias dolor quas id a numquam, obcaecati aspernatur nihil voluptate? Quo suscipit obcaecati accusamus earum asperiores!
-                                    </p>
-                              </div>
+                        <div class="formation d-flex py-2 shadow-sm text-secondary">
+                           <div class="formation-image px-2 w-25">
+                              <img src="../assets/img/blog/blog-4.jpg" width="100%" height="100%" alt="">
                            </div>
-                        </div>   
+                           <div class="formation-content w-75 text-capitalize mb-0 px-1">
+                              <h5 class="formation-title">formation en pensée positive</h5>
+                              <div class="mb-2">
+                                 <div class="foramtion-duration d-flex justify-content-between">
+                                    <small class="w-50">
+                                       Durée: <b>3 mois</b>
+                                    </small>
+                                    <small class="w-50">
+                                       Prix: <b>20 000 fcfa</b>
+                                    </small>
+                                 </div>
+                              </div>
+                              <p class="small formation-description mb-0 text-grey">
+                                 Lorem, ipsum dolor sit amet consectetur adipisicing elit. Delectus impedit, suscipit,
+                                 rerum rem quam alias dolor quas id a numquam, obcaecati aspernatur nihil voluptate? Quo
+                                 suscipit obcaecati accusamus earum asperiores!
+                              </p>
+                           </div>
+                        </div>
+                     </div>
                   </div>
                </div>
             </div><!-- End Tab 1 Content -->
@@ -101,14 +103,16 @@ const formations = ref([
    background-color: rgba(238, 238, 238, 0.233);
 }
 
-.w-30{
+.w-30 {
    widows: 30% !important;
 }
-.formation-image{
+
+.formation-image {
    max-width: 25% !important;
    min-width: 100px;
 }
-.formation-image img{
+
+.formation-image img {
    object-fit: cover;
    transition: .5s;
 }
@@ -117,20 +121,23 @@ const formations = ref([
    box-shadow: 0px 0px 15px 1px rgb(224, 224, 224) !important;
    transition: .4s;
 }
-.formation:hover .formation-title{
+
+.formation:hover .formation-title {
    color: var(--color-primary);
 }
-.formation-description{
-      -webkit-line-clamp: 2;
+
+.formation-description {
+   -webkit-line-clamp: 2;
    display: -webkit-box;
    -webkit-box-orient: vertical;
    overflow: hidden;
    word-wrap: break-word;
 }
-.text-grey{
+
+.text-grey {
    color: rgb(131, 131, 131);
 }
-.formation:hover{
+
+.formation:hover {
    cursor: pointer;
-}
-</style>
+}</style>
