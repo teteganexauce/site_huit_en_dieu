@@ -7,7 +7,7 @@
  */
 
 import AOS from "aos";
-import GLightbox from "../vendor/glightbox/js/glightbox.min";
+import GLightbox from "glightbox";
 document.addEventListener("DOMContentLoaded", () => {
   ("use strict");
 
