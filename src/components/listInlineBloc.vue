@@ -17,7 +17,7 @@
                </div>
             </div><!-- End Service Item -->
 
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos="zoom-out" data-aos-delay="200">
+            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate"  data-aos-delay="200">
                <div class="service-item position-relative">
                   <div class="icon"><i class="bi bi-star-fill icon"></i></div>
                   <h4><a href="" class="stretched-link">Sed ut perspici</a></h4>
@@ -27,7 +27,7 @@
                </div>
             </div><!-- End Service Item -->
 
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos="zoom-out" data-aos-delay="400">
+            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate"  data-aos-delay="400">
                <div class="service-item position-relative">
                   <div class="icon"><i class="bi bi-star-fill icon"></i></div>
                   <h4><a href="" class="stretched-link">Magni Dolores</a></h4>
@@ -37,7 +37,7 @@
                </div>
             </div><!-- End Service Item -->
 
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos="zoom-out" data-aos-delay="600">
+            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate"  data-aos-delay="600">
                <div class="service-item position-relative">
                   <div class="icon"><i class="bi bi-star-fill icon"></i></div>
                   <h4><a href="" class="stretched-link">Nemo Enim</a></h4>
@@ -54,7 +54,7 @@
       <div class="container">
          <div class="row espace vente">
             <div class="col-md-6 d-flex align-items-center">
-               <div class="title" data-aos="slide-right">
+               <div class="title" >
                   <h1>Espace de vente d'article, de document et d'artéfact</h1>
                   <p class="w-75 mt-4">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolores nulla quaerat
                      labore debitis, harum quae impedit atque commodi sunt quasi cum adipisci sapiente? Consequuntur rem
@@ -74,7 +74,7 @@
    </section>
 
    <section id="blog" class="blog mt-4 pt-4">
-      <div class="container aos-init aos-animate" data-aos="fade-up">
+      <div class="container aos-init aos-animate" >
          <div class="row g-5">
             <div class="col-lg-12">
                <div class="row gy-4 posts-list">
@@ -138,7 +138,7 @@
 
    <section id="testimonials" class="testimonials pt-5">
 
-      <div class="container mt-0">
+      <div class="container mt-0" >
          <h3 class="w-100 text-primary fw-bold text-center mb-5 head-temo">Témoignages</h3>
          <div class="testimonials-slider swiper">
             <div class="swiper-wrapper">
