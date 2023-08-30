@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 
+
 import "aos/dist/aos.css"; // You can also use <link> for styles
 // ..
 import "/src/assets/img/favicon.png";
