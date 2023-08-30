@@ -155,9 +155,9 @@ const breakpoint = {
 .book-icon i{
    font-size: 30px !important;
 }
-.text-grey {
+/* .text-grey {
    color: rgb(133, 133, 133);
-}
+} */
 
 .swiper {
    background-color: transparent !important;

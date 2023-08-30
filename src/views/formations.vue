@@ -98,10 +98,10 @@ const formations = ref([
    border-radius: 0px;
    color: white;
 }
-
+/* 
 .bg-ps-light {
    background-color: rgba(238, 238, 238, 0.233);
-}
+} */
 
 .w-30 {
    widows: 30% !important;
@@ -133,11 +133,12 @@ const formations = ref([
    overflow: hidden;
    word-wrap: break-word;
 }
-
+/* 
 .text-grey {
    color: rgb(131, 131, 131);
-}
+} */
 
 .formation:hover {
    cursor: pointer;
-}</style>
+}
+</style>

@@ -1,13 +1,13 @@
 /**
-* Template Name: HeroBiz
-* Updated: May 30 2023 with Bootstrap v5.3.0
-* Template URL: https://bootstrapmade.com/herobiz-bootstrap-business-template/
-* Author: BootstrapMade.com
-* License: https://bootstrapmade.com/license/
-*/
+ * Template Name: HeroBiz
+ * Updated: May 30 2023 with Bootstrap v5.3.0
+ * Template URL: https://bootstrapmade.com/herobiz-bootstrap-business-template/
+ * Author: BootstrapMade.com
+ * License: https://bootstrapmade.com/license/
+ */
 
-import AOS from 'aos';
-document.addEventListener('DOMContentLoaded', () => {
+import AOS from "aos";
+document.addEventListener("DOMContentLoaded", () => {
   ("use strict");
 
   /**
@@ -353,6 +353,10 @@ document.addEventListener('DOMContentLoaded', () => {
       el: ".swiper-pagination",
       type: "bullets",
       clickable: true,
+    },
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
     },
   });
 

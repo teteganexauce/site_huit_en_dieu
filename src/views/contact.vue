@@ -94,12 +94,12 @@ import BreadcombsComponent from '../includes/breadcombs.vue'
 <style scoped>
 
 
-.bg-ps-light {
+/* .bg-ps-light {
    background-color: rgba(238, 238, 238, 0.233);
 }
 
 .text-grey {
    color: rgb(131, 131, 131);
-}
+} */
 
 </style>

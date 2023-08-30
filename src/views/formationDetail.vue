@@ -198,17 +198,17 @@ const formations = ref([
    color: white;
 }
 
-.bg-ps-light {
+/* .bg-ps-light {
    background-color: rgba(238, 238, 238, 0.233);
-}
+} */
 
 .w-30 {
    widows: 30% !important;
 }
 
-.text-grey {
+/* .text-grey {
    color: rgb(131, 131, 131);
-}
+} */
 
 .formation:hover {
    cursor: pointer;

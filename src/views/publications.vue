@@ -149,9 +149,9 @@ const categories = ref([
    color: white;
 }
 
-.bg-ps-light {
+/* .bg-ps-light {
    background-color: rgba(238, 238, 238, 0.233);
-}
+} */
 
 .pub-title {
    -webkit-line-clamp: 2;
@@ -169,9 +169,9 @@ const categories = ref([
    word-wrap: break-word;
 }
 
-.text-grey {
+/* .text-grey {
    color: rgb(131, 131, 131);
-}
+} */
 
 .post-img img {
    max-height: 150px !important;

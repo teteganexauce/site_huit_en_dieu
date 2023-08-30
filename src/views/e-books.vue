@@ -62,7 +62,7 @@ const sousMenu = ref(['Nouveautés', 'Meilleures Ventes', 'Nos livres gratuits',
    color: white;
 }
 
-.bg-ps-light {
+/* .bg-ps-light {
    background-color: rgba(238, 238, 238, 0.233);
-}
+} */
 </style>

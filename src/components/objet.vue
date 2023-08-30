@@ -72,13 +72,13 @@
    border: 2px solid var(--color-primary);
 }
 
-.text-ps-primary {
+/* .text-ps-primary {
    color: var(--color-primary) !important;
 }
 
 .text-grey {
    color: rgb(133, 133, 133);
-}
+} */
 
 .book-paragraph {
    -webkit-line-clamp: 2;

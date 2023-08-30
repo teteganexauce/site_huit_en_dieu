@@ -147,10 +147,10 @@ const formations = ref([
    height: 100%;
    object-fit: cover;
 }
-
+/* 
 .bg-ps-light {
    background-color: rgba(238, 238, 238, 0.233);
-}
+} */
 
 .sub-menu .nav-link {
    background: rgb(236, 236, 236);
