@@ -53,7 +53,7 @@
    <section id="espace-vente" class="espace-vente bg-light mb-5">
       <div class="container">
          <div class="row espace vente">
-            <div class="col-md-6 d-flex align-items-center">
+            <div class="col-md-6 d-flex align-items-center mb-4 mb-md-0">
                <div class="title" >
                   <h1>Espace de vente d'article, de document et d'artéfact</h1>
                   <p class="w-75 mt-4">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolores nulla quaerat
