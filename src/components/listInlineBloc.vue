@@ -4,11 +4,11 @@
 
 <template>
    <section id="featured-services" class="featured-services">
-      <div class="container" data-aos="fade-out">
+      <div class="container">
          <h3 class="w-100 text-primary fw-bold text-center mb-5">Nos Formations</h3>
          <div class="row gy-4">
 
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos="zoom-out">
+            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" >
                <div class="service-item position-relative">
                   <div class="icon"><i class="bi bi-star-fill icon"></i></div>
                   <h4><a href="" class="stretched-link">Lorem Ipsum</a></h4>
@@ -51,7 +51,7 @@
    </section>
 
    <section id="espace-vente" class="espace-vente bg-light mb-5">
-      <div class="container" data-aos="fade-down">
+      <div class="container">
          <div class="row espace vente">
             <div class="col-md-6 d-flex align-items-center">
                <div class="title" data-aos="slide-right">
@@ -138,7 +138,7 @@
 
    <section id="testimonials" class="testimonials pt-5">
 
-      <div class="container mt-0" data-aos="fade-up">
+      <div class="container mt-0">
          <h3 class="w-100 text-primary fw-bold text-center mb-5 head-temo">Témoignages</h3>
          <div class="testimonials-slider swiper">
             <div class="swiper-wrapper">
@@ -244,7 +244,7 @@
 
    <section id="clients" class="clients mt-5">
       <h3 class="w-100 text-primary fw-bold text-center mb-5">Partenaires</h3>
-      <div class="container" data-aos="zoom-out">
+      <div class="container">
          <div class="clients-slider swiper">
             <div class="swiper-wrapper align-items-center">
                <div class="swiper-slide"><img src="../assets/img/clients/client-1.png" class="img-fluid" alt=""></div>
