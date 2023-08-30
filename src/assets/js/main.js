@@ -8,6 +8,7 @@
 
 import AOS from "aos";
 import GLightbox from "glightbox";
+
 document.addEventListener("DOMContentLoaded", () => {
   ("use strict");
 
