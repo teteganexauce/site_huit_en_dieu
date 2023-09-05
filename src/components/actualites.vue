@@ -3,9 +3,7 @@ import { ref } from 'vue'
 
 
 import { Navigation, Pagination, A11y } from 'swiper/modules';
-// Import Swiper Vue.js components
 import { Swiper, SwiperSlide } from 'swiper/vue';
-// import Swiper and modules styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -80,11 +78,11 @@ const pubs = ref([
                </div>
             </div>
          </div-->
-         <swiper :modules="[Navigation, Pagination, A11y]" :breakpoints="breakpoint" :loop="true" :space-between="50"
+         <swiper :modules="[Navigation, Pagination, A11y]" :slides-per-view="2" loop :space-between="50"
             navigation :pagination="{ clickable: true }" @swiper="onSwiper" @slideChange="onSlideChange">
             <swiper-slide v-for="(pub, index) in pubs" :key="index" class="col-lg-4 col-md-6 p-1 mb-3">
                <div>
-               <div class="px-3 py-3 publications shadow" :class="index==0 ? `active`: ``">
+               <div class="px-3 py-3 mb-4 publications shadow" :class="index==0 ? `active`: ``">
                   <a href="">
                      <div class="d-flex flex-wrap align-items-center justify-content-between">
                         <div>

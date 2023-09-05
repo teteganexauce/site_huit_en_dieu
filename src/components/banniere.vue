@@ -2,7 +2,7 @@
    <div class="d-none">
       <section id="hero-static" class="hero-static d-flex align-items-center">
          <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative">
-            <h2>GRANDE ÉCOLE UNIVERSELLE DES <br> <span>HUIT EN DIEU</span></h2>
+            <h2>INSTITUT NOUBOUDO <br> <span>Mystère Révélés</span></h2>
             <p>Bienvenue sur la plateforme de vulgarisation et de valorisation des recherches scientifiques du Centre de
                Réveil Spirituel – Hwéton « <b>le Soleil intérieur s’est lévé</b> » dirigé par Monsieur <i><b>Firmin
                      AMADJI</b></i></p>
@@ -23,7 +23,7 @@
                      <section id="hero-static" class="h-100 hero-static d-flex align-items-center">
                         <div
                            class="container d-flex flex-column justify-content-center align-items-center text-center position-relative">
-                           <h2 class="text-white fw-bold">GRANDE ÉCOLE UNIVERSELLE DES <br> <span class="fw-bold text-primary">HUIT EN DIEU</span></h2>
+                           <h2 class="text-white fw-bold">INSTITUT NOUBOUDO <br> <span class="fw-bold text-primary">Mystère Révélés</span></h2>
                            <p class="text-white">Bienvenue sur la plateforme de vulgarisation et de valorisation des recherches scientifiques
                               du Centre de
                               Réveil Spirituel – Hwéton « <b>le Soleil intérieur s’est lévé</b> » dirigé par Monsieur
@@ -37,7 +37,6 @@
                   </div>
                </div>
             </swiper-slide>
-
          </swiper>
       </div>
    </div>

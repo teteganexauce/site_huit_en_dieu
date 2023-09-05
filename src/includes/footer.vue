@@ -7,7 +7,8 @@
 
           <div class="col-lg-4 col-md-6">
             <div class="footer-info">
-              <h3>Ecole HED</h3>
+              <h3 class="mb-0">INSTITUT NOUBOUDO</h3>
+              <h6 class="mb-4">Mystère révélé</h6>
               <p>
                 Dirigé par <br>
                <b>Firmin AMADJI</b><br><br>
