@@ -11,7 +11,7 @@ import "/src/assets/vendor/bootstrap/css/bootstrap.min.css";
 import "/src/assets/vendor/bootstrap-icons/bootstrap-icons.css";
 import "/src/assets/vendor/glightbox/css/glightbox.min.css";
 import "/src/assets/vendor/swiper/swiper-bundle.min.css";
-import "/src/assets/css/variables-blue.css";
+import "/src/assets/css/variables-red.css";
 import "/src/assets/css/main.css";
 
 import $ from "jquery/dist/jquery.min";

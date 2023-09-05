@@ -23,7 +23,7 @@
                      <section id="hero-static" class="h-100 hero-static d-flex align-items-center">
                         <div
                            class="container d-flex flex-column justify-content-center align-items-center text-center position-relative">
-                           <h2 class="text-white fw-bold">INSTITUT NOUBOUDO <br> <span class="fw-bold text-primary">Mystère Révélés</span></h2>
+                           <h2 class="text-white fw-bold">INSTITUT NOUBOUDO <br> <span class="fw-bold text-primary">Mystères Révélés</span></h2>
                            <p class="text-white">Bienvenue sur la plateforme de vulgarisation et de valorisation des recherches scientifiques
                               du Centre de
                               Réveil Spirituel – Hwéton « <b>le Soleil intérieur s’est lévé</b> » dirigé par Monsieur
