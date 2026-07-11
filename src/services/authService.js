@@ -40,7 +40,19 @@ const authService = {
    * Récupérer les informations du profil utilisateur
    */
   async getProfile() {
-    const response = await api.get('/user');
+    const response = await api.get('/user/profile');
+    return response.data;
+  },
+
+  /**
+   * Mettre à jour le profil utilisateur
+   */
+  async updateProfile(formData) {
+    const response = await api.post('/user/profile', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data;
   },
 
