@@ -96,11 +96,17 @@
          </nav><!-- .navbar -->
 
          <a class="btn-getstarted scrollto" href="index.html#about">Faire un Don</a>
+         <router-link v-if="!authStore.isAuthenticated" to="/login" class="btn-getstarted scrollto ms-2">Connexion</router-link>
+         <router-link v-else to="/profile-inscrit" class="btn-getstarted scrollto ms-2">Mon Profil</router-link>
 
       </div>
    </header><!-- End Header -->
 </template>
 <script setup>
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
+
 $(document).ready(function () {
    $(".mobile-nav-active #vabar ul").click(function (e) {
 alert('jh')

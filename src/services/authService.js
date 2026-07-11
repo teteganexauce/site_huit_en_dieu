@@ -6,11 +6,12 @@ const authService = {
    */
   async login(credentials) {
     const response = await api.post('/login', credentials);
-    if (response.data && response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+    const resData = response.data;
+    if (resData && resData.data && resData.data.token) {
+        localStorage.setItem('token', resData.data.token);
+        localStorage.setItem('user', JSON.stringify(resData.data.user));
     }
-    return response.data;
+    return resData;
   },
 
   /**
@@ -18,11 +19,12 @@ const authService = {
    */
   async register(userData) {
     const response = await api.post('/register', userData);
-    if (response.data && response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+    const resData = response.data;
+    if (resData && resData.data && resData.data.token) {
+        localStorage.setItem('token', resData.data.token);
+        localStorage.setItem('user', JSON.stringify(resData.data.user));
     }
-    return response.data;
+    return resData;
   },
 
   /**
@@ -39,6 +41,22 @@ const authService = {
    */
   async getProfile() {
     const response = await api.get('/user');
+    return response.data;
+  },
+
+  /**
+   * Demander un lien de réinitialisation de mot de passe
+   */
+  async forgotPassword(email) {
+    const response = await api.post('/password/forgot', { email });
+    return response.data;
+  },
+
+  /**
+   * Réinitialiser le mot de passe
+   */
+  async resetPassword(data) {
+    const response = await api.post('/password/reset', data);
     return response.data;
   }
 };

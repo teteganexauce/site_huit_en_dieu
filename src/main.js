@@ -24,8 +24,12 @@ import "/src/assets/vendor/swiper/swiper-bundle.min.js";
 import "/src/assets/vendor/php-email-form/validate.js";
 import "./assets/js/main";
 
+import { createPinia } from 'pinia';
+
 const app = createApp(App);
 
+const pinia = createPinia();
+app.use(pinia);
 app.use(router);
 
 app.mount("#app");

@@ -2,7 +2,11 @@
 import { ref } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import BookComponent from '../components/book.vue'
+import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 
+const authStore = useAuthStore()
+const router = useRouter()
 
 const formations = ref([
    {
@@ -12,6 +16,11 @@ const formations = ref([
       title: "Sécurité du compte"
    },
 ])
+
+const handleLogout = async () => {
+   await authStore.logout()
+   router.push({ name: 'login' })
+}
 
 </script>
 
@@ -49,6 +58,9 @@ const formations = ref([
                               <div class="col-md-6">
                                  <span><b>Statut:</b></span> <br>
                                  <p>Etudiant</p>
+                              </div>
+                              <div class="col-md-12 mt-3">
+                                 <button @click="handleLogout" class="btn btn-outline-danger btn-sm">Se déconnecter</button>
                               </div>
                            </div>
                         </div>

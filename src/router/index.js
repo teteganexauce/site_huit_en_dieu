@@ -14,6 +14,12 @@ import galerie from "../views/galerie.vue";
 import formationDetail from '../views/formationDetail.vue';
 import profileInscrit from "../views/profileInscrit.vue";
 
+// Auth Views
+import LoginView from '../views/auth/LoginView.vue';
+import RegisterView from '../views/auth/RegisterView.vue';
+import ForgotPasswordView from '../views/auth/ForgotPasswordView.vue';
+import ResetPasswordView from '../views/auth/ResetPasswordView.vue';
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -92,8 +98,47 @@ const router = createRouter({
       path: "/profile-inscrit",
       name: "profileInscrit",
       component: profileInscrit,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: LoginView,
+      meta: { guestOnly: true }
+    },
+    {
+      path: "/register",
+      name: "register",
+      component: RegisterView,
+      meta: { guestOnly: true }
+    },
+    {
+      path: "/forgot-password",
+      name: "forgotPassword",
+      component: ForgotPasswordView,
+      meta: { guestOnly: true }
+    },
+    {
+      path: "/password-reset/:token",
+      name: "resetPassword",
+      component: ResetPasswordView,
+      meta: { guestOnly: true }
     },
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    // Rediriger vers la connexion si on essaie d'accéder à une route protégée
+    next({ name: 'login' });
+  } else if (to.meta.guestOnly && isAuthenticated) {
+    // Rediriger vers le dashboard/profil si on est déjà connecté et qu'on tente d'aller sur login/register
+    next({ name: 'profileInscrit' });
+  } else {
+    next();
+  }
 });
 
 export default router
