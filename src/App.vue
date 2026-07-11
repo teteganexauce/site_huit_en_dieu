@@ -1,8 +1,17 @@
 <script setup>
+import { onMounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
 import HeaderComponent from './includes/header.vue'
 import FooterComponent from './includes/footer.vue'
+import { useAuthStore } from './stores/auth';
 
+const authStore = useAuthStore();
+
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    authStore.fetchProfile();
+  }
+});
 </script>
 
 <template>

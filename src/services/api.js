@@ -46,9 +46,16 @@ api.interceptors.response.use(
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         
-        // Redirection vers l'accueil ou le login si on est pas déjà dessus
-        if (router.currentRoute.value.name !== 'home' && router.currentRoute.value.name !== 'login') {
-          router.push({ name: 'home' }); // En attendant d'avoir une vraie page de login
+        // Dynamiquement importer le store pour éviter les dépendances circulaires
+        import('../stores/auth').then(({ useAuthStore }) => {
+           const authStore = useAuthStore();
+           authStore.token = null;
+           authStore.user = null;
+        });
+        
+        // Redirection vers le login si on est pas déjà dessus
+        if (router.currentRoute.value.name !== 'login') {
+          router.push({ name: 'login' });
         }
         break;
 
