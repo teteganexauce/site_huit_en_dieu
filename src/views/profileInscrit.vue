@@ -10,12 +10,12 @@ import defaultAvatar from '../assets/img/portfolio/app-1.jpg'
 const authStore = useAuthStore()
 const router = useRouter()
 
-const formations = ref([
+const tabs = ref([
    {
       title: "Cours & Formations"
    },
    {
-      title: "Sécurité du compte"
+      title: "Paramètres du profil"
    },
 ])
 
@@ -23,7 +23,14 @@ const form = ref({
    nom: '',
    prenom: '',
    telephone: '',
-   adresse: ''
+   adresse: '',
+   fonction: '',
+   niveauEtude: '',
+   specialite: '',
+   bio: '',
+   institution: '',
+   adresseLivraison: '',
+   preferencesNotification: ''
 })
 
 const photoFile = ref(null)
@@ -34,16 +41,49 @@ const errors = ref({})
 const successMessage = ref('')
 const globalError = ref('')
 
-onMounted(() => {
+const initializeForm = () => {
    if (authStore.user) {
       form.value.nom = authStore.user.nom || ''
       form.value.prenom = authStore.user.prenom || ''
       form.value.telephone = authStore.user.telephone || ''
       form.value.adresse = authStore.user.adresse || ''
       
+      if (authStore.user.profil_administrateur) {
+          form.value.fonction = authStore.user.profil_administrateur.fonction || ''
+      }
+      if (authStore.user.profil_etudiant) {
+          form.value.niveauEtude = authStore.user.profil_etudiant.niveauEtude || ''
+      }
+      if (authStore.user.profil_chercheur) {
+          form.value.specialite = authStore.user.profil_chercheur.specialite || ''
+          form.value.bio = authStore.user.profil_chercheur.bio || ''
+          form.value.institution = authStore.user.profil_chercheur.institution || ''
+      }
+      if (authStore.user.profil_client_boutique) {
+          form.value.adresseLivraison = authStore.user.profil_client_boutique.adresseLivraison || ''
+          form.value.preferencesNotification = authStore.user.profil_client_boutique.preferencesNotification || ''
+      }
+      
       if (authStore.user.photo_profil_url) {
          photoPreview.value = authStore.user.photo_profil_url
       }
+   }
+}
+
+onMounted(async () => {
+   // Initialisation immédiate avec le cache local pour un affichage instantané
+   initializeForm()
+
+   try {
+      const res = await authService.getProfile()
+      if (res && res.data) {
+         authStore.user = res.data
+         localStorage.setItem('user', JSON.stringify(res.data))
+         // Mise à jour de l'affichage avec les nouvelles données serveur si nécessaire
+         initializeForm()
+      }
+   } catch (error) {
+      console.error("Erreur lors de la récupération du profil", error)
    }
 })
 
@@ -82,6 +122,14 @@ const handleUpdateProfile = async () => {
          formData.append('photo', photoFile.value)
       }
 
+      if (form.value.fonction) formData.append('fonction', form.value.fonction)
+      if (form.value.niveauEtude) formData.append('niveauEtude', form.value.niveauEtude)
+      if (form.value.specialite) formData.append('specialite', form.value.specialite)
+      if (form.value.bio) formData.append('bio', form.value.bio)
+      if (form.value.institution) formData.append('institution', form.value.institution)
+      if (form.value.adresseLivraison) formData.append('adresseLivraison', form.value.adresseLivraison)
+      if (form.value.preferencesNotification) formData.append('preferencesNotification', form.value.preferencesNotification)
+
       const response = await authService.updateProfile(formData)
       
       if (response.data) {
@@ -119,6 +167,10 @@ const handleUpdateProfile = async () => {
                                  Changer la photo
                               </label>
                               <input type="file" id="photoUpload" class="d-none" accept="image/*" @change="handleFileChange">
+                              <button v-if="photoFile" @click="handleUpdateProfile" class="btn btn-sm bg-ps-primary text-white w-100 mt-2" :disabled="isLoading">
+                                 <span v-if="isLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                 Enregistrer la photo
+                              </button>
                            </div>
                            <div v-if="errors.photo" class="text-danger small mt-1 text-center">{{ errors.photo[0] }}</div>
                         </div>
@@ -153,10 +205,10 @@ const handleUpdateProfile = async () => {
 
                      <div class="mt-5">
                         <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
-                           <li class="py-0" v-for="(item, index) in formations" :key="index">
+                           <li class="py-0" v-for="(item, index) in tabs" :key="index">
                               <a class="nav-link px-3 mx-0 my-0 text-secondary border-bottom border-2 rounded-0"
                                  :class="{ 'active': index == 0 }" data-bs-toggle="pill" :href="`#tab${index + 1}`"
-                                 aria-selected="{{ (index==0) ? 'false':'' }}" role="tab" tabindex="-1">
+                                 :aria-selected="(index==0) ? 'false':''" role="tab" tabindex="-1">
                                  {{ item.title }}
                               </a>
                            </li>
@@ -165,7 +217,7 @@ const handleUpdateProfile = async () => {
 
                      <!-- Tab Content -->
                      <div class="tab-content container p-0">
-                        <div v-for="(item, index) in formations" :key="index" class="tab-pane fade p-0 m-0"
+                        <div v-for="(item, index) in tabs" :key="index" class="tab-pane fade p-0 m-0"
                            :class="{ 'active show': index == 0 }" :id="`tab${index + 1}`" role="tabpanel">
                            <div class="" v-if="index == 1">
                               <div class="px-5 mt-4">
@@ -204,6 +256,44 @@ const handleUpdateProfile = async () => {
                                           <input type="text" id="adresse" class="rounded-1 form-control" :class="{'is-invalid': errors.adresse}" v-model="form.adresse">
                                           <div class="invalid-feedback" v-if="errors.adresse">{{ errors.adresse[0] }}</div>
                                        </div>
+
+                                       <div v-if="authStore.user?.role === 'admin'" class="col-lg-12 mb-3">
+                                          <label for="fonction" class="text-secondary">Fonction</label>
+                                          <input type="text" id="fonction" class="rounded-1 form-control" :class="{'is-invalid': errors.fonction}" v-model="form.fonction">
+                                          <div class="invalid-feedback" v-if="errors.fonction">{{ errors.fonction[0] }}</div>
+                                       </div>
+
+                                       <div v-if="authStore.user?.role === 'etudiant'" class="col-lg-12 mb-3">
+                                          <label for="niveauEtude" class="text-secondary">Niveau d'étude</label>
+                                          <input type="text" id="niveauEtude" class="rounded-1 form-control" :class="{'is-invalid': errors.niveauEtude}" v-model="form.niveauEtude">
+                                          <div class="invalid-feedback" v-if="errors.niveauEtude">{{ errors.niveauEtude[0] }}</div>
+                                       </div>
+
+                                       <template v-if="authStore.user?.role === 'chercheur'">
+                                          <div class="col-lg-6 mb-3">
+                                             <label for="specialite" class="text-secondary">Spécialité</label>
+                                             <input type="text" id="specialite" class="rounded-1 form-control" :class="{'is-invalid': errors.specialite}" v-model="form.specialite">
+                                             <div class="invalid-feedback" v-if="errors.specialite">{{ errors.specialite[0] }}</div>
+                                          </div>
+                                          <div class="col-lg-6 mb-3">
+                                             <label for="institution" class="text-secondary">Institution</label>
+                                             <input type="text" id="institution" class="rounded-1 form-control" :class="{'is-invalid': errors.institution}" v-model="form.institution">
+                                             <div class="invalid-feedback" v-if="errors.institution">{{ errors.institution[0] }}</div>
+                                          </div>
+                                          <div class="col-lg-12 mb-3">
+                                             <label for="bio" class="text-secondary">Bio</label>
+                                             <textarea id="bio" rows="3" class="rounded-1 form-control" :class="{'is-invalid': errors.bio}" v-model="form.bio"></textarea>
+                                             <div class="invalid-feedback" v-if="errors.bio">{{ errors.bio[0] }}</div>
+                                          </div>
+                                       </template>
+
+                                       <template v-if="authStore.user?.role === 'client'">
+                                          <div class="col-lg-12 mb-3">
+                                             <label for="adresseLivraison" class="text-secondary">Adresse de livraison par défaut</label>
+                                             <textarea id="adresseLivraison" rows="2" class="rounded-1 form-control" :class="{'is-invalid': errors.adresseLivraison}" v-model="form.adresseLivraison"></textarea>
+                                             <div class="invalid-feedback" v-if="errors.adresseLivraison">{{ errors.adresseLivraison[0] }}</div>
+                                          </div>
+                                       </template>
                                        <div class="col-lg-12">
                                           <button type="submit" class="btn bg-ps-primary text-white rounded-1" :disabled="isLoading">
                                              <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
