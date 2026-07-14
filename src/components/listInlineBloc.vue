@@ -221,23 +221,25 @@ onMounted(async () => {
          </div>
           <div v-else class="clients-slider swiper">
              <swiper
-               :slides-per-view="4"
-               :space-between="30"
-               loop
+                :slides-per-view="7"
+                :space-between="16"
+                loop
                 :modules="[Navigation, Pagination, A11y, Autoplay]"
-               :breakpoints="{
-                 320: { slidesPerView: 2, spaceBetween: 20 },
-                 768: { slidesPerView: 3, spaceBetween: 30 },
-                 1024: { slidesPerView: 4, spaceBetween: 30 }
-               }"
+                :breakpoints="{
+                  320: { slidesPerView: 2, spaceBetween: 12 },
+                  576: { slidesPerView: 3, spaceBetween: 12 },
+                  768: { slidesPerView: 4, spaceBetween: 16 },
+                  992: { slidesPerView: 5, spaceBetween: 16 },
+                  1200: { slidesPerView: 7, spaceBetween: 16 }
+                }"
                :autoplay="{ delay: 3000 }"
              >
                  <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
                    <div class="partner-card">
                      <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
-                       <img :src="clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                       <img :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
                      </a>
-                     <img v-else :src="clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                     <img v-else :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
                      <p class="partner-name">{{ item.nom }}</p>
                    </div>
                  </swiper-slide>
