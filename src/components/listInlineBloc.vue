@@ -232,7 +232,7 @@ onMounted(async () => {
                   992: { slidesPerView: 5, spaceBetween: 16 },
                   1200: { slidesPerView: 7, spaceBetween: 16 }
                 }"
-               :autoplay="{ delay: 3000 }"
+                :autoplay="{ delay: 2000, disableOnInteraction: false }"
              >
                  <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
                    <div class="partner-card">
@@ -240,7 +240,6 @@ onMounted(async () => {
                        <img :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
                      </a>
                      <img v-else :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
-                     <p class="partner-name">{{ item.nom }}</p>
                    </div>
                  </swiper-slide>
              </swiper>
@@ -313,17 +312,5 @@ onMounted(async () => {
    opacity: 1;
 }
 
-.partner-name {
-   font-size: 0.7rem;
-   font-weight: 600;
-   color: #6c757d;
-   margin: 6px 0 0;
-   text-align: center;
-   line-height: 1.2;
-   transition: color 0.3s ease;
-}
 
-.partner-card:hover .partner-name {
-   color: #0d6efd;
-}
 </style>
