@@ -323,7 +323,7 @@ onUnmounted(() => {
 .site-nav__link:hover,
 .site-nav__link.router-link-active {
   color: #ffffff;
-  background: linear-gradient(160deg, rgba(31, 51, 82, 0.95) 0%, rgba(47, 76, 116, 0.95) 100%);
+  background: linear-gradient(160deg, rgba(58, 94, 147, 0.95) 0%, rgba(59, 95, 147, 0.95) 100%);
 }
 
 /* Trait dégradé : discret sous le lien, blanc pour rester
@@ -360,7 +360,7 @@ onUnmounted(() => {
    prend le même fond bleu quand son dropdown est ouvert */
 .site-nav__item--dropdown:hover .site-nav__link--toggle {
   color: #ffffff;
-  background: linear-gradient(160deg, rgba(31, 51, 82, 0.95) 0%, rgba(47, 76, 116, 0.95) 100%);
+  background: linear-gradient(160deg, rgba(58, 90, 139, 0.95) 0%, rgba(59, 99, 155, 0.95) 100%);
 }
 
 /* ==========================================
@@ -373,7 +373,7 @@ onUnmounted(() => {
   left: 0;
   min-width: 260px;
   padding: 0.85rem;
-  background: linear-gradient(160deg, rgba(31, 51, 82, 0.97) 0%, rgba(47, 76, 116, 0.97) 100%);
+  background: linear-gradient(160deg, rgba(58, 91, 141, 0.97) 0%, rgba(57, 94, 147, 0.97) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -559,7 +559,7 @@ onUnmounted(() => {
   max-height: 0;
   overflow: hidden;
   border-radius: 12px;
-  background: linear-gradient(160deg, rgba(31, 51, 82, 0.97) 0%, rgba(47, 76, 116, 0.97) 100%);
+  background: linear-gradient(160deg, rgba(63, 112, 186, 0.97) 0%, rgba(63, 117, 192, 0.97) 100%);
   transition: max-height 0.3s ease, padding 0.3s ease;
 }
 
