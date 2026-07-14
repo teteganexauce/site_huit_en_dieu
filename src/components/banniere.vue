@@ -55,8 +55,27 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   try {
-    const data = await publicService.getSlides();
-    slides.value = data.data || data;
+    const [slideData, eventData] = await Promise.all([
+      publicService.getSlides(),
+      publicService.getEvents()
+    ]);
+    const slidesList = slideData.data || slideData || [];
+    const eventsList = eventData.data || eventData || [];
+
+    // Garder les slides de la bdd, puis ajouter les 3 prochains événements à venir
+    const now = new Date();
+    const upcoming = eventsList
+      .filter(e => new Date(e.dateDebut) > now)
+      .slice(0, 3)
+      .map(e => ({
+        id: 'event-' + e.id,
+        titre: e.titre,
+        texte: e.description,
+        imageUrl: e.imageUrl,
+        lien: e.lieu ? '/evenements' : null
+      }));
+
+    slides.value = [...slidesList, ...upcoming];
   } catch (error) {
     console.error('Erreur chargement slides:', error);
   } finally {

@@ -10,6 +10,16 @@ import 'swiper/css/scrollbar';
 
 import publicService from '../services/publicService'
 import defaultImg from '../assets/img/blog/blog-2.jpg'
+import client1 from '../assets/img/clients/client-1.png'
+import client2 from '../assets/img/clients/client-2.png'
+import client3 from '../assets/img/clients/client-3.png'
+import client4 from '../assets/img/clients/client-4.png'
+import client5 from '../assets/img/clients/client-5.png'
+import client6 from '../assets/img/clients/client-6.png'
+import client7 from '../assets/img/clients/client-7.png'
+import client8 from '../assets/img/clients/client-8.png'
+
+const clientLogos = [client1, client2, client3, client4, client5, client6, client7, client8]
 
 const temoignages = ref([])
 const partenaires = ref([])
@@ -222,12 +232,15 @@ onMounted(async () => {
                }"
                :autoplay="{ delay: 3000 }"
              >
-               <swiper-slide v-for="item in partenaires" :key="item.id">
-                 <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
-                   <img :src="item.logoUrl || defaultImg" class="partner-logo" :alt="item.nom">
-                 </a>
-                 <img v-else :src="item.logoUrl || defaultImg" class="partner-logo" :alt="item.nom">
-               </swiper-slide>
+                <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
+                  <div class="partner-card">
+                    <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
+                      <img :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                    </a>
+                    <img v-else :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                    <p class="partner-name">{{ item.nom }}</p>
+                  </div>
+                </swiper-slide>
              </swiper>
           </div>
       </div>
@@ -265,17 +278,52 @@ onMounted(async () => {
    align-items: center;
 }
 
-.partner-logo {
-   max-height: 80px;
-   width: auto;
-   object-fit: contain;
-   filter: grayscale(100%);
-   opacity: 0.7;
+.partner-card {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   background: #fff;
+   border-radius: 12px;
+   padding: 24px 16px;
+   min-height: 140px;
+   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
    transition: all 0.3s ease;
+   width: 100%;
 }
 
-.partner-logo:hover {
+.partner-card:hover {
+   box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+   transform: translateY(-4px);
+}
+
+.partner-logo {
+   max-height: 60px;
+   max-width: 120px;
+   width: auto;
+   height: auto;
+   object-fit: contain;
+   filter: grayscale(100%);
+   opacity: 0.6;
+   transition: all 0.4s ease;
+   margin-bottom: 8px;
+}
+
+.partner-card:hover .partner-logo {
    filter: grayscale(0%);
    opacity: 1;
+}
+
+.partner-name {
+   font-size: 0.8rem;
+   font-weight: 600;
+   color: #6c757d;
+   margin: 4px 0 0;
+   text-align: center;
+   transition: color 0.3s ease;
+}
+
+.partner-card:hover .partner-name {
+   color: #0d6efd;
 }
 </style>
