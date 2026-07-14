@@ -284,29 +284,28 @@ onMounted(async () => {
    align-items: center;
    justify-content: center;
    background: #fff;
-   border-radius: 12px;
-   padding: 24px 16px;
-   min-height: 140px;
-   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+   border-radius: 8px;
+   padding: 12px 8px;
+   min-height: 100px;
+   box-shadow: 0 1px 6px rgba(0,0,0,0.06);
    transition: all 0.3s ease;
    width: 100%;
 }
 
 .partner-card:hover {
-   box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-   transform: translateY(-4px);
+   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+   transform: translateY(-2px);
 }
 
 .partner-logo {
-   max-height: 60px;
-   max-width: 120px;
+   max-height: 90px;
+   max-width: 160px;
    width: auto;
    height: auto;
    object-fit: contain;
    filter: grayscale(100%);
    opacity: 0.6;
    transition: all 0.4s ease;
-   margin-bottom: 8px;
 }
 
 .partner-card:hover .partner-logo {
@@ -315,11 +314,12 @@ onMounted(async () => {
 }
 
 .partner-name {
-   font-size: 0.8rem;
+   font-size: 0.7rem;
    font-weight: 600;
    color: #6c757d;
-   margin: 4px 0 0;
+   margin: 6px 0 0;
    text-align: center;
+   line-height: 1.2;
    transition: color 0.3s ease;
 }
 
