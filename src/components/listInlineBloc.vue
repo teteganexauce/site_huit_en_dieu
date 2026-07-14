@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 
@@ -25,6 +25,8 @@ const temoignages = ref([])
 const partenaires = ref([])
 const isLoadingTemoignages = ref(true)
 const isLoadingPartenaires = ref(true)
+
+const maxLoopedSlides = computed(() => Math.max(partenaires.value.length, 7))
 
 onMounted(async () => {
   try {
@@ -225,6 +227,7 @@ onMounted(async () => {
                  :slides-per-view="7"
                  :space-between="16"
                  :loop="true"
+                 :loopedSlides="maxLoopedSlides"
                  :modules="[Navigation, Pagination, A11y, Autoplay]"
                  :breakpoints="{
                    320: { slidesPerView: 2, spaceBetween: 12 },
@@ -233,9 +236,9 @@ onMounted(async () => {
                    992: { slidesPerView: 5, spaceBetween: 16 },
                    1200: { slidesPerView: 7, spaceBetween: 16 }
                  }"
-                 :speed="800"
+                 :speed="3000"
                  :grab-cursor="true"
-                 :autoplay="{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: false }"
+                 :autoplay="{ delay: 50, disableOnInteraction: false, pauseOnMouseEnter: false }"
               >
                 <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
                    <div class="partner-card">
@@ -293,10 +296,19 @@ onMounted(async () => {
    min-height: 100px;
    transition: all 0.3s ease;
    width: 100%;
+   box-shadow: none;
 }
 
 .partner-card:hover {
    transform: translateY(-2px);
+}
+
+.clients-slider {
+   overflow: hidden;
+}
+
+.partner-card img {
+   box-shadow: none !important;
 }
 
 .partner-logo {
