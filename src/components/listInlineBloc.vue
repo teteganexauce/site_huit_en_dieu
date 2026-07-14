@@ -232,15 +232,15 @@ onMounted(async () => {
                }"
                :autoplay="{ delay: 3000 }"
              >
-                <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
-                  <div class="partner-card">
-                    <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
-                      <img :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
-                    </a>
-                    <img v-else :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
-                    <p class="partner-name">{{ item.nom }}</p>
-                  </div>
-                </swiper-slide>
+                 <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
+                   <div class="partner-card">
+                     <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
+                       <img :src="clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                     </a>
+                     <img v-else :src="clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                     <p class="partner-name">{{ item.nom }}</p>
+                   </div>
+                 </swiper-slide>
              </swiper>
           </div>
       </div>
