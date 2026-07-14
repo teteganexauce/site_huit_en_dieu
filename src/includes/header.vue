@@ -282,7 +282,7 @@ onUnmounted(() => {
 }
 
 /* ==========================================
-   NAVIGATION DESKTOP
+   NAVIGATION DESKTOP — liens du menu principal
    ========================================== */
 .site-nav {
   flex: 1;
@@ -312,23 +312,26 @@ onUnmounted(() => {
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
-  border-radius: 999px;
+  border-radius: 8px; /* léger arrondi, pas de pilule complète */
   position: relative;
   transition: color 0.25s ease, background 0.25s ease;
   white-space: nowrap;
 }
 
+/* Survol ET lien actif (page courante) : fond bleu nuit,
+   cohérent avec les dropdowns */
 .site-nav__link:hover,
 .site-nav__link.router-link-active {
-  color: #0f766e;
-  background: rgba(15, 118, 110, 0.1);
+  color: #ffffff;
+  background: linear-gradient(160deg, rgba(31, 51, 82, 0.95) 0%, rgba(47, 76, 116, 0.95) 100%);
 }
 
-/* Seul trait conservé : le dégradé bleu */
+/* Trait dégradé : discret sous le lien, blanc pour rester
+   visible sur le fond bleu de l'état actif */
 .site-nav__link::after {
   content: '';
   position: absolute;
-  bottom: 4px;
+  bottom: 2px;
   left: 50%;
   width: 0;
   height: 2.5px;
@@ -338,9 +341,9 @@ onUnmounted(() => {
   transition: width 0.3s ease;
 }
 
-.site-nav__link:hover::after,
 .site-nav__link.router-link-active::after {
-  width: 60%;
+  width: 40%;
+  background: #ffffff;
 }
 
 .site-nav__indicator {
@@ -348,14 +351,21 @@ onUnmounted(() => {
   transition: transform 0.3s ease;
 }
 
-.site-nav__item--dropdown:hover .site-nav__indicator {
+.site-nav__item--dropdown:hover .site-nav__indicator,
+.site-nav__link.router-link-active .site-nav__indicator {
   transform: rotate(180deg);
 }
 
+/* Le lien "toggle" (Centre de formation/École, Espace de vente)
+   prend le même fond bleu quand son dropdown est ouvert */
+.site-nav__item--dropdown:hover .site-nav__link--toggle {
+  color: #ffffff;
+  background: linear-gradient(160deg, rgba(31, 51, 82, 0.95) 0%, rgba(47, 76, 116, 0.95) 100%);
+}
+
 /* ==========================================
-   DROPDOWN — fond bleu nuit (comme la maquette),
-   positionné par rapport à SON PROPRE item,
-   aucune classe partagée avec l'ancien thème
+   DROPDOWN — fond bleu nuit, positionné par
+   rapport à SON PROPRE item
    ========================================== */
 .site-dropdown {
   position: absolute;
@@ -377,6 +387,21 @@ onUnmounted(() => {
   pointer-events: none;
   transform: translateY(8px) scale(0.97);
   transition: all 0.25s ease;
+}
+
+/* ★ CORRECTIF PRINCIPAL ★
+   Pont invisible qui comble le vide de 10px entre le lien et
+   le dropdown. Sans lui, le curseur "sort" du <li> en descendant
+   vers le menu, ce qui coupe le :hover et referme le dropdown
+   avant qu'on puisse cliquer sur un lien à l'intérieur. */
+.site-nav__item--dropdown::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 14px;
+  z-index: 5;
 }
 
 /* La dernière dropdown ("Espace de vente") colle son bord droit
@@ -525,7 +550,9 @@ onUnmounted(() => {
 }
 
 /* Sous-menu mobile : même identité bleu nuit que le desktop,
-   pour une cohérence visuelle sur tous les écrans */
+   pour une cohérence visuelle sur tous les écrans.
+   Le click-based toggle mobile n'a pas le problème de gap
+   du hover desktop, donc pas besoin de pont ici. */
 .site-mobile-nav__dropdown ul {
   padding-left: 0.75rem;
   margin-top: 6px;
