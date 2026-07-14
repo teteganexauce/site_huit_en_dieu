@@ -289,13 +289,11 @@ onMounted(async () => {
    border-radius: 8px;
    padding: 12px 8px;
    min-height: 100px;
-   box-shadow: 0 1px 6px rgba(0,0,0,0.06);
    transition: all 0.3s ease;
    width: 100%;
 }
 
 .partner-card:hover {
-   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
    transform: translateY(-2px);
 }
 
