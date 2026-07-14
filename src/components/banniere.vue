@@ -88,13 +88,15 @@ onMounted(async () => {
 #hero-static{
    background: transparent;
 }
+
 .swiper-item {
-   height: calc(100vh - 80px);
+   /* --header-height est déjà géré par #main dans App.vue :
+      plus besoin de soustraire 80px ni d'ajouter de margin-top ici */
+   height: calc(100vh - var(--header-height, 92px));
    width: 100%;
    display: flex;
    justify-content: center;
    align-items: center;
-   margin-top: 80px;
 }
 
 .swiper-item img {
@@ -110,4 +112,5 @@ onMounted(async () => {
    height: 100%;
    background-color: rgba(22, 22, 22, 0.356) !important;
    z-index: 9999;
-}</style>
+}
+</style>

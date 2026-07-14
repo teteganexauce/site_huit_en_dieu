@@ -33,6 +33,27 @@ onMounted(() => {
    --ps-primary-hover: #1a92a7;
    --ps-primary-link: #1a92a70c;
    --ps-primary: #1a92a7e5;
+
+   /* Hauteur du header, légèrement augmentée et synchronisée
+      avec le vrai rendu du composant header.vue (min-height) */
+   --header-height: 92px;
+}
+
+/* Offset du header fixed */
+#main {
+   padding-top: var(--header-height);
+}
+
+@media (max-width: 991px) {
+   :root {
+      --header-height: 76px;
+   }
+}
+
+@media (max-width: 576px) {
+   :root {
+      --header-height: 64px;
+   }
 }
 
 .text-ps-primary{
