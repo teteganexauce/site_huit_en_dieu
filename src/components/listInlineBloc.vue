@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Navigation, Pagination, A11y } from 'swiper/modules';
+import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 
 import 'swiper/css'
 import 'swiper/css/navigation';
@@ -209,16 +209,27 @@ onMounted(async () => {
              <span class="visually-hidden">Chargement...</span>
            </div>
          </div>
-         <div v-else class="clients-slider swiper">
-            <div class="swiper-wrapper align-items-center">
-               <div v-for="item in partenaires" :key="item.id" class="swiper-slide">
+          <div v-else class="clients-slider swiper">
+             <swiper
+               :slides-per-view="4"
+               :space-between="30"
+               loop
+                :modules="[Navigation, Pagination, A11y, Autoplay]"
+               :breakpoints="{
+                 320: { slidesPerView: 2, spaceBetween: 20 },
+                 768: { slidesPerView: 3, spaceBetween: 30 },
+                 1024: { slidesPerView: 4, spaceBetween: 30 }
+               }"
+               :autoplay="{ delay: 3000 }"
+             >
+               <swiper-slide v-for="item in partenaires" :key="item.id">
                  <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
-                   <img :src="item.logoUrl || defaultImg" class="img-fluid" :alt="item.nom">
+                   <img :src="item.logoUrl || defaultImg" class="partner-logo" :alt="item.nom">
                  </a>
-                 <img v-else :src="item.logoUrl || defaultImg" class="img-fluid" :alt="item.nom">
-               </div>
-            </div>
-         </div>
+                 <img v-else :src="item.logoUrl || defaultImg" class="partner-logo" :alt="item.nom">
+               </swiper-slide>
+             </swiper>
+          </div>
       </div>
    </section>
 </template>
@@ -246,5 +257,25 @@ onMounted(async () => {
    object-fit: cover;
    transition: .5s;
    width: 100% !important;
+}
+
+.swiper-slide {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}
+
+.partner-logo {
+   max-height: 80px;
+   width: auto;
+   object-fit: contain;
+   filter: grayscale(100%);
+   opacity: 0.7;
+   transition: all 0.3s ease;
+}
+
+.partner-logo:hover {
+   filter: grayscale(0%);
+   opacity: 1;
 }
 </style>
