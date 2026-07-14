@@ -232,7 +232,8 @@ onMounted(async () => {
                   992: { slidesPerView: 5, spaceBetween: 16 },
                   1200: { slidesPerView: 7, spaceBetween: 16 }
                 }"
-                :autoplay="{ delay: 2000, disableOnInteraction: false }"
+                :speed="800"
+                :autoplay="{ delay: 2000, disableOnInteraction: false, pauseOnMouseEnter: false, stopOnLastSlide: false }"
              >
                  <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
                    <div class="partner-card">
