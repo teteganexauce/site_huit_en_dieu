@@ -219,23 +219,25 @@ onMounted(async () => {
              <span class="visually-hidden">Chargement...</span>
            </div>
          </div>
-          <div v-else class="clients-slider swiper">
-             <swiper
-                :slides-per-view="7"
-                :space-between="16"
-                loop
-                :modules="[Navigation, Pagination, A11y, Autoplay]"
-                :breakpoints="{
-                  320: { slidesPerView: 2, spaceBetween: 12 },
-                  576: { slidesPerView: 3, spaceBetween: 12 },
-                  768: { slidesPerView: 4, spaceBetween: 16 },
-                  992: { slidesPerView: 5, spaceBetween: 16 },
-                  1200: { slidesPerView: 7, spaceBetween: 16 }
-                }"
-                :speed="800"
-                :autoplay="{ delay: 2000, disableOnInteraction: false, pauseOnMouseEnter: false, stopOnLastSlide: false }"
-             >
-                 <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
+           <div v-else class="clients-slider swiper">
+              <swiper
+                 ref="partnerSwiper"
+                 :slides-per-view="7"
+                 :space-between="16"
+                 :loop="true"
+                 :modules="[Navigation, Pagination, A11y, Autoplay]"
+                 :breakpoints="{
+                   320: { slidesPerView: 2, spaceBetween: 12 },
+                   576: { slidesPerView: 3, spaceBetween: 12 },
+                   768: { slidesPerView: 4, spaceBetween: 16 },
+                   992: { slidesPerView: 5, spaceBetween: 16 },
+                   1200: { slidesPerView: 7, spaceBetween: 16 }
+                 }"
+                 :speed="800"
+                 :grab-cursor="true"
+                 :autoplay="{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: false }"
+              >
+                <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
                    <div class="partner-card">
                      <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
                        <img :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
@@ -243,8 +245,8 @@ onMounted(async () => {
                      <img v-else :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
                    </div>
                  </swiper-slide>
-             </swiper>
-          </div>
+              </swiper>
+           </div>
       </div>
    </section>
 </template>
