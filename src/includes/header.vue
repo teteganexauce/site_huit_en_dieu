@@ -353,22 +353,22 @@ onUnmounted(() => {
 }
 
 /* ==========================================
-   DROPDOWN — positionné par rapport à SON PROPRE
-   item (.site-nav__item--dropdown), aucune classe
-   partagée avec l'ancien thème
+   DROPDOWN — fond bleu nuit (comme la maquette),
+   positionné par rapport à SON PROPRE item,
+   aucune classe partagée avec l'ancien thème
    ========================================== */
 .site-dropdown {
   position: absolute;
   top: calc(100% + 10px);
   left: 0;
   min-width: 260px;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.98);
+  padding: 0.85rem;
+  background: linear-gradient(160deg, rgba(31, 51, 82, 0.97) 0%, rgba(47, 76, 116, 0.97) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12), 0 8px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 60px rgba(10, 20, 40, 0.28), 0 8px 20px rgba(0, 0, 0, 0.12);
   list-style: none;
   display: grid;
   gap: 0.5rem;
@@ -395,9 +395,9 @@ onUnmounted(() => {
 
 .site-dropdown a {
   display: block;
-  padding: 0.5rem 0.7rem;
+  padding: 0.55rem 0.7rem;
   border-radius: 10px;
-  color: #334155;
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.85rem;
@@ -406,8 +406,8 @@ onUnmounted(() => {
 
 .site-dropdown a:hover,
 .site-dropdown a.router-link-active {
-  background: #f1f5f9;
-  color: #0f766e;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 /* Mega menu : s'affiche toujours pleinement sous son lien,
@@ -524,30 +524,35 @@ onUnmounted(() => {
   border-bottom: 1px solid #f1f5f9;
 }
 
+/* Sous-menu mobile : même identité bleu nuit que le desktop,
+   pour une cohérence visuelle sur tous les écrans */
 .site-mobile-nav__dropdown ul {
-  padding-left: 1rem;
+  padding-left: 0.75rem;
+  margin-top: 6px;
   max-height: 0;
   overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(31, 51, 82, 0.97) 0%, rgba(47, 76, 116, 0.97) 100%);
   transition: max-height 0.3s ease, padding 0.3s ease;
 }
 
 .site-mobile-nav__dropdown.is-open ul {
   max-height: 600px;
-  padding: 0.5rem 0 0.5rem 1rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
 }
 
 .site-mobile-nav__dropdown ul a {
   display: block;
   padding: 0.6rem 0.5rem;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .site-mobile-nav__dropdown ul a:hover {
-  color: #0f766e;
+  color: #ffffff;
 }
 
 .site-mobile-nav__dropdown i {
