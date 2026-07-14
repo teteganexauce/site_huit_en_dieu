@@ -13,6 +13,8 @@ import temoignage from "../views/temoignage.vue";
 import galerie from "../views/galerie.vue";
 import formationDetail from '../views/formationDetail.vue';
 import profileInscrit from "../views/profileInscrit.vue";
+import PageView from "../views/PageView.vue";
+import RubriquesCulture from "../views/RubriquesCulture.vue";
 
 // Auth Views
 import LoginView from '../views/auth/LoginView.vue';
@@ -123,6 +125,16 @@ const router = createRouter({
       name: "resetPassword",
       component: ResetPasswordView,
       meta: { guestOnly: true }
+    },
+    {
+      path: "/page/:slug",
+      name: "page",
+      component: PageView,
+    },
+    {
+      path: "/rubriques-culture",
+      name: "rubriquesCulture",
+      component: RubriquesCulture,
     },
   ],
 });

@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, A11y } from 'swiper/modules';
 
@@ -7,6 +8,33 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 
+import publicService from '../services/publicService'
+import defaultImg from '../assets/img/blog/blog-2.jpg'
+
+const temoignages = ref([])
+const partenaires = ref([])
+const isLoadingTemoignages = ref(true)
+const isLoadingPartenaires = ref(true)
+
+onMounted(async () => {
+  try {
+    const tData = await publicService.getTestimonials();
+    temoignages.value = tData.data || tData;
+  } catch (error) {
+    console.error('Erreur chargement temoignages:', error);
+  } finally {
+    isLoadingTemoignages.value = false;
+  }
+
+  try {
+    const pData = await publicService.getPartners();
+    partenaires.value = pData.data || pData;
+  } catch (error) {
+    console.error('Erreur chargement partenaires:', error);
+  } finally {
+    isLoadingPartenaires.value = false;
+  }
+})
 </script>
 
 <template>
@@ -145,53 +173,52 @@ import 'swiper/css/scrollbar';
    </section>
 
    <section id="testimonials" class="testimonials pt-5">
-
       <div class="container mt-0">
          <h3 class="w-100 text-primary fw-bold text-center mb-5 head-temo">Témoignages</h3>
-         <div class="testimonials-slider swiper">
+         <div v-if="isLoadingTemoignages" class="text-center py-3">
+           <div class="spinner-border text-primary" role="status">
+             <span class="visually-hidden">Chargement...</span>
+           </div>
+         </div>
+         <div v-else class="testimonials-slider swiper">
             <div class="swiper-wrapper">
-               <div class="swiper-slide">
+               <div v-for="item in temoignages" :key="item.id" class="swiper-slide">
                   <div class="testimonial-item">
-                     <img src="../assets/img/testimonials/testimonials-1.jpg" class="testimonial-img" alt="">
-                     <h3>Saul Goodman</h3>
-                     <h4>Ceo &amp; Founder</h4>
-                     <div class="stars">
-                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                           class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                     </div>
+                     <img :src="item.photoUrl || defaultImg" class="testimonial-img" alt="">
+                     <h3>{{ item.auteur }}</h3>
                      <p>
                         <i class="bi bi-quote quote-icon-left"></i>
-                        Proin iaculis purus consequat sem cure digni ssim donec porttitora entum suscipit rhoncus.
-                        Accusantium quam, ultricies eget id, aliquam eget nibh et. Maecen aliquam, risus at semper.
+                        {{ item.contenu }}
                         <i class="bi bi-quote quote-icon-right"></i>
                      </p>
                   </div>
-               </div><!-- End testimonial item -->
-               <!-- End testimonial item -->
+               </div>
             </div>
             <div class="swiper-pagination"></div>
             <div class="swiper-button-prev"></div>
             <div class="swiper-button-next"></div>
          </div>
       </div>
-   </section><!-- End Testimonials Section -->
+   </section>
 
    <section id="clients" class="clients mt-5">
       <h3 class="w-100 text-primary fw-bold text-center mb-5">Partenaires</h3>
       <div class="container">
-         <div class="clients-slider swiper">
+         <div v-if="isLoadingPartenaires" class="text-center py-3">
+           <div class="spinner-border text-primary" role="status">
+             <span class="visually-hidden">Chargement...</span>
+           </div>
+         </div>
+         <div v-else class="clients-slider swiper">
             <div class="swiper-wrapper align-items-center">
-               <div class="swiper-slide"><img src="../assets/img/clients/client-1.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-2.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-3.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-4.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-5.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-6.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-7.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-8.png" class="img-fluid" alt=""></div>
+               <div v-for="item in partenaires" :key="item.id" class="swiper-slide">
+                 <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
+                   <img :src="item.logoUrl || defaultImg" class="img-fluid" :alt="item.nom">
+                 </a>
+                 <img v-else :src="item.logoUrl || defaultImg" class="img-fluid" :alt="item.nom">
+               </div>
             </div>
          </div>
-
       </div>
    </section>
 </template>

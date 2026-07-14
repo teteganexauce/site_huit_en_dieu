@@ -45,9 +45,12 @@
                   </ul>
                </li>
 
-               <li>
-                  <router-link to="/publications" class="nav-link scrollto">Publications</router-link>
-               </li>
+                <li>
+                   <router-link to="/publications" class="nav-link scrollto">Publications</router-link>
+                </li>
+                <li>
+                   <router-link to="/rubriques-culture" class="nav-link scrollto">Rubriques Culturelles</router-link>
+                </li>
                <li class="dropdown"><a href="#"><span>Espace de Vente</span> <i
                         class="bi bi-chevron-down dropdown-indicator"></i></a>
                   <ul>
