@@ -53,6 +53,7 @@
               <i class="bi bi-chevron-down site-nav__indicator"></i>
             </a>
             <ul class="site-dropdown">
+              <li><router-link to="/boutique" class="site-nav__link">Toute la boutique</router-link></li>
               <li><router-link to="/e-book" class="site-nav__link">Nos e-books</router-link></li>
               <li><router-link to="/objets" class="site-nav__link">Objets en vente</router-link></li>
             </ul>
@@ -69,6 +70,12 @@
 
       <!-- Actions desktop -->
       <div class="site-actions">
+        <router-link to="/panier" class="site-btn site-btn--ghost position-relative" title="Panier">
+          <i class="bi bi-cart"></i>
+          <span v-if="cartStore.itemCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+            {{ cartStore.itemCount }}
+          </span>
+        </router-link>
         <router-link to="/#about" class="site-btn site-btn--donate">
           <i class="bi bi-heart-fill"></i>
           Faire un don
@@ -126,6 +133,7 @@
             <i class="bi bi-chevron-down"></i>
           </a>
           <ul>
+            <li><router-link to="/boutique" @click="closeMobileNav">Toute la boutique</router-link></li>
             <li><router-link to="/e-book" @click="closeMobileNav">Nos e-books</router-link></li>
             <li><router-link to="/objets" @click="closeMobileNav">Objets en vente</router-link></li>
           </ul>
@@ -136,6 +144,10 @@
       </ul>
 
       <div class="site-mobile-nav__actions">
+        <router-link to="/panier" class="site-btn site-btn--ghost" @click="closeMobileNav">
+          <i class="bi bi-cart"></i> Panier
+          <span v-if="cartStore.itemCount > 0">({{ cartStore.itemCount }})</span>
+        </router-link>
         <router-link to="/#about" class="site-btn site-btn--donate" @click="closeMobileNav">
           <i class="bi bi-heart-fill"></i> Faire un don
         </router-link>
@@ -154,8 +166,10 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useCartStore } from '../stores/cart'
 
 const authStore = useAuthStore()
+const cartStore = useCartStore()
 const route = useRoute()
 
 const isMobileNavOpen = ref(false)

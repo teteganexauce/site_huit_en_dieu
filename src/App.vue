@@ -1,15 +1,18 @@
 <script setup>
 import { onMounted } from 'vue';
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 import HeaderComponent from './includes/header.vue'
 import FooterComponent from './includes/footer.vue'
 import { useAuthStore } from './stores/auth';
+import { useCartStore } from './stores/cart';
 
 const authStore = useAuthStore();
+const cartStore = useCartStore();
 
 onMounted(() => {
   if (authStore.isAuthenticated) {
     authStore.fetchProfile();
+    cartStore.fetchCart();
   }
 });
 </script>
