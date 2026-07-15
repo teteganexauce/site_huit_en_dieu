@@ -15,6 +15,7 @@ import formationDetail from '../views/formationDetail.vue';
 import profileInscrit from "../views/profileInscrit.vue";
 import PageView from "../views/PageView.vue";
 import RubriquesCulture from "../views/RubriquesCulture.vue";
+import Partenaires from "../views/Partenaires.vue";
 
 import LoginView from '../views/auth/LoginView.vue';
 import RegisterView from '../views/auth/RegisterView.vue';
@@ -44,6 +45,7 @@ const router = createRouter({
     { path: "/galerie", name: "galerie", component: galerie },
     { path: "/page/:slug", name: "page", component: PageView },
     { path: "/rubriques-culture", name: "rubriquesCulture", component: RubriquesCulture },
+    { path: "/partenaires", name: "partenaires", component: Partenaires },
     { path: "/profile-inscrit", name: "profileInscrit", component: profileInscrit, meta: { requiresAuth: true } },
     { path: "/login", name: "login", component: LoginView, meta: { guestOnly: true } },
     { path: "/register", name: "register", component: RegisterView, meta: { guestOnly: true } },

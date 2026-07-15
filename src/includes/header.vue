@@ -36,9 +36,10 @@
               </li>
               <li>
                 <router-link to="/galerie">Galerie d'images & vidéos</router-link>
-                <a href="#">Nos partenaires</a>
+                <router-link to="/partenaires">Nos partenaires</router-link>
                 <router-link to="/formations">Nos formations</router-link>
                 <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
+                <router-link to="/services">Nos services</router-link>
               </li>
             </ul>
           </li>
@@ -57,10 +58,6 @@
               <li><router-link to="/e-book" class="site-nav__link">Nos e-books</router-link></li>
               <li><router-link to="/objets" class="site-nav__link">Objets en vente</router-link></li>
             </ul>
-          </li>
-
-          <li class="site-nav__item">
-            <router-link to="/services" class="site-nav__link">Nos services</router-link>
           </li>
           <li class="site-nav__item">
             <router-link to="/contact" class="site-nav__link">Contact</router-link>
@@ -119,9 +116,10 @@
             <li><router-link to="/temoignages" @click="closeMobileNav">Témoignages</router-link></li>
             <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe d'animation</router-link></li>
             <li><router-link to="/galerie" @click="closeMobileNav">Galerie d'images & vidéos</router-link></li>
-            <li><a href="#">Nos partenaires</a></li>
+            <li><router-link to="/partenaires" @click="closeMobileNav">Nos partenaires</router-link></li>
             <li><router-link to="/formations" @click="closeMobileNav">Nos formations</router-link></li>
             <li><router-link to="/rubriques-culture" @click="closeMobileNav">Rubriques culturelles</router-link></li>
+            <li><router-link to="/services" @click="closeMobileNav">Nos services</router-link></li>
           </ul>
         </li>
 
@@ -139,7 +137,6 @@
           </ul>
         </li>
 
-        <li><router-link to="/services" @click="closeMobileNav">Nos services</router-link></li>
         <li><router-link to="/contact" @click="closeMobileNav">Contact</router-link></li>
       </ul>
 
