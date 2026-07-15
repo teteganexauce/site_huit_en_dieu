@@ -1,7 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import BookComponent from '../components/book.vue'
 
 
 const formations = ref([
@@ -18,6 +17,11 @@ const formations = ref([
       title: "Demandez un accompagnement"
    },
 ])
+
+// TODO: Remplacer les données mockées par un appel API via formationService quand la route sera disponible
+onMounted(() => {
+   // formationsStore.fetchFormationDetail(id)
+})
 
 </script>
 

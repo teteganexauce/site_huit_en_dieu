@@ -18,7 +18,7 @@
             @swiper="onSwiper" @slideChange="onSlideChange" :modules="[Navigation, Pagination, A11y]">
             <swiper-slide v-for="(item, index) in slides" :key="index">
                <div class="swiper-item position-relative">
-                  <img :src="item.image" alt="">
+                  <img :src="item.imageUrl" alt="">
                   <div class="banniere-overlay">
                      <section id="hero-static" class="h-100 hero-static d-flex align-items-center">
                         <div
@@ -42,7 +42,7 @@
    </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, A11y } from 'swiper/modules';
 
@@ -51,29 +51,15 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 
-import EasyLMD from '../assets/img/blog/blog-1.jpg';
-import Parent from '../assets/img/blog/blog-2.jpg';
-import Student from '../assets/img/blog/blog-3.jpg';
-import Teacher from '../assets/img/blog/blog-4.jpg';
+import { useContentStore } from '../stores/content';
 
-const slides = ref(
-   [{
-      image: EasyLMD,
-      nom: 'EasyLMD',
-   },
-   {
-      image: Student,
-      nom: 'Student',
-   },
-   {
-      image: Parent,
-      nom: 'Parent',
-   },
-   {
-      image: Teacher,
-      nom: 'Teacher',
-   },]
-)
+const contentStore = useContentStore()
+
+const slides = computed(() => contentStore.slides)
+
+onMounted(() => {
+   contentStore.fetchSlides()
+})
 
 </script>
 <style scoped>

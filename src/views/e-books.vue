@@ -1,10 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import BookComponent from '../components/book.vue'
+import { useCatalogueStore } from '../stores/catalogue'
 
-
+const store = useCatalogueStore()
 const sousMenu = ref(['Nouveautés', 'Meilleures Ventes', 'Nos livres gratuits', 'Nos publications', 'Coups de coeur'])
+
+const ebooks = computed(() => store.products.filter(p => p.type === 'ebook'))
+
+onMounted(() => {
+   store.fetchCatalogue()
+})
 
 
 </script>
@@ -32,8 +39,8 @@ const sousMenu = ref(['Nouveautés', 'Meilleures Ventes', 'Nos livres gratuits',
          <div class="tab-content container p-0">
             <div v-for="(item, index) in sousMenu" :key="index" class="tab-pane fade p-0 m-0" :class="{ 'active show': index==0  }" :id="`tab${index + 1}`" role="tabpanel">
                <div class="row container-fluid my-5 p-0 m-0">
-                  <div v-for="n in (10 - index)" class="col-lg-4">
-                     <BookComponent />
+                  <div v-for="item in ebooks" :key="item.id" class="col-lg-4">
+                     <BookComponent :product="item" />
                   </div>
                </div>
             </div><!-- End Tab 1 Content -->

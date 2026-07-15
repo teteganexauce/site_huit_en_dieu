@@ -1,6 +1,15 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
+import { useContentStore } from '../stores/content'
+
+const contentStore = useContentStore()
+
+onMounted(() => {
+  contentStore.fetchTemoignages()
+})
+
+const temoignagesList = computed(() => contentStore.temoignages)
 import img2 from '../assets/audio1.mp3'
 import img3 from '../assets/audio2.mp3'
 import img4 from '../assets/audio4.mp3'
@@ -80,20 +89,17 @@ function show2(idx) {
             <div v-for="(item, idx) in sousMenu" :key="idx" class="tab-pane fade p-0 m-0"
                :class="{ 'active show': idx == 0 }" :id="`tab${idx + 1}`" role="tabpanel">
                <div class="row container-fluid my-5 p-0 m-0">
-                  <div v-if="idx == 0" v-for="n in 5" class="col-lg-4 col-md-6 mb-3">
-                     <div class="border d-flex py-2 px-1 rounded">
-                        <div class="icon-user w-25 mx-2">
-                           <img src="../assets/default.jpg" alt="">
-                        </div>
-                        <div class="body py-1 mb-0">
-                           <h6 class="text-secondary fw-bold">Thibaut DURANT</h6>
-                           <p class="fst-italic text-grey mb-0"> Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                              Vel corporis ut,
-                              qui ipsum provident sed ab expedita vitae modi nisi tempore error ipsa! Saepe perferendis
-                              repellendus sint, laboriosam soluta voluptate.</p>
-                        </div>
-                     </div>
-                  </div>
+                   <div v-if="idx == 0" v-for="item in temoignagesList" class="col-lg-4 col-md-6 mb-3">
+                      <div class="border d-flex py-2 px-1 rounded">
+                         <div class="icon-user w-25 mx-2">
+                            <img :src="item.photoUrl" alt="">
+                         </div>
+                         <div class="body py-1 mb-0">
+                            <h6 class="text-secondary fw-bold">{{ item.auteur }}</h6>
+                            <p class="fst-italic text-grey mb-0">{{ item.contenu }}</p>
+                         </div>
+                      </div>
+                   </div>
                   <div v-if="idx == 1" v-for="(item, idx1) in audios" :key="idx1" class="col-lg-4 col-md-6 mb-3">
                      <div class="border d-flex py-2 px-1 rounded">
                         <div class="icon-user w-20 mx-2">
