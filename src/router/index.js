@@ -25,6 +25,7 @@ import ResetPasswordView from '../views/auth/ResetPasswordView.vue';
 import CatalogueView from '../views/shop/CatalogueView.vue';
 import ProductDetailView from '../views/shop/ProductDetailView.vue';
 import CartView from '../views/shop/CartView.vue';
+import OrderSuccess from '../views/shop/OrderSuccess.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,6 +55,7 @@ const router = createRouter({
     { path: "/boutique", name: "catalogue", component: CatalogueView },
     { path: "/boutique/:id", name: "product-detail", component: ProductDetailView },
     { path: "/panier", name: "cart", component: CartView },
+    { path: "/commande/succes", name: "orderSuccess", component: OrderSuccess, meta: { requiresAuth: true } },
   ],
 });
 

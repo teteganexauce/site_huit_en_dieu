@@ -54,6 +54,16 @@ const shopService = {
   async initPayment(paymentData) {
     const response = await api.post('/paiements/initier', paymentData);
     return response.data;
+  },
+
+  async getMyInscriptions() {
+    const response = await api.get('/user/inscriptions');
+    return response.data;
+  },
+
+  async getDownloadUrl(bookId) {
+    const response = await api.get(`/download/ebook/${bookId}`);
+    return response.data;
   }
 };
 
