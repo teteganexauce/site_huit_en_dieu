@@ -14,12 +14,14 @@ import galerie from "../views/galerie.vue";
 import formationDetail from '../views/formationDetail.vue';
 import profileInscrit from "../views/profileInscrit.vue";
 
-// Auth Views
 import LoginView from '../views/auth/LoginView.vue';
 import RegisterView from '../views/auth/RegisterView.vue';
 import ForgotPasswordView from '../views/auth/ForgotPasswordView.vue';
 import ResetPasswordView from '../views/auth/ResetPasswordView.vue';
 
+import CatalogueView from '../views/shop/CatalogueView.vue';
+import ProductDetailView from '../views/shop/ProductDetailView.vue';
+import CartView from '../views/shop/CartView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,14 +32,29 @@ const router = createRouter({
       component: accueil,
     },
     {
+      path: "/boutique",
+      name: "catalogue",
+      component: CatalogueView,
+    },
+    {
+      path: "/boutique/:id",
+      name: "product-detail",
+      component: ProductDetailView,
+    },
+    {
+      path: "/panier",
+      name: "cart",
+      component: CartView,
+    },
+    {
       path: "/e-book",
       name: "ebook",
       component: ebook,
     },
     {
-      path: "/e-book/detail",
+      path: "/e-book/:id",
       name: "ebook-detail",
-      component: ebookDetail,
+      component: ProductDetailView,
     },
     {
       path: "/services",
@@ -45,7 +62,7 @@ const router = createRouter({
       component: services,
     },
     {
-      path: "/formation-detail",
+      path: "/formations/:id",
       name: "formationDetail",
       component: formationDetail,
     },
@@ -61,23 +78,28 @@ const router = createRouter({
     },
     {
       path: "/publications/:key",
-      name: "publicatons",
+      name: "publications-category",
       component: publications,
     },
     {
-      path: "/publications/detail",
+      path: "/publications/detail/:id",
       name: "pub-detail",
       component: pubDetail,
     },
     {
       path: "/contact",
-      name: "contactl",
+      name: "contact",
       component: contact,
     },
     {
       path: "/objets",
       name: "objets",
       component: objets,
+    },
+    {
+      path: "/objets/:id",
+      name: "objet-detail",
+      component: ProductDetailView,
     },
     {
       path: "/equipe-animation",
@@ -131,10 +153,8 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('token');
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    // Rediriger vers la connexion si on essaie d'accéder à une route protégée
     next({ name: 'login' });
   } else if (to.meta.guestOnly && isAuthenticated) {
-    // Rediriger vers le dashboard/profil si on est déjà connecté et qu'on tente d'aller sur login/register
     next({ name: 'profileInscrit' });
   } else {
     next();
