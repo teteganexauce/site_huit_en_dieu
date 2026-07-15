@@ -1,7 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import BookComponent from '../components/book.vue'
+import { useContentStore } from '../stores/content'
+
+const contentStore = useContentStore()
 
 const categories = ref([
    {
@@ -14,6 +16,12 @@ const categories = ref([
       title: "Réflexion sur les travaux de recherches"
    },
 ])
+
+const eventItems = computed(() => contentStore.evenements)
+
+onMounted(() => {
+   contentStore.fetchEvenements()
+})
 
 </script>
 
@@ -67,45 +75,42 @@ const categories = ref([
                         <div class="col-lg-12">
                            <div class="row gy-4 posts-list">
 
-                              <div class="col-lg-4" v-for="n in 5">
-                                 <article class="d-flex flex-column">
+                               <div class="col-lg-4" v-for="(item, idx) in eventItems" :key="idx">
+                                  <article class="d-flex flex-column">
 
-                                    <div class="post-img">
-                                       <img src="../assets/img/blog/blog-3.jpg" width="100m" class="img-fluid">
-                                    </div>
+                                     <div class="post-img">
+                                        <img src="../assets/img/blog/blog-3.jpg" width="100m" class="img-fluid">
+                                     </div>
 
-                                    <h5 class="title mt-3">
-                                       <router-link to="/publications/detail" class="pub-title fs-5">Possimus soluta ut id
-                                          suscipit ea ut.
-                                          In quo quia et soluta libero sit sint.</router-link>
-                                    </h5>
+                                     <h5 class="title mt-3">
+                                        <router-link to="/publications/detail" class="pub-title fs-5">{{ item.titre }}</router-link>
+                                     </h5>
 
-                                    <div class="meta-top">
-                                       <ul>
-                                          <li class="d-flex align-items-center"><i class="bi bi-person"></i> <a
-                                                href="blog-details.html">John Doe</a></li>
-                                          <li class="d-flex align-items-center"><i class="bi bi-clock"></i> <a
-                                                href="blog-details.html"><time datetime="2022-01-01">Jan 1, 2022</time></a>
-                                          </li>
-                                       </ul>
-                                    </div>
+                                     <div class="meta-top">
+                                        <ul>
+                                           <li class="d-flex align-items-center"><i class="bi bi-person"></i> <a
+                                                 href="blog-details.html">John Doe</a></li>
+                                           <li class="d-flex align-items-center"><i class="bi bi-clock"></i> <a
+                                                 href="blog-details.html"><time datetime="2022-01-01">{{ item.dateDebut }}</time></a>
+                                           </li>
+                                        </ul>
+                                     </div>
 
-                                    <div class="content mb-3">
-                                       <p>
-                                          Aut iste neque ut illum qui perspiciatis similique recusandae non. Fugit autem
-                                          dolorem labore omnis et. Eum temporibus fugiat voluptate enim tenetur sunt omnis.
-                                       </p>
-                                    </div>
+                                     <div class="content mb-3">
+                                        <p>
+                                           {{ item.description }}
+                                        </p>
+                                     </div>
 
-                                    <div class="read-more mt-auto d-flex justify-content-between">
-                                       <li class="d-flex align-items-center small text-grey"><i
-                                             class="bi bi-chat-dots"></i>&nbsp; <span href="blog-detspanils.html">12
-                                             Comments</span></li>
-                                       <a href="blog-details.html" class="d-block">Read More</a>
-                                    </div>
+                                     <div class="read-more mt-auto d-flex justify-content-between">
+                                        <li class="d-flex align-items-center small text-grey"><i
+                                              class="bi bi-chat-dots"></i>&nbsp; <span href="blog-detspanils.html">12
+                                              Comments</span></li>
+                                        <a href="blog-details.html" class="d-block">Read More</a>
+                                     </div>
 
-                                 </article>
-                              </div><!-- End post list item -->
+                                  </article>
+                               </div><!-- End post list item -->
 
                            </div><!-- End blog posts list -->
 

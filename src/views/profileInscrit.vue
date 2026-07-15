@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import BookComponent from '../components/book.vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import authService from '../services/authService'
