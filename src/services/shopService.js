@@ -64,6 +64,11 @@ const shopService = {
   async getDownloadUrl(bookId) {
     const response = await api.get(`/download/ebook/${bookId}`);
     return response.data;
+  },
+
+  async confirmPayment(paymentId) {
+    const response = await api.post(`/paiements/confirmer/${paymentId}`);
+    return response.data;
   }
 };
 
