@@ -1,7 +1,15 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import BookComponent from '../components/book.vue'
+import { useContentStore } from '../stores/content'
+
+const contentStore = useContentStore()
+
+onMounted(() => {
+  contentStore.fetchGalerie()
+})
+
+const mediaItems = computed(() => contentStore.galerie)
 
 import Lightgallery from 'lightgallery/vue';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
@@ -61,11 +69,11 @@ const categories = ref(['Sortie pédagogique', 'Formations', 'Séminaires'])
                   <div class="offset-1 col-md-9">
                      <div class="row gallery">
                         <lightgallery class="row" :settings="{ speed: 500, plugins: plugins }">
-                           <a v-for="n in 10" href="/src/assets/img/blog/blog-3.jpg"
-                              class="gallery-item col-lg-4 col-md-6 mb-2 px-1">
-                              <img alt="img1" class="p-image" src="../assets/img/blog/blog-3.jpg" width="100%"
-                                 height="100%" />
-                           </a>
+                            <a v-for="item in mediaItems" :href="item.url"
+                               class="gallery-item col-lg-4 col-md-6 mb-2 px-1">
+                               <img :alt="item.nom" class="p-image" :src="item.url" width="100%"
+                                  height="100%" />
+                            </a>
                         </lightgallery>
                      </div>
                   </div>
@@ -87,13 +95,13 @@ const categories = ref(['Sortie pédagogique', 'Formations', 'Séminaires'])
                   <div class="offset-1 col-md-9">
                      <div class="row gallery">
                         <lightgallery class="row" :settings="{ speed: 500, plugins: plugins }">
-                           <a v-for="n in 10" class="gallery-item col-lg-4 col-md-6 mb-2 px-1" data-lg-size="1280-720"
-                              data-video='{"source": [{"src":"/src/assets/a.mp4", "type":"video/mp4"}], "attributes": {"preload": false, "controls": true}}'
-                              data-poster="/src/assets/img/blog/blog-3.jpg"
-                              data-sub-html="<h4>Hello</h4>">
-                              <img width="300" height="100" class="img-responsive"
-                                 src="/src/assets/img/blog/blog-3.jpg" />
-                           </a>
+                            <a v-for="item in mediaItems.filter(m => m.type === 'video')" class="gallery-item col-lg-4 col-md-6 mb-2 px-1" data-lg-size="1280-720"
+                               :data-video='`{"source": [{"src":"${item.url}", "type":"video/mp4"}], "attributes": {"preload": false, "controls": true}}`'
+                               :data-poster="item.photoUrl || item.url"
+                               :data-sub-html="`<h4>${item.nom}</h4>`">
+                               <img width="300" height="100" class="img-responsive"
+                                  :src="item.photoUrl || item.url" />
+                            </a>
                         </lightgallery>
 
                      </div>

@@ -43,9 +43,10 @@
           <div class="col-lg-4 col-md-6 footer-newsletter">
             <h4>Notre Newsletter</h4>
             <p>Abonnez vous à notre Newsletter</p>
-            <form action="" method="post">
-              <input type="email" name="email" placeholder="Adresse Email"><input type="submit" value="Souscrire">
+            <form @submit.prevent="subscribe" method="post">
+              <input type="email" v-model="email" name="email" placeholder="Adresse Email" required><input type="submit" value="Souscrire" :disabled="loading">
             </form>
+            <p v-if="message" class="mt-2">{{ message }}</p>
 
           </div>
 
@@ -82,9 +83,26 @@
 
   </footer><!-- End Footer -->
 </template>
-<script>
-export default {
+<script setup>
+import { ref } from 'vue'
+import api from '../services/api'
 
+const email = ref('')
+const loading = ref(false)
+const message = ref('')
+
+async function subscribe() {
+  loading.value = true
+  message.value = ''
+  try {
+    await api.post('/newsletter', { email: email.value })
+    message.value = 'Merci pour votre inscription !'
+    email.value = ''
+  } catch (e) {
+    message.value = e.response?.data?.message || "Une erreur s'est produite."
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 <style lang="">

@@ -1,11 +1,15 @@
 <script setup>
-import { ref } from "vue";
+import { computed, onMounted } from "vue";
 
 import { Navigation, Pagination, A11y } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+
+import { useContentStore } from "../stores/content";
+
+const contentStore = useContentStore()
 
 const breakpoint = {
   200: {
@@ -21,36 +25,11 @@ const breakpoint = {
   },
 };
 
-const pubs = ref([
-  {
-    type: "Pensées quotidiennes",
-    dataPub: "il y a 3minutes",
-    titre: "La pensée positive",
-    contenu: "",
-    auteur: "Paul WARREN",
-  },
-  {
-    type: "Recherches Scientifiques",
-    dataPub: "il y a 10minutes",
-    titre: "Qui est Dieu",
-    contenu: "",
-    auteur: "Louis Vincent",
-  },
-  {
-    type: "Annonces Ouvrages",
-    dataPub: "il y a 27minutes",
-    titre: "L'ouvrage de  Bible Antique",
-    contenu: "",
-    auteur: "Paul WARREN",
-  },
-  {
-    type: "Annonces Ouvrages",
-    dataPub: "il y a 27minutes",
-    titre: "L'ouvrage de  Bible Antique",
-    contenu: "",
-    auteur: "Paul WARREN",
-  },
-]);
+const pubs = computed(() => contentStore.evenements)
+
+onMounted(() => {
+  contentStore.fetchEvenements()
+})
 </script>
 <template>
   <div class="container mt-5">
@@ -89,7 +68,7 @@ const pubs = ref([
         @swiper="onSwiper"
         @slideChange="onSlideChange">
         <swiper-slide
-          v-for="(pub, index) in pubs"
+          v-for="(itemCtx, index) in pubs"
           :key="index"
           class="col-lg-4 col-md-6 p-1 mb-3">
           <div>
@@ -101,19 +80,19 @@ const pubs = ref([
                   class="d-flex flex-wrap align-items-center justify-content-between">
                   <div>
                     <h6 class="m-0 text-grey">
-                      <b>{{ pub.type }}</b>
+                      <b>{{ itemCtx.titre }}</b>
                     </h6>
                   </div>
                   <div>
                     <small
-                      ><i>{{ pub.dataPub }}</i></small
+                      ><i>{{ new Date(itemCtx.dateDebut).toLocaleDateString('fr-FR') }}</i></small
                     >
                   </div>
                 </div>
                 <div class="mt-3">
-                  <h5 class="text-primary">{{ pub.titre }}</h5>
-                  <p class="pub45" v-if="pub.contenu != ''">
-                    {{ pub.contenu }}
+                  <h5 class="text-primary">{{ itemCtx.titre }}</h5>
+                  <p class="pub45" v-if="itemCtx.description != ''">
+{{ itemCtx.description }}
                   </p>
                   <p class="pub45" v-else>
                     Lorem ipsum dolor, sit amet consectetur adipisicing elit.
@@ -122,7 +101,7 @@ const pubs = ref([
                     incidunt, a repellendus expedita numquam labore eum quo
                     quasi!
                   </p>
-                  <small class=""><i>Paul WARREN</i></small>
+                  <small class=""><i>{{ itemCtx.titre }}</i></small>
                 </div>
               </a>
             </div>
