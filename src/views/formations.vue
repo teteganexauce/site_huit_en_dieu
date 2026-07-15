@@ -35,6 +35,10 @@
                     <span class="badge" :class="badgeClass(f.type)">{{ badgeLabel(f.type) }}</span>
                   </div>
                   <p class="card-text text-muted small flex-grow-1">{{ f.description?.substring(0, 150) }}{{ f.description?.length > 150 ? '...' : '' }}</p>
+                  <div class="mb-1">
+                    <span v-for="s in 5" :key="s" class="small" :class="s <= Math.round(f.note_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
+                    <small class="text-muted ms-1">({{ f.notes_count || 0 }})</small>
+                  </div>
                   <div class="d-flex justify-content-between align-items-center mt-auto">
                     <div class="small text-muted">
                       <i class="bi bi-people me-1"></i>{{ f.inscrits_count || 0 }} inscrits

@@ -21,6 +21,9 @@ import client8 from '../assets/img/clients/client-8.png'
 
 const clientLogos = [client1, client2, client3, client4, client5, client6, client7, client8]
 
+const formationsPopulaires = ref([])
+const isLoadingFormations = ref(true)
+
 const temoignages = ref([])
 const partenaires = ref([])
 const isLoadingTemoignages = ref(true)
@@ -46,54 +49,47 @@ onMounted(async () => {
   } finally {
     isLoadingPartenaires.value = false;
   }
+
+  try {
+    const fData = await publicService.getFormations({ popular: true });
+    formationsPopulaires.value = fData.data || fData;
+  } catch (error) {
+    console.error('Erreur chargement formations populaires:', error);
+  } finally {
+    isLoadingFormations.value = false;
+  }
 })
 </script>
 
 <template>
    <section id="featured-services" class="featured-services">
       <div class="container">
-         <h3 class="w-100 text-primary fw-bold text-center mb-5">Nos Formations</h3>
-         <div class="row gy-4">
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Lorem Ipsum</a></h4>
-                  <p>Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-               </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos-delay="200">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Sed ut perspici</a></h4>
-                  <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-
-               </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos-delay="400">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Magni Dolores</a></h4>
-                  <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-
-               </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos-delay="600">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Nemo Enim</a></h4>
-                  <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-
-               </div>
-            </div><!-- End Service Item -->
-         </div>
+        <h3 class="w-100 text-primary fw-bold text-center mb-5">Nos Formations</h3>
+        <div v-if="isLoadingFormations" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+        <div v-else class="row gy-4">
+          <div v-for="f in formationsPopulaires" :key="f.id" class="col-xl-3 col-md-6 d-flex">
+            <div class="service-item position-relative">
+              <div class="icon"><i class="bi bi-star-fill icon"></i></div>
+              <h4><router-link :to="`/formations/${f.id}`" class="stretched-link">{{ f.titre }}</router-link></h4>
+              <div class="mb-2">
+                <span v-for="s in 5" :key="s" class="star" :class="s <= Math.round(f.note_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
+                <small class="text-muted ms-1">({{ f.notes_count || 0 }})</small>
+              </div>
+              <p>{{ f.description?.substring(0, 120) }}{{ f.description?.length > 120 ? '...' : '' }}</p>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted"><i class="bi bi-people me-1"></i>{{ f.inscrits_count || 0 }} inscrits</small>
+                <small v-if="f.prix > 0" class="fw-bold text-primary">{{ f.prix?.toLocaleString('fr-FR') }} FCFA</small>
+                <small v-else class="badge bg-success">Gratuit</small>
+              </div>
+              <router-link :to="`/formations/${f.id}`" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i></router-link>
+            </div>
+          </div>
+        </div>
+        <div v-if="!isLoadingFormations && !formationsPopulaires.length" class="text-center text-muted py-3">
+          <p>Aucune formation disponible pour le moment.</p>
+        </div>
       </div>
    </section>
 

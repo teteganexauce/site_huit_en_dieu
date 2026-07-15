@@ -105,6 +105,22 @@
                 <div class="d-flex justify-content-between" v-if="formation.capaciteMax"><small class="text-muted">Capacité</small><small>{{ formation.capaciteMax }}</small></div>
               </div>
             </div>
+            <div class="card border-0 shadow-sm mt-3">
+              <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-star me-1"></i>Noter cette formation</h6>
+                <div class="text-center mb-2">
+                  <span v-for="s in 5" :key="s"
+                    class="star-rating fs-3"
+                    :class="(noteUtilisateur || noteHover) >= s ? 'text-warning' : 'text-muted'"
+                    @mouseover="noteHover = s"
+                    @mouseleave="noteHover = 0"
+                    @click="submitNote(s)"
+                    style="cursor: pointer;">&#9733;</span>
+                </div>
+                <p v-if="noteMessage" class="small text-center mb-0" :class="noteMessageType === 'success' ? 'text-success' : 'text-danger'">{{ noteMessage }}</p>
+                <p v-else class="small text-center text-muted mb-0">Cliquez pour noter</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -271,6 +287,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
+import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import defaultImg from '../assets/img/blog/blog-4.jpg'
 
@@ -291,6 +308,41 @@ const showPaymentModal = ref(false)
 const showSuccessModal = ref(false)
 const paymentMode = ref('mobile_money')
 const paymentForm = ref({ operateur: '', telephone: '', titulaire_carte: '', numero_carte: '', date_expiration: '', cvv: '' })
+
+const noteUtilisateur = ref(0)
+const noteHover = ref(0)
+const noteMessage = ref('')
+const noteMessageType = ref('')
+
+const submitNote = async (noteValue) => {
+  if (!authStore.isAuthenticated) {
+    noteMessage.value = 'Connectez-vous pour noter cette formation.'
+    noteMessageType.value = 'danger'
+    return
+  }
+  noteUtilisateur.value = noteValue
+  noteMessage.value = ''
+  try {
+    const res = await api.post(`/formations/${route.params.id}/notes`, { note: noteValue })
+    noteMessage.value = 'Note enregistrée !'
+    noteMessageType.value = 'success'
+    if (formation.value) formation.value.note_moyenne = res.data?.note_moyenne || formation.value.note_moyenne
+  } catch (e) {
+    noteMessage.value = e.response?.data?.message || 'Erreur lors de l\'envoi de la note'
+    noteMessageType.value = 'danger'
+    noteUtilisateur.value = 0
+  }
+}
+
+const loadUserNote = async () => {
+  if (!authStore.isAuthenticated) return
+  try {
+    const res = await api.get(`/formations/${route.params.id}/notes`)
+    const notes = res.data?.notes || []
+    const maNote = notes.find(n => n.user_id === authStore.user?.id)
+    if (maNote) noteUtilisateur.value = maNote.note
+  } catch (e) { /* pas de note existante */ }
+}
 
 const canPay = computed(() => {
   if (paymentMode.value === 'mobile_money') return paymentForm.value.operateur && paymentForm.value.telephone
@@ -386,6 +438,7 @@ onMounted(async () => {
         isEnrolled.value = Array.isArray(items) && items.some(i => i.formation_id == id)
       } catch (e) { /* ignore */ }
     }
+    await loadUserNote()
   } catch (e) {
     console.error(e)
     formation.value = null
