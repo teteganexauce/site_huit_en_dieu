@@ -48,17 +48,20 @@
                <li>
                   <router-link to="/publications" class="nav-link scrollto">Publications</router-link>
                </li>
-               <li class="dropdown"><a href="#"><span>Espace de Vente</span> <i
-                        class="bi bi-chevron-down dropdown-indicator"></i></a>
-                  <ul>
-                     <li>
-                        <router-link to="/e-book" class="nav-link scrollto">Nos e-books</router-link>
-                     </li>
-                     <li>
-                        <router-link to="/objets" class="nav-link scrollto">Objets en Vente</router-link>
-                     </li>
-                  </ul>
-               </li>
+                <li class="dropdown"><a href="#"><span>Espace de Vente</span> <i
+                         class="bi bi-chevron-down dropdown-indicator"></i></a>
+                   <ul>
+                      <li>
+                         <router-link to="/boutique" class="nav-link scrollto">Toute la boutique</router-link>
+                      </li>
+                      <li>
+                         <router-link to="/e-book" class="nav-link scrollto">Nos e-books</router-link>
+                      </li>
+                      <li>
+                         <router-link to="/objets" class="nav-link scrollto">Objets en Vente</router-link>
+                      </li>
+                   </ul>
+                </li>
                <li>
                   <router-link to="/services" class="nav-link scrollto">Nos Services</router-link>
                </li>
@@ -95,6 +98,12 @@
             <i class="bi bi-list mobile-nav-toggle d-none"></i>
          </nav><!-- .navbar -->
 
+         <router-link to="/panier" class="btn-getstarted scrollto position-relative" title="Panier">
+            <i class="bi bi-cart"></i>
+            <span v-if="cartStore.itemCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+               {{ cartStore.itemCount }}
+            </span>
+         </router-link>
          <a class="btn-getstarted scrollto" href="index.html#about">Faire un Don</a>
          <router-link v-if="!authStore.isAuthenticated" to="/login" class="btn-getstarted scrollto ms-2">Connexion</router-link>
          <router-link v-else to="/profile-inscrit" class="btn-getstarted scrollto ms-2">Mon Profil</router-link>
@@ -104,8 +113,10 @@
 </template>
 <script setup>
 import { useAuthStore } from '../stores/auth'
+import { useCartStore } from '../stores/cart'
 
 const authStore = useAuthStore()
+const cartStore = useCartStore()
 
 $(document).ready(function () {
    $(".mobile-nav-active #vabar ul").click(function (e) {
