@@ -62,6 +62,41 @@ const publicService = {
     });
     return response.data;
   },
+
+  async getFormations(params = {}) {
+    const response = await api.get('/formations', { params });
+    return response.data;
+  },
+
+  async getFormation(id) {
+    const response = await api.get(`/formations/${id}`);
+    return response.data;
+  },
+
+  async getFormationModules(formationId) {
+    const response = await api.get(`/formations/${formationId}/modules`);
+    return response.data;
+  },
+
+  async getCours(id) {
+    const response = await api.get(`/cours/${id}`);
+    return response.data;
+  },
+
+  async enrollInFormation(formationId, paymentData = {}) {
+    const response = await api.post(`/formations/${formationId}/inscription`, paymentData);
+    return response.data;
+  },
+
+  async confirmPayment(paymentId) {
+    const response = await api.post(`/paiements/confirmer/${paymentId}`);
+    return response.data;
+  },
+
+  async getMyInscriptions() {
+    const response = await api.get('/user/inscriptions');
+    return response.data;
+  },
 };
 
 export default publicService;
