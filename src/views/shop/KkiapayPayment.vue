@@ -17,7 +17,7 @@ async function loadPaiement() {
     return
   }
   try {
-    const res = await api.get(`/admin/dons/paiement/${paiementId}`)
+    const res = await api.get(`/paiements/${paiementId}`)
     paiement.value = res.data || res
   } catch (e) {
     error.value = "Impossible de charger les informations du paiement."
