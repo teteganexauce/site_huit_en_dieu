@@ -73,7 +73,7 @@
             {{ cartStore.itemCount }}
           </span>
         </router-link>
-        <router-link to="/#about" class="site-btn site-btn--donate">
+        <router-link to="/dons" class="site-btn site-btn--donate">
           <i class="bi bi-heart-fill"></i>
           Faire un don
         </router-link>
