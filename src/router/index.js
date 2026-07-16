@@ -28,6 +28,7 @@ import CartView from '../views/shop/CartView.vue';
 import OrderSuccess from '../views/shop/OrderSuccess.vue';
 import BookReaderView from '../views/shop/BookReaderView.vue';
 import DonateView from '../views/shop/DonateView.vue';
+import KkiapayPayment from '../views/shop/KkiapayPayment.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,6 +61,7 @@ const router = createRouter({
     { path: "/commande/succes", name: "orderSuccess", component: OrderSuccess, meta: { requiresAuth: true } },
     { path: "/mes-livres/:livreId/lire", name: "bookReader", component: BookReaderView, meta: { requiresAuth: true } },
     { path: "/dons", name: "donate", component: DonateView },
+    { path: "/paiement/kkiapay", name: "kkiapayPayment", component: KkiapayPayment },
   ],
 });
 
