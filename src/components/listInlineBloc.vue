@@ -225,25 +225,24 @@ onMounted(async () => {
              <span class="visually-hidden">Chargement...</span>
            </div>
          </div>
-           <div v-else class="clients-slider swiper">
-              <swiper
-                 ref="partnerSwiper"
-                 :slides-per-view="7"
-                 :space-between="16"
-                 :loop="true"
-                 :loopedSlides="maxLoopedSlides"
-                 :modules="[Navigation, Pagination, A11y, Autoplay]"
-                 :breakpoints="{
-                   320: { slidesPerView: 2, spaceBetween: 12 },
-                   576: { slidesPerView: 3, spaceBetween: 12 },
-                   768: { slidesPerView: 4, spaceBetween: 16 },
-                   992: { slidesPerView: 5, spaceBetween: 16 },
-                   1200: { slidesPerView: 7, spaceBetween: 16 }
-                 }"
-                 :speed="3000"
-                 :grab-cursor="true"
-                 :autoplay="{ delay: 50, disableOnInteraction: false, pauseOnMouseEnter: false }"
-              >
+            <div v-else class="clients-slider swiper">
+               <swiper
+                  :slides-per-view="7"
+                  :space-between="16"
+                  :loop="true"
+                  :loopedSlides="maxLoopedSlides"
+                  :modules="[Autoplay]"
+                  :breakpoints="{
+                    320: { slidesPerView: 2, spaceBetween: 12 },
+                    576: { slidesPerView: 3, spaceBetween: 12 },
+                    768: { slidesPerView: 4, spaceBetween: 16 },
+                    992: { slidesPerView: 5, spaceBetween: 16 },
+                    1200: { slidesPerView: 7, spaceBetween: 16 }
+                  }"
+                  :speed="5000"
+                  :allow-touch-move="false"
+                  :autoplay="{ delay: 1, disableOnInteraction: false, pauseOnMouseEnter: false, stopOnLastSlide: false }"
+               >
                 <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
                    <div class="partner-card">
                      <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
