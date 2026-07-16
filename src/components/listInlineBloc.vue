@@ -33,6 +33,15 @@ const maxLoopedSlides = computed(() => Math.max(partenaires.value.length, 7))
 
 onMounted(async () => {
   try {
+    const fData = await publicService.getFormations({ popular: true });
+    formationsPopulaires.value = fData.data || fData;
+  } catch (error) {
+    console.error('Erreur chargement formations populaires:', error);
+  } finally {
+    isLoadingFormations.value = false;
+  }
+
+  try {
     const tData = await publicService.getTestimonials();
     temoignages.value = tData.data || tData;
   } catch (error) {
@@ -48,15 +57,6 @@ onMounted(async () => {
     console.error('Erreur chargement partenaires:', error);
   } finally {
     isLoadingPartenaires.value = false;
-  }
-
-  try {
-    const fData = await publicService.getFormations({ popular: true });
-    formationsPopulaires.value = fData.data || fData;
-  } catch (error) {
-    console.error('Erreur chargement formations populaires:', error);
-  } finally {
-    isLoadingFormations.value = false;
   }
 })
 </script>
