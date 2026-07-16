@@ -189,22 +189,30 @@ onMounted(async () => {
            </div>
          </div>
          <div v-else class="testimonials-slider swiper">
-            <div class="swiper-wrapper">
-               <div v-for="item in temoignages" :key="item.id" class="swiper-slide">
-                  <div class="testimonial-item">
+            <swiper
+               :slides-per-view="1"
+               :space-between="30"
+               :loop="true"
+               :modules="[Navigation, Pagination, A11y, Autoplay]"
+               :pagination="{ clickable: true }"
+               :autoplay="{ delay: 4000, disableOnInteraction: false }"
+               :speed="800"
+               :grab-cursor="true"
+               :centered-slides="true"
+               class="testimonials-swiper"
+            >
+               <swiper-slide v-for="item in temoignages" :key="item.id">
+                  <div class="testimonial-item text-center">
                      <img :src="item.photoUrl || defaultImg" class="testimonial-img" alt="">
                      <h3>{{ item.auteur }}</h3>
-                     <p>
+                     <p class="mx-auto" style="max-width: 700px;">
                         <i class="bi bi-quote quote-icon-left"></i>
                         {{ item.contenu }}
                         <i class="bi bi-quote quote-icon-right"></i>
                      </p>
                   </div>
-               </div>
-            </div>
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
+               </swiper-slide>
+            </swiper>
          </div>
       </div>
    </section>
