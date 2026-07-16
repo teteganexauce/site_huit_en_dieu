@@ -44,7 +44,7 @@ async function handleSubmit() {
     successMessage.value = res.message || 'Don initié avec succès !'
     paymentUrl.value = res.paiement_url || ''
     if (res.paiement_url) {
-      router.push(res.paiement_url)
+      window.location.href = res.paiement_url
       return
     }
   } catch (e) {
