@@ -43,6 +43,10 @@ async function handleSubmit() {
     })
     successMessage.value = res.message || 'Don initié avec succès !'
     paymentUrl.value = res.paiement_url || ''
+    if (res.paiement_url) {
+      router.push(res.paiement_url)
+      return
+    }
   } catch (e) {
     errorMessage.value = e.response?.data?.message || e.response?.data?.error || "Une erreur s'est produite."
   } finally {

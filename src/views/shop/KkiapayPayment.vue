@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import BreadcombsComponent from '../../includes/breadcombs.vue'
 import api from '../../services/api'
@@ -9,6 +9,10 @@ const paiementId = route.query.paiement_id
 const isLoading = ref(true)
 const paiement = ref(null)
 const error = ref('')
+const kkiapayConfig = ref(null)
+const widgetLoaded = ref(false)
+const paying = ref(false)
+const success = ref(false)
 
 async function loadPaiement() {
   if (!paiementId) {
@@ -17,13 +21,56 @@ async function loadPaiement() {
     return
   }
   try {
-    const res = await api.get(`/paiements/${paiementId}`)
-    paiement.value = res.data || res
+    const [paiementRes, configRes] = await Promise.all([
+      api.get(`/paiements/${paiementId}`),
+      api.get('/config/kkiapay')
+    ])
+    paiement.value = paiementRes.data || paiementRes
+    kkiapayConfig.value = configRes.data || configRes
+    await loadKkiapayScript()
   } catch (e) {
     error.value = "Impossible de charger les informations du paiement."
   } finally {
     isLoading.value = false
   }
+}
+
+function loadKkiapayScript() {
+  return new Promise((resolve) => {
+    if (window.kkiapay) {
+      widgetLoaded.value = true
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://cdn.kkiapay.me/k.js'
+    script.onload = () => {
+      widgetLoaded.value = true
+      resolve()
+    }
+    document.head.appendChild(script)
+  })
+}
+
+function openKkiapay() {
+  if (!widgetLoaded.value || !kkiapayConfig.value || !paiement.value) return
+  paying.value = true
+  const callbackUrl = `${window.location.protocol}//${window.location.hostname}:8000/api/v1/webhooks/paiement`
+  window.kkiapay({
+    amount: Number(paiement.value.montant),
+    key: kkiapayConfig.value.public_key,
+    sandbox: kkiapayConfig.value.sandbox,
+    data: String(paiementId),
+    callback: callbackUrl,
+    success: function(response) {
+      paying.value = false
+      success.value = true
+    },
+    error: function(error) {
+      paying.value = false
+      error.value = "Le paiement a échoué. Veuillez réessayer."
+    }
+  })
 }
 
 onMounted(loadPaiement)
@@ -38,7 +85,21 @@ onMounted(loadPaiement)
           <div class="spinner-border text-primary"></div>
         </div>
 
-        <div v-else-if="error" class="alert alert-danger text-center">{{ error }}</div>
+        <div v-else-if="error && !paiement" class="alert alert-danger text-center">{{ error }}</div>
+
+        <div v-else-if="success" class="card border-0 shadow-sm">
+          <div class="card-body text-center p-5">
+            <div class="mb-4">
+              <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                <i class="bi bi-check-circle fs-1 text-success"></i>
+              </div>
+            </div>
+            <h4 class="fw-bold mb-2">Paiement réussi !</h4>
+            <p class="text-muted mb-3">Merci pour votre don de <strong>{{ Number(paiement?.montant || 0).toLocaleString('fr-FR') }} FCFA</strong>.</p>
+            <p class="text-muted mb-4">Un reçu vous sera envoyé par email.</p>
+            <router-link to="/" class="btn btn-primary">Retour à l'accueil</router-link>
+          </div>
+        </div>
 
         <div v-else class="card border-0 shadow-sm">
           <div class="card-body text-center p-5">
@@ -56,15 +117,18 @@ onMounted(loadPaiement)
             <div class="alert alert-info text-start">
               <i class="bi bi-info-circle me-1"></i>
               <small>
-                Vous allez être redirigé vers la plateforme de paiement sécurisée KKiaPay.
-                Une fois le paiement effectué, votre don sera automatiquement confirmé.
+                Vous allez payer via <strong>KKiaPay</strong>. Une fenêtre s'ouvrira pour saisir votre numéro de téléphone
+                et confirmer le paiement. Une fois le paiement effectué, votre don sera automatiquement confirmé.
               </small>
             </div>
 
             <div class="d-flex flex-column gap-2">
-              <button class="btn btn-primary btn-lg w-100" @click="$router.push('/dons')">
-                <i class="bi bi-arrow-left me-2"></i>Retour
+              <button class="btn btn-primary btn-lg w-100" :disabled="!widgetLoaded || paying" @click="openKkiapay">
+                <span v-if="paying" class="spinner-border spinner-border-sm me-1"></span>
+                <i v-else class="bi bi-wallet2 me-2"></i>
+                {{ paying ? 'Paiement en cours...' : 'Payer avec KKiaPay' }}
               </button>
+              <router-link to="/dons" class="btn btn-outline-secondary">Annuler</router-link>
             </div>
           </div>
         </div>
