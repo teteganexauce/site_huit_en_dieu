@@ -29,7 +29,19 @@ const partenaires = ref([])
 const isLoadingTemoignages = ref(true)
 const isLoadingPartenaires = ref(true)
 
-const maxLoopedSlides = computed(() => Math.max(partenaires.value.length, 7))
+// On duplique la liste des partenaires pour garantir assez de slides
+// à Swiper afin que le loop soit fluide et ne s'arrête jamais,
+// quel que soit le nombre réel de partenaires en base.
+const partenairesSlider = computed(() => {
+  const list = partenaires.value
+  if (!list.length) return []
+  const minSlides = 21 // 7 (slidesPerView max) x 3, marge confortable pour un loop fluide
+  let result = [...list]
+  while (result.length < minSlides) {
+    result = result.concat(list)
+  }
+  return result
+})
 
 onMounted(async () => {
   try {
@@ -137,10 +149,13 @@ onMounted(async () => {
 
                         <div class="meta-top">
                            <ul>
-                              <li class="d-flex align-items-center"><i class="bi bi-person"></i> <a
-                                    href="blog-details.html">John Doe</a></li>
-                              <li class="d-flex align-items-center"><i class="bi bi-clock"></i> <a
-                                    href="blog-details.html"><time datetime="2022-01-01">Jan 1, 2022</time></a>
+                              <li class="d-flex align-items-center">
+                                 <i class="bi bi-person"></i>
+                                 <a href="blog-details.html">John Doe</a>
+                              </li>
+                              <li class="d-flex align-items-center">
+                                 <i class="bi bi-clock"></i>
+                                 <a href="blog-details.html"><time datetime="2022-01-01">1er janvier 2022</time></a>
                               </li>
                            </ul>
                         </div>
@@ -153,9 +168,9 @@ onMounted(async () => {
                         </div>
 
                         <div class="read-more mt-auto d-flex justify-content-between">
-                           <li class="d-flex align-items-center small text-grey"><i class="bi bi-chat-dots"></i>&nbsp;
-                              <span href="blog-detspanils.html">12
-                                 Comments</span>
+                           <li class="d-flex align-items-center small text-grey">
+                              <i class="bi bi-chat-dots"></i>&nbsp;
+                              <span href="blog-details.html">12 Comments</span>
                            </li>
                            <a href="blog-details.html" class="d-block">Read More</a>
                         </div>
@@ -230,7 +245,6 @@ onMounted(async () => {
                   :slides-per-view="7"
                   :space-between="16"
                   :loop="true"
-                  :loopedSlides="maxLoopedSlides"
                   :modules="[Autoplay]"
                   :breakpoints="{
                     320: { slidesPerView: 2, spaceBetween: 12 },
@@ -243,7 +257,7 @@ onMounted(async () => {
                   :allow-touch-move="false"
                   :autoplay="{ delay: 1, disableOnInteraction: false, pauseOnMouseEnter: false, stopOnLastSlide: false }"
                >
-                <swiper-slide v-for="(item, index) in partenaires" :key="item.id">
+                <swiper-slide v-for="(item, index) in partenairesSlider" :key="`${item.id}-${index}`">
                    <div class="partner-card">
                      <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
                        <img :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
@@ -329,6 +343,5 @@ onMounted(async () => {
    filter: grayscale(0%);
    opacity: 1;
 }
-
 
 </style>
