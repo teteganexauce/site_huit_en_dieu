@@ -19,7 +19,10 @@ const isLoadingOrders = ref(false)
 const orders = ref([])
 const purchasedBooks = ref([])
 const inscriptions = ref([])
-const downloadUrls = ref({})
+
+const showPaymentModal = ref(false)
+const selectedBook = ref(null)
+const modalType = ref('pending')
 
 const form = ref({
   nom: '', prenom: '', telephone: '', adresse: '',
@@ -101,11 +104,6 @@ async function loadPurchasedBooks() {
       }
     }
     purchasedBooks.value = books
-    for (const book of books) {
-      if (book.livre && book.livre.id) {
-        fetchDownloadUrl(book.livre.id, book.id)
-      }
-    }
   } catch (e) {
     console.error(e)
   } finally {
@@ -113,13 +111,34 @@ async function loadPurchasedBooks() {
   }
 }
 
-async function fetchDownloadUrl(livreId, bookKey) {
-  try {
-    const res = await shopService.getDownloadUrl(livreId)
-    downloadUrls.value[bookKey] = res.urls || res
-  } catch (e) {
-    console.error('Erreur téléchargement:', e)
+function openBookReader(book) {
+  const livreId = book.livre?.id
+  if (!livreId) {
+    openPaymentModal(book)
+    return
   }
+  router.push({
+    name: 'bookReader',
+    params: { livreId: String(livreId) },
+    query: { produit_id: String(book.id) }
+  })
+}
+
+function openPaymentModal(book) {
+  selectedBook.value = book
+  if (book.statut === 'annulee') {
+    modalType.value = 'cancelled'
+  } else if (book.statut === 'en_attente_paiement' || book.statut === 'en_attente') {
+    modalType.value = 'pending'
+  } else {
+    modalType.value = 'pending'
+  }
+  showPaymentModal.value = true
+}
+
+function closePaymentModal() {
+  showPaymentModal.value = false
+  selectedBook.value = null
 }
 
 async function loadFormations() {
@@ -358,25 +377,29 @@ const statusClass = (statut) => {
               </div>
               <div v-else class="row g-3">
                 <div v-for="book in purchasedBooks" :key="book.id" class="col-md-6">
-                  <div class="border rounded-3 p-3 h-100 d-flex">
+                  <div class="border rounded-3 p-3 h-100 d-flex book-card"
+                       :class="{
+                         'book-card-clickable': book.statut !== 'payee' && book.statut !== 'livree',
+                         'book-card-paid': book.statut === 'payee' || book.statut === 'livree'
+                       }"
+                       @click="book.statut === 'payee' || book.statut === 'livree' ? openBookReader(book) : openPaymentModal(book)">
                     <img :src="book.imageUrl || defaultAvatar" class="rounded me-3" width="80" height="100" style="object-fit: cover;">
                     <div class="flex-grow-1 d-flex flex-column">
                       <h6 class="fw-bold mb-1">{{ book.nom }}</h6>
                       <small class="text-muted">{{ book.description?.substring(0, 80) || '' }}{{ book.description?.length > 80 ? '...' : '' }}</small>
                       <div class="mt-auto">
-                        <span class="badge mb-2" :class="'bg-' + statusClass(book.statut) + ' bg-opacity-25 text-' + statusClass(book.statut)">{{ statusLabel(book.statut) }}</span>
-                        <div class="d-flex gap-1 flex-wrap" v-if="book.statut === 'payee' || book.statut === 'livree'">
-                          <a v-if="downloadUrls[book.id]?.pdf_url" :href="downloadUrls[book.id].pdf_url" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye me-1"></i>Lire
-                          </a>
-                          <a v-if="downloadUrls[book.id]?.pdf_url" :href="downloadUrls[book.id].pdf_url" download class="btn btn-sm btn-outline-success">
-                            <i class="bi bi-download me-1"></i>Télécharger
-                          </a>
-                          <a v-if="downloadUrls[book.id]?.epub_url" :href="downloadUrls[book.id].epub_url" download class="btn btn-sm btn-outline-info">
-                            EPUB
-                          </a>
-                        </div>
-                        <small v-else class="text-muted">En attente de paiement</small>
+                        <span class="badge mb-2" :class="'bg-' + statusClass(book.statut) + ' bg-opacity-25 text-' + statusClass(book.statut)">
+                          <i v-if="book.statut === 'payee' || book.statut === 'livree'" class="bi bi-check-circle me-1"></i>
+                          <i v-else-if="book.statut === 'annulee'" class="bi bi-x-circle me-1"></i>
+                          <i v-else class="bi bi-clock me-1"></i>
+                          {{ statusLabel(book.statut) }}
+                        </span>
+                        <small v-if="book.statut === 'payee' || book.statut === 'livree'" class="text-success d-block mt-1">
+                          <i class="bi bi-arrow-right-circle me-1"></i>Cliquez pour lire / télécharger
+                        </small>
+                        <small v-else class="text-muted d-block mt-1">
+                          <i class="bi bi-info-circle me-1"></i>Cliquez pour plus d'informations
+                        </small>
                       </div>
                     </div>
                   </div>
@@ -566,8 +589,58 @@ const statusClass = (statut) => {
           </div>
         </div>
       </div>
+  </div>
+</div>
+
+<!-- Payment Status Modal -->
+<div v-if="showPaymentModal" class="modal-backdrop fade show"></div>
+<div v-if="showPaymentModal" class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">{{ selectedBook?.nom }}</h5>
+        <button type="button" class="btn-close" @click="closePaymentModal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <template v-if="modalType === 'pending'">
+          <div class="mb-3">
+            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+              <i class="bi bi-clock-history fs-1 text-warning"></i>
+            </div>
+          </div>
+          <h5 class="fw-bold mb-2">Paiement en attente de confirmation</h5>
+          <p class="text-muted mb-0">
+            Votre commande pour <strong>{{ selectedBook?.nom }}</strong> est en attente de confirmation de paiement.
+            Dès que l'administrateur aura vérifié et confirmé le paiement, vous pourrez lire et télécharger votre livre.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-center gap-3 small text-muted">
+            <span><i class="bi bi-credit-card me-1"></i>Payé</span>
+            <span><i class="bi bi-shield-check me-1"></i>En vérification</span>
+            <span><i class="bi bi-book me-1"></i>Bientôt disponible</span>
+          </div>
+        </template>
+        <template v-else-if="modalType === 'cancelled'">
+          <div class="mb-3">
+            <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+              <i class="bi bi-x-circle fs-1 text-danger"></i>
+            </div>
+          </div>
+          <h5 class="fw-bold mb-2">Commande annulée</h5>
+          <p class="text-muted mb-0">
+            La commande pour <strong>{{ selectedBook?.nom }}</strong> a été annulée.
+            Si vous avez effectué un paiement, veuillez contacter l'administrateur pour un remboursement.
+          </p>
+        </template>
+      </div>
+      <div class="modal-footer border-0 pt-0 justify-content-center">
+        <button type="button" class="btn btn-primary px-4" @click="closePaymentModal">
+          <i class="bi bi-check-lg me-1"></i>Compris
+        </button>
+      </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>
@@ -586,5 +659,26 @@ const statusClass = (statut) => {
 }
 .progress {
   background-color: #e9ecef;
+}
+
+.book-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-color: #e9ecef !important;
+}
+.book-card-paid {
+  border-left: 4px solid var(--color-primary, #0d6efd) !important;
+}
+.book-card-clickable {
+  border-left: 4px solid #ffc107 !important;
+  cursor: pointer;
+}
+.book-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: #ffc107 !important;
+}
+.book-card-paid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 </style>

@@ -61,10 +61,10 @@
                     <div :id="'mod' + mod.id" class="accordion-collapse collapse" data-bs-parent="#modulesAccordion">
                       <div class="accordion-body">
                         <div v-if="mod.cours?.length">
-                          <div v-for="c in mod.cours" :key="c.id" class="d-flex justify-content-between align-items-center border-bottom py-2">
+                          <div v-for="c in mod.cours" :key="c.id" class="d-flex justify-content-between align-items-center border-bottom py-2" style="cursor:pointer;" @click="openCours(c)">
                             <div class="d-flex align-items-center gap-2">
                               <i class="bi bi-play-circle-fill text-primary"></i>
-                              <span>{{ c.titre }}</span>
+                              <span class="text-primary-hover">{{ c.titre }}</span>
                               <span v-if="c.estGratuit" class="badge bg-success bg-opacity-10 text-success small">Gratuit</span>
                             </div>
                             <small class="text-muted" v-if="c.dureeMinutes">{{ c.dureeMinutes }} min</small>
@@ -261,6 +261,41 @@
     </div>
   </div>
 
+  <!-- Cours Modal -->
+  <div v-if="selectedCours" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold">{{ selectedCours.titre }}</h5>
+          <button type="button" class="btn-close" @click="closeCours"></button>
+        </div>
+        <div class="modal-body">
+          <div v-if="selectedCours.video" class="mb-4">
+            <div class="ratio ratio-16x9 bg-dark rounded-3 overflow-hidden">
+              <video v-if="selectedCours.video.endsWith('.mp4') || selectedCours.video.includes('video')" :src="selectedCours.video" controls class="w-100 h-100"></video>
+              <iframe v-else :src="selectedCours.video.replace('watch?v=', 'embed/')" class="w-100 h-100" frameborder="0" allowfullscreen></iframe>
+            </div>
+          </div>
+          <div v-else class="text-center py-4 text-muted">
+            <i class="bi bi-camera-video-off fs-1 d-block mb-2"></i>
+            <p>Aucune vidéo disponible pour ce cours.</p>
+          </div>
+          <div class="mt-3" v-if="selectedCours.contenu">
+            <h6 class="fw-bold">Contenu du cours</h6>
+            <div style="white-space: pre-line;">{{ selectedCours.contenu }}</div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+            <small class="text-muted" v-if="selectedCours.dureeMinutes"><i class="bi bi-clock me-1"></i>{{ selectedCours.dureeMinutes }} minutes</small>
+            <button v-if="isEnrolled" class="btn btn-success" @click="marquerComplete(selectedCours.id)" :disabled="completingCoursId === selectedCours.id">
+              <span v-if="completingCoursId === selectedCours.id" class="spinner-border spinner-border-sm me-1"></span>
+              <i class="bi bi-check-circle me-1"></i>Marquer comme terminé
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Succès -->
   <div v-if="showSuccessModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">
@@ -287,6 +322,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
+import shopService from '../services/shopService'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import defaultImg from '../assets/img/blog/blog-4.jpg'
@@ -308,6 +344,35 @@ const showPaymentModal = ref(false)
 const showSuccessModal = ref(false)
 const paymentMode = ref('mobile_money')
 const paymentForm = ref({ operateur: '', telephone: '', titulaire_carte: '', numero_carte: '', date_expiration: '', cvv: '' })
+
+const selectedCours = ref(null)
+const completingCoursId = ref(null)
+
+const openCours = async (c) => {
+  selectedCours.value = c
+}
+
+const closeCours = () => {
+  selectedCours.value = null
+}
+
+const marquerComplete = async (coursId) => {
+  completingCoursId.value = coursId
+  try {
+    const res = await api.put(`/cours/${coursId}/completer`)
+    if (res.data?.progression !== undefined) {
+      const ins = await shopService.getMyInscriptions()
+      const items = ins.data || ins
+      const myIns = (items.data || items).find(i => i.formation_id == route.params.id)
+      if (myIns) isEnrolled.value = true
+    }
+    selectedCours.value = null
+  } catch (e) {
+    alert(e.response?.data?.message || 'Erreur')
+  } finally {
+    completingCoursId.value = null
+  }
+}
 
 const noteUtilisateur = ref(0)
 const noteHover = ref(0)

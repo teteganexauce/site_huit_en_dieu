@@ -26,6 +26,7 @@ import CatalogueView from '../views/shop/CatalogueView.vue';
 import ProductDetailView from '../views/shop/ProductDetailView.vue';
 import CartView from '../views/shop/CartView.vue';
 import OrderSuccess from '../views/shop/OrderSuccess.vue';
+import BookReaderView from '../views/shop/BookReaderView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,6 +57,7 @@ const router = createRouter({
     { path: "/boutique/:id", name: "product-detail", component: ProductDetailView },
     { path: "/panier", name: "cart", component: CartView },
     { path: "/commande/succes", name: "orderSuccess", component: OrderSuccess, meta: { requiresAuth: true } },
+    { path: "/mes-livres/:livreId/lire", name: "bookReader", component: BookReaderView, meta: { requiresAuth: true } },
   ],
 });
 
