@@ -33,9 +33,11 @@
             <i class="bi bi-credit-card me-1"></i>Finaliser le paiement
           </button>
         </template>
+        <router-link v-else-if="inscriptionId && inscriptionInfo.progression >= 100" :to="{ name: 'certificat', params: { id: inscriptionId } }" class="btn btn-sm btn-success">
+          <i class="bi bi-award me-1"></i>Voir mon certificat
+        </router-link>
         <router-link v-else-if="inscriptionId" :to="'/apprentissage/' + inscriptionId" class="btn btn-sm btn-success">
-          <i class="bi bi-play-circle me-1"></i>
-          {{ inscriptionInfo.progression >= 100 ? 'Voir mon certificat' : 'Continuer' }}
+          <i class="bi bi-play-circle me-1"></i>Continuer
         </router-link>
       </div>
     </div>

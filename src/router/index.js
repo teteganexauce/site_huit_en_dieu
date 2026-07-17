@@ -32,6 +32,7 @@ import KkiapayPayment from '../views/shop/KkiapayPayment.vue';
 import MesFormations from '../views/MesFormations.vue';
 import MesCommandes from '../views/MesCommandes.vue';
 import CoursPlayer from '../views/CoursPlayer.vue';
+import CertificatPage from '../views/CertificatPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +70,7 @@ const router = createRouter({
     { path: "/profil/mes-commandes", name: "mesCommandes", component: MesCommandes, meta: { requiresAuth: true } },
     { path: "/apprentissage/:inscriptionId", name: "coursPlayer", component: CoursPlayer, meta: { requiresAuth: true } },
     { path: "/apprentissage/:inscriptionId/:coursId", name: "coursPlayerCours", component: CoursPlayer, meta: { requiresAuth: true } },
+    { path: "/inscriptions/:id/certificat", name: "certificat", component: CertificatPage, meta: { requiresAuth: true } },
   ],
 });
 

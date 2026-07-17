@@ -80,7 +80,7 @@ onMounted(loadFormations)
                 <router-link :to="'/formations/' + ins.formation_id" class="btn btn-sm btn-outline-primary me-1">
                   <i class="bi bi-eye me-1"></i>Détails
                 </router-link>
-                <router-link v-if="ins.progression === 100" :to="'/inscriptions/' + ins.id + '/certificat'" class="btn btn-sm btn-outline-warning">
+                <router-link v-if="ins.progression === 100" :to="{ name: 'certificat', params: { id: ins.id } }" class="btn btn-sm btn-outline-warning">
                   <i class="bi bi-award me-1"></i>Certificat
                 </router-link>
               </div>

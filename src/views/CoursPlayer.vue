@@ -234,7 +234,7 @@
           <h4 class="fw-bold">Félicitations !</h4>
           <p class="text-muted mb-1">Vous avez terminé tous les cours de cette formation.</p>
           <p class="text-muted mb-3">Votre progression est de 100%. Vous pouvez télécharger votre certificat.</p>
-          <router-link :to="'/inscriptions/' + inscriptionId + '/certificat'" class="btn btn-warning btn-lg">
+          <router-link :to="{ name: 'certificat', params: { id: inscriptionId } }" class="btn btn-warning btn-lg">
             <i class="bi bi-award me-1"></i> Obtenir mon certificat
           </router-link>
         </div>
