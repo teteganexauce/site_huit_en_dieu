@@ -4,15 +4,16 @@ import { RouterView } from 'vue-router'
 import HeaderComponent from './includes/header.vue'
 import FooterComponent from './includes/footer.vue'
 import { useAuthStore } from './stores/auth';
-import { useContentStore } from './stores/content';
+import { useCartStore } from './stores/cart';
 
 const authStore = useAuthStore();
-const contentStore = useContentStore();
+const cartStore = useCartStore();
 
 onMounted(() => {
   contentStore.fetchAll()
   if (authStore.isAuthenticated) {
     authStore.fetchProfile();
+    cartStore.fetchCart();
   }
 });
 </script>
@@ -30,6 +31,27 @@ onMounted(() => {
    --ps-primary-hover: #1a92a7;
    --ps-primary-link: #1a92a70c;
    --ps-primary: #1a92a7e5;
+
+   /* Hauteur du header, légèrement augmentée et synchronisée
+      avec le vrai rendu du composant header.vue (min-height) */
+   --header-height: 92px;
+}
+
+/* Offset du header fixed */
+#main {
+   padding-top: var(--header-height);
+}
+
+@media (max-width: 991px) {
+   :root {
+      --header-height: 76px;
+   }
+}
+
+@media (max-width: 576px) {
+   :root {
+      --header-height: 64px;
+   }
 }
 .text-ps-primary{
    color: var(--color-primary) !important;

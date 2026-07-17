@@ -10,25 +10,22 @@
            </div>
 
            <div class="row gy-5">
-
-              <div v-for="member in members" class="col-xl-4 col-md-4 col-sm-6 d-flex aos-init aos-animate" data-aos="zoom-in" data-aos-delay="200">
-                <div class="team-member">
-                  <div class="member-img">
-                    <img :src="member.photoUrl" class="img-fluid" alt="">
-                  </div>
-                  <div class="member-info">
-                    <div class="social">
-                      <a href=""><i class="bi bi-twitter"></i></a>
-                      <a href=""><i class="bi bi-facebook"></i></a>
-                      <a href=""><i class="bi bi-instagram"></i></a>
-                      <a href=""><i class="bi bi-linkedin"></i></a>
-                    </div>
-                    <h5>{{ member.prenom }} {{ member.nom }}</h5>
-                    <span>{{ member.fonction }}</span>
-                  </div>
-                </div>
-              </div><!-- End Team Member -->
-
+             <div v-if="isLoading" class="text-center py-5">
+               <div class="spinner-border text-primary" role="status">
+                 <span class="visually-hidden">Chargement...</span>
+               </div>
+             </div>
+             <div v-for="(member, index) in members" :key="member.id" class="col-xl-4 col-md-4 col-sm-6 d-flex aos-init aos-animate" data-aos="zoom-in" :data-aos-delay="200 * (index % 3)">
+               <div class="team-member">
+                 <div class="member-img">
+                   <img :src="member.photoUrl || defaultAvatar" class="img-fluid" :alt="member.prenom + ' ' + member.nom">
+                 </div>
+                 <div class="member-info">
+                   <h5>{{ member.prenom }} {{ member.nom }}</h5>
+                   <span>{{ member.fonction }}</span>
+                 </div>
+               </div>
+             </div>
            </div>
 
          </div>
@@ -37,17 +34,24 @@
    </div>
 </template>
 <script setup>
-import { onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import { useContentStore } from '../stores/content'
+import publicService from '../services/publicService'
+import defaultAvatar from '../assets/img/team/team-1.jpg'
 
-const contentStore = useContentStore()
+const members = ref([])
+const isLoading = ref(true)
 
-onMounted(() => {
-  contentStore.fetchEquipe()
+onMounted(async () => {
+  try {
+    const data = await publicService.getTeam();
+    members.value = data.data || data;
+  } catch (error) {
+    console.error('Erreur chargement equipe:', error);
+  } finally {
+    isLoading.value = false;
+  }
 })
-
-const members = computed(() => contentStore.equipe)
 </script>
 <style>
    

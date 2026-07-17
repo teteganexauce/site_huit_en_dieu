@@ -1,65 +1,24 @@
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import { useContentStore } from '../stores/content'
+import publicService from '../services/publicService'
+import defaultAvatar from '../assets/default.jpg'
 
-const contentStore = useContentStore()
+const sousMenu = ref(['Témoignages écrits', 'Témoignages audios', 'Témoignages vidéos'])
 
-onMounted(() => {
-  contentStore.fetchTemoignages()
+const temoignages = ref([])
+const isLoading = ref(true)
+
+onMounted(async () => {
+  try {
+    const data = await publicService.getTestimonials();
+    temoignages.value = data.data || data;
+  } catch (error) {
+    console.error('Erreur chargement temoignages:', error);
+  } finally {
+    isLoading.value = false;
+  }
 })
-
-const temoignagesList = computed(() => contentStore.temoignages)
-import img2 from '../assets/audio1.mp3'
-import img3 from '../assets/audio2.mp3'
-import img4 from '../assets/audio4.mp3'
-
-const sousMenu = ref(['Témoignage écrits', 'Témoignages audios', 'Témoignages vidéos'])
-
-const audios = ref([
-   {
-      titre: 'Témoignagne',
-      auteur: 'Thbaut DUrANT',
-      text: '../assets/audio.mp3'
-   },
-   {
-      titre: 'Témoignagne',
-      auteur: 'Albert Francois',
-      text: img2
-   },
-   {
-      titre: 'Témoignagne',
-      auteur: 'Loui FOINCIERT',
-      text: img3
-   },
-   {
-      titre: 'Témoignagne',
-      auteur: 'John Doe',
-      text: img4
-   },
-])
-
-const currentModal = ref('');
-
-
-function show(idx) {
-   currentModal.value = audios.value[idx];
-   console.log(currentModal.value.text);
-
-   $("#audio").attr('src', currentModal.value.text);
-   // $('#staticBackdrop').modal('show');
-}
-
-function show2(idx) {
-   currentModal.value = audios.value[idx];
-   console.log(currentModal.value.text);
-
-   $("#audio").attr('src', currentModal.value.text);
-   // $('#staticBackdrop1').modal('show');
-
-}
-
-
 </script>
 
 
@@ -89,10 +48,15 @@ function show2(idx) {
             <div v-for="(item, idx) in sousMenu" :key="idx" class="tab-pane fade p-0 m-0"
                :class="{ 'active show': idx == 0 }" :id="`tab${idx + 1}`" role="tabpanel">
                <div class="row container-fluid my-5 p-0 m-0">
-                   <div v-if="idx == 0" v-for="item in temoignagesList" class="col-lg-4 col-md-6 mb-3">
+                   <div v-if="isLoading" class="text-center py-5 col-12">
+                     <div class="spinner-border text-primary" role="status">
+                       <span class="visually-hidden">Chargement...</span>
+                     </div>
+                   </div>
+                   <div v-if="idx == 0 && !isLoading" v-for="item in temoignages" :key="item.id" class="col-lg-4 col-md-6 mb-3">
                       <div class="border d-flex py-2 px-1 rounded">
                          <div class="icon-user w-25 mx-2">
-                            <img :src="item.photoUrl" alt="">
+                            <img :src="item.photoUrl || defaultAvatar" :alt="item.auteur">
                          </div>
                          <div class="body py-1 mb-0">
                             <h6 class="text-secondary fw-bold">{{ item.auteur }}</h6>
@@ -100,64 +64,28 @@ function show2(idx) {
                          </div>
                       </div>
                    </div>
-                  <div v-if="idx == 1" v-for="(item, idx1) in audios" :key="idx1" class="col-lg-4 col-md-6 mb-3">
-                     <div class="border d-flex py-2 px-1 rounded">
-                        <div class="icon-user w-20 mx-2">
-                           <img src="../assets/default.jpg" alt="">
-                        </div>
-                        <div class="body py-1 mb-0">
-                           <h6 class="text-secondary fw-bold">{{ item.auteur }}</h6>
-                           <div class="file d-flex">
-                              <div class="d-flex align-items-center">
-                                 <div class="file-content w-20">
-                                    <img src="../assets/audio.jpg" alt="">
-                                 </div>
-                                 <div class="info-content px-1">
-                                    <small>
-                                       <ul class="list-unstyled m-0 p-0">
-                                          <li><b>Durée</b>: 10min</li>
-                                          <li><b>Taille</b>: 4,5mo</li>
-                                       </ul>
-                                    </small>
-                                 </div>
-                              </div>
-                              <div class="play-file px-3">
-                                 <div class="btn btn-warning bes" @click="show(idx1)" data-bs-toggle="modal"
-                                       data-bs-target="#staticBackdrop">Jouer</div>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-                  <div v-if="idx == 2" v-for="(item, idx2) in audios" :key="idx2" class="col-lg-4 col-md-6 mb-3">
-                     <div class="border d-flex py-2 px-1 rounded">
-                        <div class="icon-user w-20 mx-2">
-                           <img src="../assets/default.jpg" alt="">
-                        </div>
-                        <div class="body py-1 mb-0">
-                           <h6 class="text-secondary fw-bold">{{ item.auteur }}</h6>
-                           <div class="file d-flex">
-                              <div class="d-flex align-items-center">
-                                 <div class="file-content w-20">
-                                    <img src="../assets/film-3.png" alt="">
-                                 </div>
-                                 <div class="info-content px-2">
-                                    <small>
-                                       <ul class="list-unstyled m-0 p-0">
-                                          <li><b>Durée</b>: 10min</li>
-                                          <li><b>Taille</b>: 4,5mo</li>
-                                       </ul>
-                                    </small>
-                                 </div>
-                              </div>
-                              <div class="play-file px-3">
-                                 <div class="btn btn-warning" @click="show2(idx2)" data-bs-toggle="modal"
-                                       data-bs-target="#staticBackdrop1">Voir</div>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
+                   <div v-if="idx == 1 && !isLoading" v-for="item in temoignages" :key="'a'+item.id" class="col-lg-4 col-md-6 mb-3">
+                      <div class="border d-flex py-2 px-1 rounded">
+                         <div class="icon-user w-20 mx-2">
+                            <img :src="item.photoUrl || defaultAvatar" :alt="item.auteur">
+                         </div>
+                         <div class="body py-1 mb-0">
+                            <h6 class="text-secondary fw-bold">{{ item.auteur }}</h6>
+                            <p class="fst-italic text-grey mb-0 small">{{ item.contenu }}</p>
+                         </div>
+                      </div>
+                   </div>
+                   <div v-if="idx == 2 && !isLoading" v-for="item in temoignages" :key="'v'+item.id" class="col-lg-4 col-md-6 mb-3">
+                      <div class="border d-flex py-2 px-1 rounded">
+                         <div class="icon-user w-20 mx-2">
+                            <img :src="item.photoUrl || defaultAvatar" :alt="item.auteur">
+                         </div>
+                         <div class="body py-1 mb-0">
+                            <h6 class="text-secondary fw-bold">{{ item.auteur }}</h6>
+                            <p class="fst-italic text-grey mb-0 small">{{ item.contenu }}</p>
+                         </div>
+                      </div>
+                   </div>
                   <!-- Button trigger modal -->
 
                </div>
