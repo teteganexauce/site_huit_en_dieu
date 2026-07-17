@@ -215,93 +215,7 @@
     </div>
   </div>
 
-  <div v-if="showPaymentModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold"><i class="bi bi-credit-card me-2"></i>Paiement</h5>
-          <button type="button" class="btn-close" @click="showPaymentModal = false"></button>
-        </div>
-        <div class="modal-body">
-          <div class="text-center mb-3">
-            <h6 class="fw-bold">{{ formation.titre }}</h6>
-            <h4 class="fw-bold text-primary">{{ formatPrice(formation.prix) }}</h4>
-          </div>
 
-          <div class="row g-2 mb-3">
-            <div class="col-4">
-              <button class="btn w-100 border p-2 text-center" :class="paymentMode === 'mobile_money' ? 'border-primary bg-primary bg-opacity-10' : ''" @click="paymentMode = 'mobile_money'">
-                <i class="bi bi-phone fs-4 d-block"></i><small>Mobile</small>
-              </button>
-            </div>
-            <div class="col-4">
-              <button class="btn w-100 border p-2 text-center" :class="paymentMode === 'carte_bancaire' ? 'border-primary bg-primary bg-opacity-10' : ''" @click="paymentMode = 'carte_bancaire'">
-                <i class="bi bi-credit-card fs-4 d-block"></i><small>Carte</small>
-              </button>
-            </div>
-            <div class="col-4">
-              <button class="btn w-100 border p-2 text-center" :class="paymentMode === 'paypal' ? 'border-primary bg-primary bg-opacity-10' : ''" @click="paymentMode = 'paypal'">
-                <i class="bi bi-paypal fs-4 d-block"></i><small>PayPal</small>
-              </button>
-            </div>
-          </div>
-
-          <div v-if="paymentMode === 'mobile_money'" class="border rounded-3 p-3 bg-light">
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Opérateur</label>
-              <select class="form-select" v-model="paymentForm.operateur">
-                <option value="">Sélectionner</option>
-                <option value="mtn">MTN Mobile Money</option>
-                <option value="moov">Moov Money</option>
-                <option value="celpaid">Celpaid</option>
-                <option value="afri">AfriCash</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Numéro de téléphone</label>
-              <input type="tel" class="form-control" v-model="paymentForm.telephone" placeholder="22996000001">
-            </div>
-          </div>
-
-          <div v-if="paymentMode === 'carte_bancaire'" class="border rounded-3 p-3 bg-light">
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Titulaire</label>
-              <input type="text" class="form-control" v-model="paymentForm.titulaire_carte" placeholder="Nom du titulaire">
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Numéro de carte</label>
-              <input type="text" class="form-control" v-model="paymentForm.numero_carte" placeholder="1234 5678 9012 3456" maxlength="19">
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <label class="form-label small fw-bold">Expiration</label>
-                <input type="text" class="form-control" v-model="paymentForm.date_expiration" placeholder="MM/AA" maxlength="7">
-              </div>
-              <div class="col-6">
-                <label class="form-label small fw-bold">CVV</label>
-                <input type="text" class="form-control" v-model="paymentForm.cvv" placeholder="123" maxlength="4">
-              </div>
-            </div>
-          </div>
-
-          <div v-if="paymentMode === 'paypal'" class="text-center py-3">
-            <i class="bi bi-paypal fs-1 d-block mb-2"></i>
-            <p class="text-muted mb-0">Redirection vers PayPal.</p>
-          </div>
-
-          <div v-if="enrollMessage" class="mt-2 small" :class="enrollSuccess ? 'text-success' : 'text-danger'">{{ enrollMessage }}</div>
-        </div>
-        <div class="modal-footer border-0">
-          <button class="btn btn-outline-secondary" @click="showPaymentModal = false; showInscriptionModal = true">Retour</button>
-          <button class="btn btn-success" @click="payAndEnroll" :disabled="enrolling || !canPay">
-            <span v-if="enrolling" class="spinner-border spinner-border-sm me-1"></span>
-            <span v-else><i class="bi bi-lock me-1"></i></span>
-            Payer {{ formatPrice(formation.prix) }} et s'inscrire
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div v-if="showSuccessModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">
@@ -352,10 +266,7 @@ const inscriptionId = ref(null)
 const inscriptionInfo = ref(null)
 const showCompletionBanner = ref(false)
 const showInscriptionModal = ref(false)
-const showPaymentModal = ref(false)
 const showSuccessModal = ref(false)
-const paymentMode = ref('mobile_money')
-const paymentForm = ref({ operateur: '', telephone: '', titulaire_carte: '', numero_carte: '', date_expiration: '', cvv: '' })
 
 const goToLearning = () => {
   if (inscriptionId.value) {
@@ -421,12 +332,6 @@ const loadUserNote = async () => {
   } catch (e) { /* pas de note existante */ }
 }
 
-const canPay = computed(() => {
-  if (paymentMode.value === 'mobile_money') return paymentForm.value.operateur && paymentForm.value.telephone
-  if (paymentMode.value === 'carte_bancaire') return paymentForm.value.titulaire_carte && paymentForm.value.numero_carte && paymentForm.value.date_expiration && paymentForm.value.cvv
-  return true
-})
-
 const formatPrice = (price) => {
   const num = parseFloat(price)
   if (num <= 0) return 'Gratuit'
@@ -464,23 +369,14 @@ const confirmFreeEnrollment = async () => {
 
 const openPaymentModal = () => {
   showInscriptionModal.value = false
-  showPaymentModal.value = true
+  redirectToKkiapay()
 }
 
-const payAndEnroll = async () => {
+const redirectToKkiapay = async () => {
   enrolling.value = true
   enrollMessage.value = ''
   try {
-    const payload = { mode_paiement: paymentMode.value }
-    if (paymentMode.value === 'mobile_money') {
-      payload.telephone = paymentForm.value.telephone
-      payload.operateur = paymentForm.value.operateur
-    } else if (paymentMode.value === 'carte_bancaire') {
-      payload.numero_carte = paymentForm.value.numero_carte
-      payload.date_expiration = paymentForm.value.date_expiration
-      payload.cvv = paymentForm.value.cvv
-      payload.titulaire_carte = paymentForm.value.titulaire_carte
-    }
+    const payload = { mode_paiement: 'mobile_money' }
     const res = await publicService.enrollInFormation(route.params.id, payload)
     const inscription = res.data || res
     if (inscription?.id) inscriptionId.value = inscription.id
@@ -490,7 +386,6 @@ const payAndEnroll = async () => {
       return
     }
     enrollSuccess.value = true
-    showPaymentModal.value = false
     showSuccessModal.value = true
   } catch (e) {
     enrollMessage.value = e.response?.data?.message || 'Erreur lors du paiement'
