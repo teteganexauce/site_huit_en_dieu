@@ -13,7 +13,7 @@
       </section>
    </div>
    <div class="position-relative">
-      <div class="bg-white">
+      <div class="bg-white" v-if="!isLoading && slides.length > 0">
          <swiper :slides-per-view="1" :space-between="50" loop navigation :pagination="{ clickable: true }"
             @swiper="onSwiper" @slideChange="onSlideChange" :modules="[Navigation, Pagination, A11y]">
              <swiper-slide v-for="(item, index) in slides" :key="item.id || index">
@@ -26,7 +26,7 @@
                             <h2 class="text-white fw-bold" v-if="item.titre">{{ item.titre }}</h2>
                             <p class="text-white" v-if="item.texte">{{ item.texte }}</p>
                             <div class="d-flex" v-if="item.lien">
-                               <a :href="item.lien" class="btn-get-started scrollto">En savoir plus</a>
+                               <router-link :to="item.lien" class="btn-get-started scrollto">En savoir plus</router-link>
                             </div>
                          </div>
                       </section>
@@ -34,6 +34,11 @@
                 </div>
              </swiper-slide>
          </swiper>
+      </div>
+      <div v-else-if="isLoading" class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+         <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+         </div>
       </div>
    </div>
 </template>
@@ -52,6 +57,14 @@ import defaultImg from '../assets/img/blog/blog-1.jpg';
 
 const slides = ref([])
 const isLoading = ref(true)
+
+const onSwiper = (swiper) => {
+  // swiper instance available here if needed
+}
+
+const onSlideChange = () => {
+  // fired when slide changes
+}
 
 onMounted(async () => {
   try {
@@ -107,7 +120,7 @@ onMounted(async () => {
 
 .banniere-overlay {
    position: absolute;
-   contain: '';
+   content: '';
    width: 100%;
    height: 100%;
    background-color: rgba(22, 22, 22, 0.356) !important;
