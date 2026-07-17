@@ -25,13 +25,6 @@ export const useCatalogueStore = defineStore('catalogue', {
     },
     loading: false,
   }),
-  getters: {
-    filteredProducts: (state) => state.products,
-    isFiltered: (state) => {
-      return state.filters.categorie || state.filters.type || state.filters.recherche
-        || state.filters.nouveaute || state.filters.coup_de_coeur || state.filters.gratuit;
-    }
-  },
   actions: {
     async fetchCatalogue() {
       this.loading = true;
@@ -89,15 +82,9 @@ export const useCatalogueStore = defineStore('catalogue', {
 
     resetFilters() {
       this.filters = {
-        categorie: '',
-        type: '',
-        prix_min: '',
-        prix_max: '',
-        recherche: '',
-        tri: 'date',
-        nouveaute: false,
-        coup_de_coeur: false,
-        gratuit: false,
+        categorie: '', type: '', prix_min: '', prix_max: '',
+        recherche: '', tri: 'date',
+        nouveaute: false, coup_de_coeur: false, gratuit: false,
       };
       this.pagination.currentPage = 1;
     },

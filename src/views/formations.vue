@@ -1,148 +1,103 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import BreadcombsComponent from '../includes/breadcombs.vue'
-
-
-const formations = ref([
-   {
-      title: "Formation initiale"
-   },
-   {
-      title: "Formation spécialisée"
-   },
-   {
-      title: "Les formations gratuites"
-   },
-   {
-      title: "Demandez un accompagnement"
-   },
-])
-
-// TODO: Remplacer les données mockées par un appel API via formationService quand la route sera disponible
-onMounted(() => {
-   // formationsStore.fetchFormations()
-})
-
-</script>
-
-
 <template>
-   <BreadcombsComponent title="Nos Formations" />
-   <div>
-      <div class="">
-         <!-- Tabs -->
-         <div class="bg-ps-primary">
-            <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
-
-               <li class="py-0" v-for="(item, index) in formations" :key="index">
-                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == 0 }" data-bs-toggle="pill"
-                     :href="`#tab${index + 1}`" aria-selected="{{ (index==0) ? 'false':'' }}" role="tab" tabindex="-1">
-                     {{ item.title }}
-                  </a>
-               </li>
-
-            </ul><!-- End Tabs -->
-         </div>
-
-         <!-- Tab Content -->
-         <div class="tab-content container p-0">
-            <div v-for="(item, index) in formations" :key="index" class="tab-pane fade p-0 m-0"
-               :class="{ 'active show': index == 0 }" :id="`tab${index + 1}`" role="tabpanel">
-               <div class="row container-fluid my-5 p-0 m-0">
-                  <div class="row m-0 p-0">
-                     <div class="col-lg-6 mb-4" v-for="n in 4" data-aos="fade-up" data-aos-delay="2000ms">
-                        <div class="formation d-flex py-2 shadow-sm text-secondary">
-                           <div class="formation-image px-2 w-25">
-                              <img src="../assets/img/blog/blog-4.jpg" width="100%" height="100%" alt="">
-                           </div>
-                           <div class="formation-content w-75 text-capitalize mb-0 px-1">
-                              <h5 class="formation-title">formation en pensée positive</h5>
-                              <div class="mb-2">
-                                 <div class="foramtion-duration d-flex justify-content-between">
-                                    <small class="w-50">
-                                       Durée: <b>3 mois</b>
-                                    </small>
-                                    <small class="w-50">
-                                       Prix: <b>20 000 fcfa</b>
-                                    </small>
-                                 </div>
-                              </div>
-                              <p class="small formation-description mb-0 text-grey">
-                                 Lorem, ipsum dolor sit amet consectetur adipisicing elit. Delectus impedit, suscipit,
-                                 rerum rem quam alias dolor quas id a numquam, obcaecati aspernatur nihil voluptate? Quo
-                                 suscipit obcaecati accusamus earum asperiores!
-                              </p>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div><!-- End Tab 1 Content -->
-         </div>
-
+  <BreadcombsComponent title="Nos formations" />
+  <div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <h3 class="fw-bold text-primary mb-0">Toutes nos formations</h3>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm" :class="filterType === '' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = ''">Toutes</button>
+        <button class="btn btn-sm" :class="filterType === 'initiale' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'initiale'">Initiale</button>
+        <button class="btn btn-sm" :class="filterType === 'specialisee' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'specialisee'">Spécialisée</button>
+        <button class="btn btn-sm" :class="filterType === 'gratuite' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'gratuite'">Gratuite</button>
       </div>
-   </div>
+    </div>
+
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <div v-else-if="!filteredFormations.length" class="text-center py-5 text-muted">
+      <i class="bi bi-mortarboard display-3"></i>
+      <h5 class="mt-3">Aucune formation trouvée</h5>
+    </div>
+
+    <div v-else class="row g-4">
+      <div v-for="f in filteredFormations" :key="f.id" class="col-lg-6">
+        <router-link :to="`/formations/${f.id}`" class="text-decoration-none">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="row g-0">
+              <div class="col-md-4">
+                <img :src="f.imageUrl || defaultImg" class="img-fluid rounded-start h-100" style="object-fit: cover; min-height: 200px;" :alt="f.titre">
+              </div>
+              <div class="col-md-8">
+                <div class="card-body d-flex flex-column h-100">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h5 class="card-title fw-bold text-dark mb-0">{{ f.titre }}</h5>
+                    <span class="badge" :class="badgeClass(f.type)">{{ badgeLabel(f.type) }}</span>
+                  </div>
+                  <p class="card-text text-muted small flex-grow-1">{{ f.description?.substring(0, 150) }}{{ f.description?.length > 150 ? '...' : '' }}</p>
+                  <div class="mb-1">
+                    <span v-for="s in 5" :key="s" class="small" :class="s <= Math.round(f.note_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
+                    <small class="text-muted ms-1">({{ f.notes_count || 0 }})</small>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mt-auto">
+                    <div class="small text-muted">
+                      <i class="bi bi-people me-1"></i>{{ f.inscrits_count || 0 }} inscrits
+                      <span v-if="f.places_restantes !== null" class="ms-2">— {{ f.places_restantes }} places</span>
+                    </div>
+                    <div>
+                      <span v-if="f.prix > 0" class="fw-bold text-primary">{{ formatPrice(f.prix) }}</span>
+                      <span v-else class="badge bg-success">Gratuit</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </router-link>
+      </div>
+    </div>
+  </div>
 </template>
 
-<style scoped>
-.sub-menu .nav-link {
-   border-bottom: 3px solid transparent;
-   color: grey;
-   margin-right: 20px;
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import BreadcombsComponent from '../includes/breadcombs.vue'
+import publicService from '../services/publicService'
+import defaultImg from '../assets/img/blog/blog-4.jpg'
+
+const formations = ref([])
+const loading = ref(true)
+const filterType = ref('')
+
+const filteredFormations = computed(() => {
+  if (!filterType.value) return formations.value
+  return formations.value.filter(f => f.type === filterType.value)
+})
+
+const formatPrice = (price) => {
+  const num = parseFloat(price)
+  if (num <= 0) return 'Gratuit'
+  return num.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' }).replace('XOF', '').trim() + ' FCFA'
 }
 
-.sub-menu .nav-link:hover {
-   background-color: #485664;
-   border-radius: 0px;
-   color: var(--color-primary);
+const badgeLabel = (type) => {
+  const labels = { initiale: 'Initiale', specialisee: 'Spécialisée', gratuite: 'Gratuite' }
+  return labels[type] || type
 }
 
-.sub-menu .nav-link.active {
-   background-color: #485664;
-   border-radius: 0px;
-   color: white;
-}
-/* 
-.bg-ps-light {
-   background-color: rgba(238, 238, 238, 0.233);
-} */
-
-.w-30 {
-   widows: 30% !important;
+const badgeClass = (type) => {
+  const classes = { initiale: 'bg-primary', specialisee: 'bg-warning text-dark', gratuite: 'bg-success' }
+  return classes[type] || 'bg-secondary'
 }
 
-.formation-image {
-   max-width: 25% !important;
-   min-width: 100px;
-}
-
-.formation-image img {
-   object-fit: cover;
-   transition: .5s;
-}
-
-.formation:hover {
-   box-shadow: 0px 0px 15px 1px rgb(224, 224, 224) !important;
-   transition: .4s;
-}
-
-.formation:hover .formation-title {
-   color: var(--color-primary);
-}
-
-.formation-description {
-   -webkit-line-clamp: 2;
-   display: -webkit-box;
-   -webkit-box-orient: vertical;
-   overflow: hidden;
-   word-wrap: break-word;
-}
-/* 
-.text-grey {
-   color: rgb(131, 131, 131);
-} */
-
-.formation:hover {
-   cursor: pointer;
-}
-</style>
+onMounted(async () => {
+  try {
+    const res = await publicService.getFormations()
+    formations.value = res.data || res
+  } catch (e) {
+    console.error('Erreur chargement formations:', e)
+  } finally {
+    loading.value = false
+  }
+})
+</script>
