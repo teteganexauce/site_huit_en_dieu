@@ -9,6 +9,11 @@ const donService = {
   async getTotal() {
     const response = await api.get('/dons/total');
     return response.data;
+  },
+
+  async getMyDons() {
+    const response = await api.get('/user/dons');
+    return response.data;
   }
 };
 

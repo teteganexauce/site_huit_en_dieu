@@ -13,7 +13,7 @@ const form = ref({
   message: '',
   estAnonyme: false,
   mode_paiement: 'mobile_money',
-  email_contact: ''
+  email_contact: authStore.user?.email || ''
 })
 
 const isLoading = ref(false)
@@ -39,7 +39,7 @@ async function handleSubmit() {
       message: form.value.message || null,
       estAnonyme: form.value.estAnonyme,
       mode_paiement: form.value.mode_paiement,
-      email_contact: form.value.estAnonyme ? form.value.email_contact : null
+      email_contact: form.value.email_contact || null
     })
     successMessage.value = res.message || 'Don initié avec succès !'
     paymentUrl.value = res.paiement_url || ''
@@ -128,8 +128,8 @@ function proceedToPayment() {
                 </div>
               </div>
 
-              <div class="mb-3" v-if="form.estAnonyme">
-                <label class="form-label small fw-bold">Email de contact <span class="text-danger">*</span></label>
+              <div class="mb-3">
+                <label class="form-label small fw-bold">Email (pour recevoir votre reçu) <span class="text-danger">*</span></label>
                 <input type="email" class="form-control" v-model="form.email_contact" placeholder="votre@email.com" required>
               </div>
 

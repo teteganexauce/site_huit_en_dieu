@@ -13,6 +13,7 @@ const kkiapayConfig = ref(null)
 const widgetLoaded = ref(false)
 const paying = ref(false)
 const success = ref(false)
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
 async function loadPaiement() {
   if (!paiementId) {
@@ -55,22 +56,43 @@ function loadKkiapayScript() {
 function openKkiapay() {
   if (!widgetLoaded.value || !kkiapayConfig.value || !paiement.value) return
   paying.value = true
-  const callbackUrl = `${window.location.protocol}//${window.location.hostname}:8000/api/v1/webhooks/paiement`
-  window.kkiapay({
+  const callbackUrl = `${window.location.origin}/paiement/kkiapay?paiement_id=${paiementId}`
+
+  window.addSuccessListener(async function() {
+    paying.value = false
+    success.value = true
+    try {
+      await api.post('/paiements/confirmer/' + paiementId)
+    } catch (e) {
+      console.error('Confirmation failed:', e)
+    }
+  })
+
+  window.addFailedListener(function() {
+    paying.value = false
+    error.value = "Le paiement a échoué. Veuillez réessayer."
+  })
+
+  window.openKkiapayWidget({
     amount: Number(paiement.value.montant),
     key: kkiapayConfig.value.public_key,
     sandbox: kkiapayConfig.value.sandbox,
     data: String(paiementId),
     callback: callbackUrl,
-    success: function(response) {
-      paying.value = false
-      success.value = true
-    },
-    error: function(error) {
-      paying.value = false
-      error.value = "Le paiement a échoué. Veuillez réessayer."
-    }
+    theme: "#0d6efd"
   })
+}
+
+async function simulerPaiement() {
+  paying.value = true
+  try {
+    await api.post('/paiements/confirmer/' + paiementId)
+    paying.value = false
+    success.value = true
+  } catch (e) {
+    paying.value = false
+    error.value = "La simulation a échoué."
+  }
 }
 
 onMounted(loadPaiement)
@@ -127,6 +149,10 @@ onMounted(loadPaiement)
                 <span v-if="paying" class="spinner-border spinner-border-sm me-1"></span>
                 <i v-else class="bi bi-wallet2 me-2"></i>
                 {{ paying ? 'Paiement en cours...' : 'Payer avec KKiaPay' }}
+              </button>
+              <button v-if="isLocalDev" class="btn btn-warning btn-lg w-100" :disabled="paying" @click="simulerPaiement">
+                <i class="bi bi-flask me-2"></i>
+                {{ paying ? 'Simulation en cours...' : 'Simuler le paiement (test local)' }}
               </button>
               <router-link to="/dons" class="btn btn-outline-secondary">Annuler</router-link>
             </div>
