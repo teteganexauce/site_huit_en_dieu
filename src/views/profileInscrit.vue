@@ -1,374 +1,684 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import BookComponent from '../components/book.vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import authService from '../services/authService'
+import shopService from '../services/shopService'
 import defaultAvatar from '../assets/img/portfolio/app-1.jpg'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
-const tabs = ref([
-   {
-      title: "Cours & Formations"
-   },
-   {
-      title: "Paramètres du profil"
-   },
-])
+const activeTab = ref('dashboard')
+const isLoadingProfile = ref(false)
+const isLoadingBooks = ref(false)
+const isLoadingFormations = ref(false)
+const isLoadingOrders = ref(false)
+
+const orders = ref([])
+const purchasedBooks = ref([])
+const inscriptions = ref([])
+
+const showPaymentModal = ref(false)
+const selectedBook = ref(null)
+const modalType = ref('pending')
 
 const form = ref({
-   nom: '',
-   prenom: '',
-   telephone: '',
-   adresse: '',
-   fonction: '',
-   niveauEtude: '',
-   specialite: '',
-   bio: '',
-   institution: '',
-   adresseLivraison: '',
-   preferencesNotification: ''
+  nom: '', prenom: '', telephone: '', adresse: '',
+  fonction: '', niveauEtude: '', specialite: '', bio: '',
+  institution: '', adresseLivraison: '', preferencesNotification: ''
 })
-
 const photoFile = ref(null)
 const photoPreview = ref(null)
-
 const isLoading = ref(false)
 const errors = ref({})
 const successMessage = ref('')
 const globalError = ref('')
 
 const initializeForm = () => {
-   if (authStore.user) {
-      form.value.nom = authStore.user.nom || ''
-      form.value.prenom = authStore.user.prenom || ''
-      form.value.telephone = authStore.user.telephone || ''
-      form.value.adresse = authStore.user.adresse || ''
-      
-      if (authStore.user.profil_administrateur) {
-          form.value.fonction = authStore.user.profil_administrateur.fonction || ''
+  if (!authStore.user) return
+  const u = authStore.user
+  form.value.nom = u.nom || ''
+  form.value.prenom = u.prenom || ''
+  form.value.telephone = u.telephone || ''
+  form.value.adresse = u.adresse || ''
+  if (u.profil_administrateur) form.value.fonction = u.profil_administrateur.fonction || ''
+  if (u.profil_etudiant) form.value.niveauEtude = u.profil_etudiant.niveauEtude || ''
+  if (u.profil_chercheur) {
+    form.value.specialite = u.profil_chercheur.specialite || ''
+    form.value.bio = u.profil_chercheur.bio || ''
+    form.value.institution = u.profil_chercheur.institution || ''
+  }
+  if (u.profil_client_boutique) {
+    form.value.adresseLivraison = u.profil_client_boutique.adresseLivraison || ''
+    form.value.preferencesNotification = u.profil_client_boutique.preferencesNotification || ''
+  }
+  if (u.photo_profil_url) photoPreview.value = u.photo_profil_url
+}
+
+const stats = computed(() => ({
+  livres: purchasedBooks.value.length,
+  formations: inscriptions.value.length,
+  commandes: orders.value.length
+}))
+
+async function loadOrders() {
+  isLoadingOrders.value = true
+  try {
+    const res = await shopService.getOrders()
+    const data = res.data || res
+    orders.value = data.data || data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingOrders.value = false
+  }
+}
+
+async function loadPurchasedBooks() {
+  isLoadingBooks.value = true
+  try {
+    const res = await shopService.getOrders()
+    const data = res.data || res
+    const items = data.data || data
+    const books = []
+    for (const order of items) {
+      if (order.lignes) {
+        for (const line of order.lignes) {
+          if (line.produit && (line.produit.type === 'ebook' || line.produit.type === 'ebook')) {
+            books.push({
+              id: line.produit.id,
+              orderId: order.id,
+              nom: line.produit.nom,
+              description: line.produit.description,
+              imageUrl: line.produit.imageUrl,
+              prix: line.prixUnitaire,
+              quantite: line.quantite,
+              dateCommande: order.dateCommande,
+              statut: order.statut,
+              livre: line.produit.livre || null
+            })
+          }
+        }
       }
-      if (authStore.user.profil_etudiant) {
-          form.value.niveauEtude = authStore.user.profil_etudiant.niveauEtude || ''
-      }
-      if (authStore.user.profil_chercheur) {
-          form.value.specialite = authStore.user.profil_chercheur.specialite || ''
-          form.value.bio = authStore.user.profil_chercheur.bio || ''
-          form.value.institution = authStore.user.profil_chercheur.institution || ''
-      }
-      if (authStore.user.profil_client_boutique) {
-          form.value.adresseLivraison = authStore.user.profil_client_boutique.adresseLivraison || ''
-          form.value.preferencesNotification = authStore.user.profil_client_boutique.preferencesNotification || ''
-      }
-      
-      if (authStore.user.photo_profil_url) {
-         photoPreview.value = authStore.user.photo_profil_url
-      }
-   }
+    }
+    purchasedBooks.value = books
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingBooks.value = false
+  }
+}
+
+function openBookReader(book) {
+  const livreId = book.livre?.id
+  if (!livreId) {
+    openPaymentModal(book)
+    return
+  }
+  router.push({
+    name: 'bookReader',
+    params: { livreId: String(livreId) },
+    query: { produit_id: String(book.id) }
+  })
+}
+
+function openPaymentModal(book) {
+  selectedBook.value = book
+  if (book.statut === 'annulee') {
+    modalType.value = 'cancelled'
+  } else if (book.statut === 'en_attente_paiement' || book.statut === 'en_attente') {
+    modalType.value = 'pending'
+  } else {
+    modalType.value = 'pending'
+  }
+  showPaymentModal.value = true
+}
+
+function closePaymentModal() {
+  showPaymentModal.value = false
+  selectedBook.value = null
+}
+
+async function loadFormations() {
+  isLoadingFormations.value = true
+  try {
+    const res = await shopService.getMyInscriptions()
+    const data = res.data || res
+    inscriptions.value = data.data || data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingFormations.value = false
+  }
 }
 
 onMounted(async () => {
-   // Initialisation immédiate avec le cache local pour un affichage instantané
-   initializeForm()
-
-   try {
-      const res = await authService.getProfile()
-      if (res && res.data) {
-         authStore.user = res.data
-         localStorage.setItem('user', JSON.stringify(res.data))
-         // Mise à jour de l'affichage avec les nouvelles données serveur si nécessaire
-         initializeForm()
-      }
-   } catch (error) {
-      console.error("Erreur lors de la récupération du profil", error)
-   }
+  initializeForm()
+  try {
+    const res = await authService.getProfile()
+    if (res && res.data) {
+      authStore.user = res.data
+      localStorage.setItem('user', JSON.stringify(res.data))
+      initializeForm()
+    }
+  } catch (e) {
+    console.error(e)
+  }
+  loadOrders()
+  loadPurchasedBooks()
+  loadFormations()
 })
 
 const handleLogout = async () => {
-   await authStore.logout()
-   router.push({ name: 'login' })
+  await authStore.logout()
+  router.push({ name: 'login' })
 }
 
 const handleFileChange = (e) => {
-   const file = e.target.files[0]
-   if (file) {
-      photoFile.value = file
-      const reader = new FileReader()
-      reader.onload = (e) => {
-         photoPreview.value = e.target.result
-      }
-      reader.readAsDataURL(file)
-   }
+  const file = e.target.files[0]
+  if (file) {
+    photoFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => { photoPreview.value = e.target.result }
+    reader.readAsDataURL(file)
+  }
 }
 
 const handleUpdateProfile = async () => {
-   errors.value = {}
-   successMessage.value = ''
-   globalError.value = ''
-   isLoading.value = true
-   
-   try {
-      const formData = new FormData()
-      formData.append('_method', 'PUT')
-      if (form.value.nom) formData.append('nom', form.value.nom)
-      if (form.value.prenom) formData.append('prenom', form.value.prenom)
-      if (form.value.telephone) formData.append('telephone', form.value.telephone)
-      if (form.value.adresse) formData.append('adresse', form.value.adresse)
-      
-      if (photoFile.value) {
-         formData.append('photo', photoFile.value)
-      }
+  errors.value = {}
+  successMessage.value = ''
+  globalError.value = ''
+  isLoading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('_method', 'PUT')
+    if (form.value.nom) formData.append('nom', form.value.nom)
+    if (form.value.prenom) formData.append('prenom', form.value.prenom)
+    if (form.value.telephone) formData.append('telephone', form.value.telephone)
+    if (form.value.adresse) formData.append('adresse', form.value.adresse)
+    if (photoFile.value) formData.append('photo', photoFile.value)
+    if (form.value.fonction) formData.append('fonction', form.value.fonction)
+    if (form.value.niveauEtude) formData.append('niveauEtude', form.value.niveauEtude)
+    if (form.value.specialite) formData.append('specialite', form.value.specialite)
+    if (form.value.bio) formData.append('bio', form.value.bio)
+    if (form.value.institution) formData.append('institution', form.value.institution)
+    if (form.value.adresseLivraison) formData.append('adresseLivraison', form.value.adresseLivraison)
+    if (form.value.preferencesNotification) formData.append('preferencesNotification', form.value.preferencesNotification)
+    const response = await authService.updateProfile(formData)
+    if (response.data) {
+      authStore.user = response.data
+      localStorage.setItem('user', JSON.stringify(response.data))
+    }
+    successMessage.value = "Profil mis à jour avec succès."
+  } catch (error) {
+    if (error.response?.status === 422) errors.value = error.response.data.errors || {}
+    else globalError.value = "Une erreur s'est produite."
+  } finally {
+    isLoading.value = false
+  }
+}
 
-      if (form.value.fonction) formData.append('fonction', form.value.fonction)
-      if (form.value.niveauEtude) formData.append('niveauEtude', form.value.niveauEtude)
-      if (form.value.specialite) formData.append('specialite', form.value.specialite)
-      if (form.value.bio) formData.append('bio', form.value.bio)
-      if (form.value.institution) formData.append('institution', form.value.institution)
-      if (form.value.adresseLivraison) formData.append('adresseLivraison', form.value.adresseLivraison)
-      if (form.value.preferencesNotification) formData.append('preferencesNotification', form.value.preferencesNotification)
+const formatPrice = (price) => {
+  const num = parseFloat(price)
+  return num.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' }).replace('XOF', '').trim() + ' FCFA'
+}
 
-      const response = await authService.updateProfile(formData)
-      
-      if (response.data) {
-         authStore.user = response.data
-         localStorage.setItem('user', JSON.stringify(response.data))
-      }
-      
-      successMessage.value = "Votre profil a été mis à jour avec succès."
-   } catch (error) {
-      if (error.response && error.response.status === 422) {
-         errors.value = error.response.data.errors || {}
-      } else {
-         globalError.value = "Une erreur s'est produite lors de la mise à jour."
-      }
-   } finally {
-      isLoading.value = false
-   }
+const statusLabel = (statut) => {
+  const labels = {
+    payee: 'Payée', en_attente_paiement: 'En attente', expediee: 'Expédiée',
+    livree: 'Livrée', annulee: 'Annulée', panier: 'Panier',
+    confirmee: 'Confirmée', en_attente: 'En attente'
+  }
+  return labels[statut] || statut
+}
+
+const statusClass = (statut) => {
+  const classes = {
+    payee: 'success', confirmee: 'success', livree: 'success',
+    en_attente_paiement: 'warning', en_attente: 'warning',
+    expediee: 'info', annulee: 'danger'
+  }
+  return classes[statut] || 'secondary'
 }
 </script>
 
-
 <template>
-   <BreadcombsComponent title="Profile" />
-   <div>
-      <div class="container pt-5">
-         <div class="profile-content mb-5">
-            <div class="row d-flex justify-content-center">
-               <div class="col-lg-10 col-md-12">
-                  <div class="">
-                     <div class="row align-items-center">
-                        <div class="profile-img col-lg-3 col-md-4 col-sm-6 h-100 position-relative">
-                           <img :src="photoPreview || defaultAvatar" width="100%" alt="Photo de profil" style="border-radius: 8px;">
-                           <div class="mt-2 text-center">
-                              <label for="photoUpload" class="btn btn-sm btn-outline-secondary w-100">
-                                 Changer la photo
-                              </label>
-                              <input type="file" id="photoUpload" class="d-none" accept="image/*" @change="handleFileChange">
-                              <button v-if="photoFile" @click="handleUpdateProfile" class="btn btn-sm bg-ps-primary text-white w-100 mt-2" :disabled="isLoading">
-                                 <span v-if="isLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                 Enregistrer la photo
-                              </button>
-                           </div>
-                           <div v-if="errors.photo" class="text-danger small mt-1 text-center">{{ errors.photo[0] }}</div>
-                        </div>
-                        <div class="col-lg-9 col-md-8 col-sm-6 mt-4 px-3">
-                           <div class="row">
-                              <div class="col-md-6">
-                                 <span><b>Nom:</b></span> <br>
-                                 <p>{{ authStore.user?.nom || 'Non renseigné' }}</p>
-                              </div>
-                              <div class="col-md-6">
-                                 <span><b>Prénom:</b></span> <br>
-                                 <p>{{ authStore.user?.prenom || 'Non renseigné' }}</p>
-                              </div>
-                              <div class="col-md-6">
-                                 <span><b>Email:</b></span> <br>
-                                 <p>{{ authStore.user?.email || 'Non renseigné' }}</p>
-                              </div>
-                              <div class="col-md-6">
-                                 <span><b>Contact:</b></span> <br>
-                                 <p>{{ authStore.user?.telephone || 'Non renseigné' }}</p>
-                              </div>
-                              <div class="col-md-6">
-                                 <span><b>Statut:</b></span> <br>
-                                 <p class="text-capitalize">{{ authStore.user?.role || 'Utilisateur' }}</p>
-                              </div>
-                              <div class="col-md-12 mt-3">
-                                 <button @click="handleLogout" class="btn btn-outline-danger btn-sm">Se déconnecter</button>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-
-                     <div class="mt-5">
-                        <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
-                           <li class="py-0" v-for="(item, index) in tabs" :key="index">
-                              <a class="nav-link px-3 mx-0 my-0 text-secondary border-bottom border-2 rounded-0"
-                                 :class="{ 'active': index == 0 }" data-bs-toggle="pill" :href="`#tab${index + 1}`"
-                                 :aria-selected="(index==0) ? 'false':''" role="tab" tabindex="-1">
-                                 {{ item.title }}
-                              </a>
-                           </li>
-                        </ul><!-- End Tabs -->
-                     </div>
-
-                     <!-- Tab Content -->
-                     <div class="tab-content container p-0">
-                        <div v-for="(item, index) in tabs" :key="index" class="tab-pane fade p-0 m-0"
-                           :class="{ 'active show': index == 0 }" :id="`tab${index + 1}`" role="tabpanel">
-                           <div class="" v-if="index == 1">
-                              <div class="px-5 mt-4">
-                                 <h5 class="text-primary">Paramètre du profil</h5>
-                                 
-                                 <div v-if="successMessage" class="alert alert-success mt-3 py-2">
-                                    {{ successMessage }}
-                                 </div>
-                                 <div v-if="globalError" class="alert alert-danger mt-3 py-2">
-                                    {{ globalError }}
-                                 </div>
-
-                                 <form @submit.prevent="handleUpdateProfile">
-                                    <div class="row mt-4">
-                                       <div class="col-lg-6 mb-3">
-                                          <label for="nom" class="text-secondary">Nom de l'utilisateur</label>
-                                          <input type="text" id="nom" class="rounded-1 form-control" :class="{'is-invalid': errors.nom}" v-model="form.nom">
-                                          <div class="invalid-feedback" v-if="errors.nom">{{ errors.nom[0] }}</div>
-                                       </div>
-                                       <div class="col-lg-6 mb-3">
-                                          <label for="prenom" class="text-secondary">Prénom de l'utilisateur</label>
-                                          <input type="text" id="prenom" class="rounded-1 form-control" :class="{'is-invalid': errors.prenom}" v-model="form.prenom">
-                                          <div class="invalid-feedback" v-if="errors.prenom">{{ errors.prenom[0] }}</div>
-                                       </div>
-                                       <div class="col-lg-6 mb-3">
-                                          <label for="email" class="text-secondary">Email de l'utilisateur</label>
-                                          <input type="email" id="email" class="rounded-1 form-control" disabled :value="authStore.user?.email">
-                                       </div>
-                                       <div class="col-lg-6 mb-3">
-                                          <label for="contact" class="text-secondary">Contact de l'utilisateur</label>
-                                          <input type="text" id="contact" class="rounded-1 form-control" :class="{'is-invalid': errors.telephone}" v-model="form.telephone">
-                                          <div class="invalid-feedback" v-if="errors.telephone">{{ errors.telephone[0] }}</div>
-                                       </div>
-                                       <div class="col-lg-12 mb-3">
-                                          <label for="adresse" class="text-secondary">Adresse</label>
-                                          <input type="text" id="adresse" class="rounded-1 form-control" :class="{'is-invalid': errors.adresse}" v-model="form.adresse">
-                                          <div class="invalid-feedback" v-if="errors.adresse">{{ errors.adresse[0] }}</div>
-                                       </div>
-
-                                       <div v-if="authStore.user?.role === 'admin'" class="col-lg-12 mb-3">
-                                          <label for="fonction" class="text-secondary">Fonction</label>
-                                          <input type="text" id="fonction" class="rounded-1 form-control" :class="{'is-invalid': errors.fonction}" v-model="form.fonction">
-                                          <div class="invalid-feedback" v-if="errors.fonction">{{ errors.fonction[0] }}</div>
-                                       </div>
-
-                                       <div v-if="authStore.user?.role === 'etudiant'" class="col-lg-12 mb-3">
-                                          <label for="niveauEtude" class="text-secondary">Niveau d'étude</label>
-                                          <input type="text" id="niveauEtude" class="rounded-1 form-control" :class="{'is-invalid': errors.niveauEtude}" v-model="form.niveauEtude">
-                                          <div class="invalid-feedback" v-if="errors.niveauEtude">{{ errors.niveauEtude[0] }}</div>
-                                       </div>
-
-                                       <template v-if="authStore.user?.role === 'chercheur'">
-                                          <div class="col-lg-6 mb-3">
-                                             <label for="specialite" class="text-secondary">Spécialité</label>
-                                             <input type="text" id="specialite" class="rounded-1 form-control" :class="{'is-invalid': errors.specialite}" v-model="form.specialite">
-                                             <div class="invalid-feedback" v-if="errors.specialite">{{ errors.specialite[0] }}</div>
-                                          </div>
-                                          <div class="col-lg-6 mb-3">
-                                             <label for="institution" class="text-secondary">Institution</label>
-                                             <input type="text" id="institution" class="rounded-1 form-control" :class="{'is-invalid': errors.institution}" v-model="form.institution">
-                                             <div class="invalid-feedback" v-if="errors.institution">{{ errors.institution[0] }}</div>
-                                          </div>
-                                          <div class="col-lg-12 mb-3">
-                                             <label for="bio" class="text-secondary">Bio</label>
-                                             <textarea id="bio" rows="3" class="rounded-1 form-control" :class="{'is-invalid': errors.bio}" v-model="form.bio"></textarea>
-                                             <div class="invalid-feedback" v-if="errors.bio">{{ errors.bio[0] }}</div>
-                                          </div>
-                                       </template>
-
-                                       <template v-if="authStore.user?.role === 'client'">
-                                          <div class="col-lg-12 mb-3">
-                                             <label for="adresseLivraison" class="text-secondary">Adresse de livraison par défaut</label>
-                                             <textarea id="adresseLivraison" rows="2" class="rounded-1 form-control" :class="{'is-invalid': errors.adresseLivraison}" v-model="form.adresseLivraison"></textarea>
-                                             <div class="invalid-feedback" v-if="errors.adresseLivraison">{{ errors.adresseLivraison[0] }}</div>
-                                          </div>
-                                       </template>
-                                       <div class="col-lg-12">
-                                          <button type="submit" class="btn bg-ps-primary text-white rounded-1" :disabled="isLoading">
-                                             <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                             Modifier
-                                          </button>
-                                       </div>
-                                    </div>
-                                 </form>
-                              </div>
-                              <div class="px-5 mt-4">
-                                 <h5 class="text-primary">Changer de mot de passe</h5>
-                                 <form action="">
-                                    <div class="row mt-4">
-                                       <div class="col-lg-6 mb-3">
-                                          <label for="nom" class="text-secondary">Ancien mot de passe</label>
-                                          <input type="password" name="nom" id="nom" class="form-control">
-                                       </div>
-                                       <div class="col-lg-6 mb-3">
-                                          <label for="prenom" class="text-secondary">Nouveau mot de passe</label>
-                                          <input type="password" name="prenom" id="prenom" class="form-control">
-                                       </div>
-                                       <div class="col-lg-6 mb-3">
-                                          <label for="email" class="text-secondary">Confirmer le nouveau mot de
-                                             passe</label>
-                                          <input type="email" name="email" id="email" class="form-control">
-                                       </div>
-                                       <div>
-                                          <button type="submit"
-                                             class="btn bg-ps-primary text-white rounded-1">Modifier</button>
-                                       </div>
-                                    </div>
-                                 </form>
-                              </div>
-                              <div class="px-5 mt-4">
-                                 <a href="#"><u>Modifier l'email du compte</u></a>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+  <BreadcombsComponent title="Mon Profil" />
+  <div class="container py-4">
+    <div class="row g-4">
+      <!-- Sidebar -->
+      <div class="col-lg-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center p-4">
+            <div class="position-relative d-inline-block">
+              <img :src="photoPreview || defaultAvatar" class="rounded-circle border border-3 border-primary" width="120" height="120" style="object-fit: cover;">
             </div>
-         </div>
-
+            <h5 class="mt-3 mb-1 fw-bold">{{ authStore.user?.prenom || '' }} {{ authStore.user?.nom || '' }}</h5>
+            <p class="text-muted small mb-2 text-capitalize">{{ authStore.user?.role || 'Utilisateur' }}</p>
+            <p class="text-muted small mb-3"><i class="bi bi-envelope me-1"></i>{{ authStore.user?.email }}</p>
+            <hr>
+            <div class="row text-center">
+              <div class="col-4">
+                <h6 class="fw-bold text-primary mb-0">{{ stats.livres }}</h6>
+                <small class="text-muted">Livres</small>
+              </div>
+              <div class="col-4">
+                <h6 class="fw-bold text-primary mb-0">{{ stats.formations }}</h6>
+                <small class="text-muted">Formations</small>
+              </div>
+              <div class="col-4">
+                <h6 class="fw-bold text-primary mb-0">{{ stats.commandes }}</h6>
+                <small class="text-muted">Commandes</small>
+              </div>
+            </div>
+            <hr>
+            <button @click="handleLogout" class="btn btn-outline-danger btn-sm w-100">
+              <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
+            </button>
+          </div>
+        </div>
       </div>
-   </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-9">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <ul class="nav nav-pills nav-fill gap-2" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'dashboard' }" @click="activeTab = 'dashboard'">
+                  <i class="bi bi-speedometer2 me-1"></i>Vue d'ensemble
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'books' }" @click="activeTab = 'books'">
+                  <i class="bi bi-book me-1"></i>Mes livres <span v-if="purchasedBooks.length" class="badge bg-primary ms-1">{{ purchasedBooks.length }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'formations' }" @click="activeTab = 'formations'">
+                  <i class="bi bi-mortarboard me-1"></i>Mes formations <span v-if="inscriptions.length" class="badge bg-primary ms-1">{{ inscriptions.length }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'">
+                  <i class="bi bi-receipt me-1"></i>Commandes
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'settings' }" @click="activeTab = 'settings'">
+                  <i class="bi bi-gear me-1"></i>Paramètres
+                </button>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body p-4">
+
+            <!-- Dashboard -->
+            <div v-if="activeTab === 'dashboard'">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="bg-primary bg-opacity-10 rounded-3 p-3 text-center">
+                    <i class="bi bi-book text-primary fs-1"></i>
+                    <h3 class="fw-bold text-primary mt-2">{{ stats.livres }}</h3>
+                    <p class="text-muted mb-0">Livres achetés</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="bg-success bg-opacity-10 rounded-3 p-3 text-center">
+                    <i class="bi bi-mortarboard text-success fs-1"></i>
+                    <h3 class="fw-bold text-success mt-2">{{ stats.formations }}</h3>
+                    <p class="text-muted mb-0">Formations inscrites</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="bg-warning bg-opacity-10 rounded-3 p-3 text-center">
+                    <i class="bi bi-receipt text-warning fs-1"></i>
+                    <h3 class="fw-bold text-warning mt-2">{{ stats.commandes }}</h3>
+                    <p class="text-muted mb-0">Commandes passées</p>
+                  </div>
+                </div>
+              </div>
+              <div class="row mt-4">
+                <div class="col-12">
+                  <div class="border rounded-3 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                      <img :src="photoPreview || defaultAvatar" class="rounded-circle border" width="60" height="60" style="object-fit: cover;">
+                      <div>
+                        <h5 class="mb-1 fw-bold">{{ authStore.user?.prenom || '' }} {{ authStore.user?.nom || '' }}</h5>
+                        <p class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i>{{ authStore.user?.email }} &nbsp; <i class="bi bi-telephone me-1"></i>{{ authStore.user?.telephone || 'Non renseigné' }}</p>
+                        <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i>{{ authStore.user?.adresse || 'Adresse non renseignée' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 d-flex gap-2 flex-wrap">
+                <router-link to="/formations" class="btn btn-outline-primary"><i class="bi bi-mortarboard me-1"></i>Voir toutes les formations</router-link>
+                <router-link to="/boutique" class="btn btn-outline-success"><i class="bi bi-book me-1"></i>Voir la boutique</router-link>
+                <router-link to="/boutique" class="btn btn-outline-warning"><i class="bi bi-cart me-1"></i>Continuer mes achats</router-link>
+              </div>
+            </div>
+
+            <!-- Books -->
+            <div v-if="activeTab === 'books'">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Mes livres achetés</h5>
+                <span class="text-muted small">{{ purchasedBooks.length }} livre(s)</span>
+              </div>
+              <div v-if="isLoadingBooks" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+              <div v-else-if="!purchasedBooks.length" class="text-center py-5 text-muted">
+                <i class="bi bi-book display-3"></i>
+                <h5 class="mt-3">Vous n'avez pas encore acheté de livres</h5>
+                <router-link to="/e-book" class="btn btn-primary mt-3">Découvrir les e-books</router-link>
+              </div>
+              <div v-else class="row g-3">
+                <div v-for="book in purchasedBooks" :key="book.id" class="col-md-6">
+                  <div class="border rounded-3 p-3 h-100 d-flex book-card"
+                       :class="{
+                         'book-card-clickable': book.statut !== 'payee' && book.statut !== 'livree',
+                         'book-card-paid': book.statut === 'payee' || book.statut === 'livree'
+                       }"
+                       @click="book.statut === 'payee' || book.statut === 'livree' ? openBookReader(book) : openPaymentModal(book)">
+                    <img :src="book.imageUrl || defaultAvatar" class="rounded me-3" width="80" height="100" style="object-fit: cover;">
+                    <div class="flex-grow-1 d-flex flex-column">
+                      <h6 class="fw-bold mb-1">{{ book.nom }}</h6>
+                      <small class="text-muted">{{ book.description?.substring(0, 80) || '' }}{{ book.description?.length > 80 ? '...' : '' }}</small>
+                      <div class="mt-auto">
+                        <span class="badge mb-2" :class="'bg-' + statusClass(book.statut) + ' bg-opacity-25 text-' + statusClass(book.statut)">
+                          <i v-if="book.statut === 'payee' || book.statut === 'livree'" class="bi bi-check-circle me-1"></i>
+                          <i v-else-if="book.statut === 'annulee'" class="bi bi-x-circle me-1"></i>
+                          <i v-else class="bi bi-clock me-1"></i>
+                          {{ statusLabel(book.statut) }}
+                        </span>
+                        <small v-if="book.statut === 'payee' || book.statut === 'livree'" class="text-success d-block mt-1">
+                          <i class="bi bi-arrow-right-circle me-1"></i>Cliquez pour lire / télécharger
+                        </small>
+                        <small v-else class="text-muted d-block mt-1">
+                          <i class="bi bi-info-circle me-1"></i>Cliquez pour plus d'informations
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formations -->
+            <div v-if="activeTab === 'formations'">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Mes formations</h5>
+                <span class="text-muted small">{{ inscriptions.length }} formation(s)</span>
+              </div>
+              <div v-if="isLoadingFormations" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+              <div v-else-if="!inscriptions.length" class="text-center py-5 text-muted">
+                <i class="bi bi-mortarboard display-3"></i>
+                <h5 class="mt-3">Vous n'êtes inscrit à aucune formation</h5>
+                <router-link to="/formations" class="btn btn-primary mt-3">Voir les formations</router-link>
+              </div>
+              <div v-else class="row g-3">
+                <div v-for="ins in inscriptions" :key="ins.id" class="col-md-6">
+                  <div class="border rounded-3 p-3 h-100 d-flex">
+                    <img :src="ins.formation?.imageUrl || defaultAvatar" class="rounded me-3" width="80" height="80" style="object-fit: cover;">
+                    <div class="flex-grow-1 d-flex flex-column">
+                      <h6 class="fw-bold mb-1">{{ ins.formation?.titre || 'Formation' }}</h6>
+                      <div class="mb-1">
+                        <span class="badge" :class="'bg-' + statusClass(ins.statut)">{{ statusLabel(ins.statut) }}</span>
+                      </div>
+                      <div class="mt-auto">
+                        <div class="d-flex justify-content-between small mb-1">
+                          <span class="text-muted">Progression</span>
+                          <span class="fw-bold">{{ Math.round(ins.progression || 0) }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                          <div class="progress-bar bg-success" :style="{ width: (ins.progression || 0) + '%' }"></div>
+                        </div>
+                        <div class="mt-2">
+                          <router-link :to="'/formations/' + ins.formation_id" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="bi bi-eye me-1"></i>Voir
+                          </router-link>
+                          <router-link v-if="ins.progression === 100" :to="'/inscriptions/' + ins.id + '/certificat'" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-award me-1"></i>Certificat
+                          </router-link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Orders -->
+            <div v-if="activeTab === 'orders'">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Mes commandes</h5>
+              </div>
+              <div v-if="isLoadingOrders" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+              <div v-else-if="!orders.length" class="text-center py-5 text-muted">
+                <i class="bi bi-receipt display-3"></i>
+                <h5 class="mt-3">Aucune commande pour le moment</h5>
+                <router-link to="/boutique" class="btn btn-primary mt-3">Découvrir la boutique</router-link>
+              </div>
+              <div v-else>
+                <div v-for="order in orders" :key="order.id" class="border rounded-3 p-3 mb-3">
+                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                      <h6 class="fw-bold mb-1">Commande #{{ order.id }}</h6>
+                      <small class="text-muted">{{ order.dateCommande ? new Date(order.dateCommande).toLocaleDateString('fr-FR') : '---' }}</small>
+                    </div>
+                    <div class="text-end">
+                      <span class="badge" :class="'bg-' + statusClass(order.statut)">{{ statusLabel(order.statut) }}</span>
+                      <div class="fw-bold text-primary mt-1">{{ formatPrice(order.montantTotal || 0) }}</div>
+                    </div>
+                  </div>
+                  <div v-if="order.lignes?.length" class="mt-2">
+                    <small class="text-muted">{{ order.lignes.length }} article(s)</small>
+                    <div class="d-flex gap-2 mt-1 flex-wrap">
+                      <span v-for="l in order.lignes" :key="l.id" class="badge bg-light text-dark border">
+                        {{ l.produit?.nom || 'Produit' }} x{{ l.quantite }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div v-if="activeTab === 'settings'">
+              <div v-if="successMessage" class="alert alert-success py-2">{{ successMessage }}</div>
+              <div v-if="globalError" class="alert alert-danger py-2">{{ globalError }}</div>
+              <form @submit.prevent="handleUpdateProfile">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Nom</label>
+                    <input type="text" class="form-control" :class="{'is-invalid': errors.nom}" v-model="form.nom">
+                    <div class="invalid-feedback" v-if="errors.nom">{{ errors.nom[0] }}</div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Prénom</label>
+                    <input type="text" class="form-control" :class="{'is-invalid': errors.prenom}" v-model="form.prenom">
+                    <div class="invalid-feedback" v-if="errors.prenom">{{ errors.prenom[0] }}</div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Email</label>
+                    <input type="email" class="form-control" disabled :value="authStore.user?.email">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Téléphone</label>
+                    <input type="text" class="form-control" :class="{'is-invalid': errors.telephone}" v-model="form.telephone">
+                    <div class="invalid-feedback" v-if="errors.telephone">{{ errors.telephone[0] }}</div>
+                  </div>
+                  <div class="col-12 mb-3">
+                    <label class="form-label small fw-bold">Adresse</label>
+                    <input type="text" class="form-control" :class="{'is-invalid': errors.adresse}" v-model="form.adresse">
+                    <div class="invalid-feedback" v-if="errors.adresse">{{ errors.adresse[0] }}</div>
+                  </div>
+                  <div class="col-12 mb-3">
+                    <label class="form-label small fw-bold">Photo de profil</label>
+                    <input type="file" class="form-control" accept="image/*" @change="handleFileChange">
+                    <div class="invalid-feedback" v-if="errors.photo">{{ errors.photo[0] }}</div>
+                  </div>
+
+                  <template v-if="authStore.user?.role === 'admin'">
+                    <div class="col-12 mb-3">
+                      <label class="form-label small fw-bold">Fonction</label>
+                      <input type="text" class="form-control" v-model="form.fonction">
+                    </div>
+                  </template>
+
+                  <template v-if="authStore.user?.role === 'etudiant'">
+                    <div class="col-12 mb-3">
+                      <label class="form-label small fw-bold">Niveau d'étude</label>
+                      <input type="text" class="form-control" v-model="form.niveauEtude">
+                    </div>
+                  </template>
+
+                  <template v-if="authStore.user?.role === 'chercheur'">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label small fw-bold">Spécialité</label>
+                      <input type="text" class="form-control" v-model="form.specialite">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label small fw-bold">Institution</label>
+                      <input type="text" class="form-control" v-model="form.institution">
+                    </div>
+                    <div class="col-12 mb-3">
+                      <label class="form-label small fw-bold">Bio</label>
+                      <textarea rows="3" class="form-control" v-model="form.bio"></textarea>
+                    </div>
+                  </template>
+
+                  <div class="col-12">
+                    <button type="submit" class="btn btn-primary" :disabled="isLoading">
+                      <span v-if="isLoading" class="spinner-border spinner-border-sm me-1"></span>
+                      Enregistrer les modifications
+                    </button>
+                  </div>
+                </div>
+              </form>
+              <hr class="my-4">
+              <h5 class="fw-bold mb-3">Changer le mot de passe</h5>
+              <form>
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold">Ancien mot de passe</label>
+                    <input type="password" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold">Nouveau mot de passe</label>
+                    <input type="password" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold">Confirmer</label>
+                    <input type="password" class="form-control">
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="btn btn-outline-primary">Modifier le mot de passe</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+
+<!-- Payment Status Modal -->
+<div v-if="showPaymentModal" class="modal-backdrop fade show"></div>
+<div v-if="showPaymentModal" class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">{{ selectedBook?.nom }}</h5>
+        <button type="button" class="btn-close" @click="closePaymentModal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <template v-if="modalType === 'pending'">
+          <div class="mb-3">
+            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+              <i class="bi bi-clock-history fs-1 text-warning"></i>
+            </div>
+          </div>
+          <h5 class="fw-bold mb-2">Paiement en attente de confirmation</h5>
+          <p class="text-muted mb-0">
+            Votre commande pour <strong>{{ selectedBook?.nom }}</strong> est en attente de confirmation de paiement.
+            Dès que l'administrateur aura vérifié et confirmé le paiement, vous pourrez lire et télécharger votre livre.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-center gap-3 small text-muted">
+            <span><i class="bi bi-credit-card me-1"></i>Payé</span>
+            <span><i class="bi bi-shield-check me-1"></i>En vérification</span>
+            <span><i class="bi bi-book me-1"></i>Bientôt disponible</span>
+          </div>
+        </template>
+        <template v-else-if="modalType === 'cancelled'">
+          <div class="mb-3">
+            <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+              <i class="bi bi-x-circle fs-1 text-danger"></i>
+            </div>
+          </div>
+          <h5 class="fw-bold mb-2">Commande annulée</h5>
+          <p class="text-muted mb-0">
+            La commande pour <strong>{{ selectedBook?.nom }}</strong> a été annulée.
+            Si vous avez effectué un paiement, veuillez contacter l'administrateur pour un remboursement.
+          </p>
+        </template>
+      </div>
+      <div class="modal-footer border-0 pt-0 justify-content-center">
+        <button type="button" class="btn btn-primary px-4" @click="closePaymentModal">
+          <i class="bi bi-check-lg me-1"></i>Compris
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 <style scoped>
-.profile {
-   height: 50px;
+.nav-pills .nav-link {
+  color: #6c757d;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+}
+.nav-pills .nav-link:hover {
+  background-color: #f0f0f0;
+}
+.nav-pills .nav-link.active {
+  background-color: var(--color-primary, #0d6efd);
+  color: #fff;
+}
+.progress {
+  background-color: #e9ecef;
 }
 
-.profile-img img {
-   height: 100%;
-   object-fit: cover;
+.book-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-color: #e9ecef !important;
 }
-/* 
-.bg-ps-light {
-   background-color: rgba(238, 238, 238, 0.233);
-} */
-
-.sub-menu .nav-link {
-   background: rgb(236, 236, 236);
+.book-card-paid {
+  border-left: 4px solid var(--color-primary, #0d6efd) !important;
 }
-
-.sub-menu .nav-link:hover {
-   background-color: #485664;
-   border-radius: 0px;
-   color: white !important;
+.book-card-clickable {
+  border-left: 4px solid #ffc107 !important;
+  cursor: pointer;
 }
-
-.sub-menu .nav-link.active {
-   background-color: #485664;
-   border-radius: 0px;
-   color: white !important;
+.book-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: #ffc107 !important;
+}
+.book-card-paid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 </style>
