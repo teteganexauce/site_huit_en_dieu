@@ -1,6 +1,35 @@
 <template>
   <BreadcombsComponent :title="formation?.titre || 'Détail de la formation'" />
 
+  <!-- Bannière progression -->
+  <div v-if="inscriptionInfo && !showCompletionBanner" class="bg-success bg-opacity-10 border-bottom border-success border-opacity-25 py-2">
+    <div class="container container-xxl d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-play-circle-fill text-success fs-5"></i>
+        <span class="fw-semibold small">
+          <template v-if="inscriptionInfo.progression > 0 && inscriptionInfo.progression < 100">
+            Continuez votre formation — {{ Math.round(inscriptionInfo.progression) }}% complété
+          </template>
+          <template v-else-if="inscriptionInfo.progression >= 100 && inscriptionInfo.a_evaluation">
+            Félicitations ! Terminez l'évaluation pour obtenir votre certificat
+          </template>
+          <template v-else-if="inscriptionInfo.progression >= 100">
+            Formation terminée ! Téléchargez votre certificat
+          </template>
+        </span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <div class="progress" style="width: 100px; height: 8px;">
+          <div class="progress-bar bg-success" :style="{ width: Math.round(inscriptionInfo.progression) + '%' }"></div>
+        </div>
+        <router-link v-if="inscriptionId" :to="'/apprentissage/' + inscriptionId" class="btn btn-sm btn-success">
+          <i class="bi bi-play-circle me-1"></i>
+          {{ inscriptionInfo.progression >= 100 ? 'Voir mon certificat' : 'Continuer' }}
+        </router-link>
+      </div>
+    </div>
+  </div>
+
   <div v-if="loading" class="text-center py-5">
     <div class="spinner-border text-primary" role="status"></div>
   </div>
@@ -80,7 +109,6 @@
           </article>
         </div>
 
-        <!-- Sidebar -->
         <div class="col-lg-4">
           <div class="position-sticky" style="top: 100px;">
             <div class="card border-0 shadow-sm mb-4">
@@ -91,9 +119,14 @@
                 <button v-if="!isEnrolled && !enrollSuccess" class="btn btn-primary w-100 btn-lg" @click="openInscriptionModal">
                   <i class="bi bi-mortarboard me-1"></i>{{ formation.type === 'gratuite' ? "S'inscrire gratuitement" : "S'inscrire" }}
                 </button>
-                <button v-else-if="inscriptionId" class="btn btn-success w-100 btn-lg mb-2" @click="goToLearning">
-                  <i class="bi bi-play-circle me-1"></i>Continuer la formation
-                </button>
+                <template v-else-if="inscriptionId">
+                  <button v-if="inscriptionInfo && inscriptionInfo.statut === 'en_attente' && formation.type !== 'gratuite'" class="btn btn-warning w-100 btn-lg mb-2" @click="openPaymentModal">
+                    <i class="bi bi-credit-card me-1"></i>Finaliser le paiement
+                  </button>
+                  <button v-else class="btn btn-success w-100 btn-lg mb-2" @click="goToLearning">
+                    <i class="bi bi-play-circle me-1"></i>Continuer la formation
+                  </button>
+                </template>
                 <button v-else class="btn btn-success w-100 btn-lg" disabled>
                   <i class="bi bi-check-circle me-1"></i>{{ enrollSuccess ? 'Inscrit avec succès' : 'Déjà inscrit' }}
                 </button>
@@ -130,7 +163,6 @@
     </div>
   </section>
 
-  <!-- Modal 1 : Formulaire d'inscription -->
   <div v-if="showInscriptionModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -172,7 +204,6 @@
     </div>
   </div>
 
-  <!-- Modal 2 : Paiement -->
   <div v-if="showPaymentModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -204,7 +235,6 @@
             </div>
           </div>
 
-          <!-- Mobile Money -->
           <div v-if="paymentMode === 'mobile_money'" class="border rounded-3 p-3 bg-light">
             <div class="mb-3">
               <label class="form-label small fw-bold">Opérateur</label>
@@ -222,7 +252,6 @@
             </div>
           </div>
 
-          <!-- Carte bancaire -->
           <div v-if="paymentMode === 'carte_bancaire'" class="border rounded-3 p-3 bg-light">
             <div class="mb-3">
               <label class="form-label small fw-bold">Titulaire</label>
@@ -244,7 +273,6 @@
             </div>
           </div>
 
-          <!-- PayPal -->
           <div v-if="paymentMode === 'paypal'" class="text-center py-3">
             <i class="bi bi-paypal fs-1 d-block mb-2"></i>
             <p class="text-muted mb-0">Redirection vers PayPal.</p>
@@ -264,7 +292,6 @@
     </div>
   </div>
 
-  <!-- Modal Succès -->
   <div v-if="showSuccessModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content text-center p-4">
@@ -311,6 +338,8 @@ const enrollMessage = ref('')
 const enrollSuccess = ref(false)
 const isEnrolled = ref(false)
 const inscriptionId = ref(null)
+const inscriptionInfo = ref(null)
+const showCompletionBanner = ref(false)
 const showInscriptionModal = ref(false)
 const showPaymentModal = ref(false)
 const showSuccessModal = ref(false)
@@ -324,14 +353,26 @@ const goToLearning = () => {
 }
 
 const openCours = (c) => {
-  if (isEnrolled.value && inscriptionId.value) {
-    router.push({
-      name: 'coursPlayerCours',
-      params: { inscriptionId: inscriptionId.value, coursId: c.id }
-    })
-  } else {
-    router.push({ name: 'login', query: { redirect: route.fullPath } })
+  if (c.estGratuit) {
+    router.push({ name: 'login', query: { redirect: route.fullPath, coursId: c.id } })
+    return
   }
+  if (!authStore.isAuthenticated) {
+    router.push({ name: 'login', query: { redirect: route.fullPath } })
+    return
+  }
+  if (!isEnrolled.value) {
+    openInscriptionModal()
+    return
+  }
+  if (inscriptionInfo.value?.statut === 'en_attente' && formation.value?.type !== 'gratuite') {
+    openPaymentModal()
+    return
+  }
+  router.push({
+    name: 'coursPlayerCours',
+    params: { inscriptionId: inscriptionId.value, coursId: c.id }
+  })
 }
 
 const noteUtilisateur = ref(0)
@@ -452,6 +493,11 @@ onMounted(async () => {
   try {
     const res = await publicService.getFormation(id)
     formation.value = res.data || res
+    if (res.inscription) {
+      inscriptionInfo.value = res.inscription
+      inscriptionId.value = res.inscription.id
+      isEnrolled.value = true
+    }
     modulesLoading.value = true
     try {
       const modRes = await publicService.getFormationModules(id)
@@ -461,14 +507,17 @@ onMounted(async () => {
     } finally {
       modulesLoading.value = false
     }
-    if (authStore.isAuthenticated) {
+    if (!res.inscription && authStore.isAuthenticated) {
       try {
         const insRes = await publicService.getMyInscriptions()
         const items = insRes.data || insRes
         if (Array.isArray(items)) {
           const monInscription = items.find(i => i.formation_id == id)
           isEnrolled.value = !!monInscription
-          if (monInscription) inscriptionId.value = monInscription.id
+          if (monInscription) {
+            inscriptionId.value = monInscription.id
+            inscriptionInfo.value = monInscription
+          }
         }
       } catch (e) { /* ignore */ }
     }

@@ -3,6 +3,33 @@
     <div class="spinner-border text-primary" role="status"></div>
   </div>
 
+  <div v-else-if="accessError" class="text-center py-5">
+    <div class="container" style="max-width: 500px;">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-5">
+          <div class="mb-4">
+            <div v-if="accessError.action === 'payer'" class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+              <i class="bi bi-credit-card text-warning display-5"></i>
+            </div>
+            <div v-else class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+              <i class="bi bi-lock-fill text-danger display-5"></i>
+            </div>
+          </div>
+          <h4 class="fw-bold mb-2">{{ accessError.title }}</h4>
+          <p class="text-muted mb-4">{{ accessError.message }}</p>
+          <div class="d-flex justify-content-center gap-2">
+            <router-link to="/formations" class="btn btn-outline-primary">
+              <i class="bi bi-arrow-left me-1"></i>Voir les formations
+            </router-link>
+            <router-link v-if="accessError.action === 'payer'" :to="'/formations/' + (formationData?.id || route.params.inscriptionId)" class="btn btn-warning">
+              <i class="bi bi-credit-card me-1"></i>Finaliser le paiement
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div v-else-if="!formationData" class="text-center py-5 text-muted">
     <h5>Formation introuvable</h5>
     <router-link to="/formations" class="btn btn-primary mt-3">Voir les formations</router-link>
@@ -440,8 +467,11 @@ function resetEvaluation() {
   evaluationData.value = { ...evaluationData.value, resultat: null }
 }
 
+const accessError = ref(null)
+
 async function chargerApprentissage() {
   loading.value = true
+  accessError.value = null
   try {
     const res = await formationService.getApprentissage(inscriptionId.value)
     formationData.value = { ...res.formation, progression: res.progression }
@@ -456,6 +486,25 @@ async function chargerApprentissage() {
     if ((res.progression || 0) === 100) showCompletion.value = true
   } catch (e) {
     console.error('Erreur chargement apprentissage:', e)
+    if (e.response?.data?.code === 'PAYMENT_REQUIRED') {
+      accessError.value = {
+        title: 'Paiement requis',
+        message: e.response.data.message || 'Veuillez finaliser votre paiement pour accéder aux cours.',
+        action: 'payer',
+      }
+    } else if (e.response?.status === 403) {
+      accessError.value = {
+        title: 'Accès refusé',
+        message: e.response.data?.message || 'Vous n\'avez pas accès à cette formation.',
+        action: 'inscription',
+      }
+    } else {
+      accessError.value = {
+        title: 'Erreur',
+        message: 'Impossible de charger la formation.',
+        action: null,
+      }
+    }
     formationData.value = null
   } finally {
     loading.value = false
