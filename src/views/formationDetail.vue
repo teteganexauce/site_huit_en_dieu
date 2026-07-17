@@ -2,7 +2,7 @@
   <BreadcombsComponent :title="formation?.titre || 'Détail de la formation'" />
 
   <!-- Bannière progression -->
-  <div v-if="inscriptionInfo && !showCompletionBanner" class="bg-success bg-opacity-10 border-bottom border-success border-opacity-25 py-2">
+  <div v-if="inscriptionInfo" class="bg-success bg-opacity-10 border-bottom border-success border-opacity-25 py-2">
     <div class="container container-xxl d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-play-circle-fill text-success fs-5"></i>
@@ -16,13 +16,24 @@
           <template v-else-if="inscriptionInfo.progression >= 100">
             Formation terminée ! Téléchargez votre certificat
           </template>
+          <template v-else-if="inscriptionInfo.statut === 'en_attente' && formation?.type !== 'gratuite'">
+            Inscription enregistrée — Veuillez finaliser votre paiement pour commencer
+          </template>
+          <template v-else>
+            Vous êtes inscrit à cette formation — Bonne formation !
+          </template>
         </span>
       </div>
       <div class="d-flex align-items-center gap-2">
         <div class="progress" style="width: 100px; height: 8px;">
           <div class="progress-bar bg-success" :style="{ width: Math.round(inscriptionInfo.progression) + '%' }"></div>
         </div>
-        <router-link v-if="inscriptionId" :to="'/apprentissage/' + inscriptionId" class="btn btn-sm btn-success">
+        <template v-if="inscriptionInfo.statut === 'en_attente' && formation?.type !== 'gratuite'">
+          <button class="btn btn-sm btn-warning" @click="openPaymentModal">
+            <i class="bi bi-credit-card me-1"></i>Finaliser le paiement
+          </button>
+        </template>
+        <router-link v-else-if="inscriptionId" :to="'/apprentissage/' + inscriptionId" class="btn btn-sm btn-success">
           <i class="bi bi-play-circle me-1"></i>
           {{ inscriptionInfo.progression >= 100 ? 'Voir mon certificat' : 'Continuer' }}
         </router-link>
