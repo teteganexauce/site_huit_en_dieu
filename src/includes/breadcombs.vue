@@ -8,7 +8,7 @@
 
                <div class="d-flex flex-row-reverse">
                   <ol class="align-items-center">
-                     <li><a href="index.html">Home</a></li>
+                      <li><router-link to="/">Home</router-link></li>
                      <li>Portfolio Details</li>
                   </ol>
                </div>
