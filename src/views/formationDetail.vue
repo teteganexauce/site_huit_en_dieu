@@ -469,6 +469,12 @@ const payAndEnroll = async () => {
     const res = await publicService.enrollInFormation(route.params.id, payload)
     const inscription = res.data || res
     const paymentId = inscription.paiement_id
+
+    if (paymentMode.value === 'mobile_money' && inscription.paiement_url) {
+      window.location.href = inscription.paiement_url
+      return
+    }
+
     if (paymentId) {
       await publicService.confirmPayment(paymentId)
     }

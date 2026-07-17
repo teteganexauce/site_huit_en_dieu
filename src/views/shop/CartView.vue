@@ -254,15 +254,21 @@ const checkout = async () => {
     const paymentRes = await shopService.initPayment(paymentPayload)
     const paymentData = paymentRes.data || paymentRes
 
-    if (paymentData.id) {
-      await shopService.confirmPayment(paymentData.id)
-      cartMessage.value = 'Paiement effectué avec succès ! Votre commande est confirmée.'
-      cartSuccess.value = true
-      setTimeout(() => router.push({ name: 'orderSuccess', query: { orderId, method: selectedPayment.value } }), 1500)
-    } else {
+    if (!paymentData.id) {
       cartMessage.value = 'Erreur lors de l\'initialisation du paiement'
       cartSuccess.value = false
+      return
     }
+
+    if (selectedPayment.value === 'mobile_money' && paymentData.redirect_url) {
+      window.location.href = paymentData.redirect_url
+      return
+    }
+
+    await shopService.confirmPayment(paymentData.id)
+    cartMessage.value = 'Paiement effectué avec succès ! Votre commande est confirmée.'
+    cartSuccess.value = true
+    setTimeout(() => router.push({ name: 'orderSuccess', query: { orderId, method: selectedPayment.value } }), 1500)
   } catch (error) {
     cartMessage.value = error.response?.data?.message || 'Erreur lors du paiement'
     cartSuccess.value = false
