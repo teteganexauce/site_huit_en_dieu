@@ -28,6 +28,12 @@ async function loadPaiement() {
     ])
     paiement.value = paiementRes.data || paiementRes
     kkiapayConfig.value = configRes.data || configRes
+
+    if (paiement.value.statut === 'reussi') {
+      success.value = true
+      return
+    }
+
     await loadKkiapayScript()
   } catch (e) {
     error.value = "Impossible de charger les informations du paiement."
