@@ -1,59 +1,107 @@
 <script setup>
+import { ref, onMounted, computed } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Navigation, Pagination, A11y } from 'swiper/modules';
+import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 
 import 'swiper/css'
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 
+import publicService from '../services/publicService'
+import defaultImg from '../assets/img/blog/blog-2.jpg'
+import client1 from '../assets/img/clients/client-1.png'
+import client2 from '../assets/img/clients/client-2.png'
+import client3 from '../assets/img/clients/client-3.png'
+import client4 from '../assets/img/clients/client-4.png'
+import client5 from '../assets/img/clients/client-5.png'
+import client6 from '../assets/img/clients/client-6.png'
+import client7 from '../assets/img/clients/client-7.png'
+import client8 from '../assets/img/clients/client-8.png'
+
+const clientLogos = [client1, client2, client3, client4, client5, client6, client7, client8]
+
+const formationsPopulaires = ref([])
+const isLoadingFormations = ref(true)
+
+const temoignages = ref([])
+const partenaires = ref([])
+const isLoadingTemoignages = ref(true)
+const isLoadingPartenaires = ref(true)
+
+// On duplique la liste des partenaires pour garantir assez de slides
+// à Swiper afin que le loop soit fluide et ne s'arrête jamais,
+// quel que soit le nombre réel de partenaires en base.
+const partenairesSlider = computed(() => {
+  const list = partenaires.value
+  if (!list.length) return []
+  const minSlides = 21 // 7 (slidesPerView max) x 3, marge confortable pour un loop fluide
+  let result = [...list]
+  while (result.length < minSlides) {
+    result = result.concat(list)
+  }
+  return result
+})
+
+onMounted(async () => {
+  try {
+    const fData = await publicService.getFormations({ popular: true });
+    formationsPopulaires.value = fData.data || fData;
+  } catch (error) {
+    console.error('Erreur chargement formations populaires:', error);
+  } finally {
+    isLoadingFormations.value = false;
+  }
+
+  try {
+    const tData = await publicService.getTestimonials();
+    temoignages.value = tData.data || tData;
+  } catch (error) {
+    console.error('Erreur chargement temoignages:', error);
+  } finally {
+    isLoadingTemoignages.value = false;
+  }
+
+  try {
+    const pData = await publicService.getPartners();
+    partenaires.value = pData.data || pData;
+  } catch (error) {
+    console.error('Erreur chargement partenaires:', error);
+  } finally {
+    isLoadingPartenaires.value = false;
+  }
+})
 </script>
 
 <template>
    <section id="featured-services" class="featured-services">
       <div class="container">
-         <h3 class="w-100 text-primary fw-bold text-center mb-5">Nos Formations</h3>
-         <div class="row gy-4">
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Lorem Ipsum</a></h4>
-                  <p>Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-               </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos-delay="200">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Sed ut perspici</a></h4>
-                  <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-
-               </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos-delay="400">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Magni Dolores</a></h4>
-                  <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-
-               </div>
-            </div><!-- End Service Item -->
-
-            <div class="col-xl-3 col-md-6 d-flex aos-init aos-animate" data-aos-delay="600">
-               <div class="service-item position-relative">
-                  <div class="icon"><i class="bi bi-star-fill icon"></i></div>
-                  <h4><a href="" class="stretched-link">Nemo Enim</a></h4>
-                  <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis</p>
-                  <a href="" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i> </a>
-
-               </div>
-            </div><!-- End Service Item -->
-         </div>
+        <h3 class="w-100 text-primary fw-bold text-center mb-5">Nos Formations</h3>
+        <div v-if="isLoadingFormations" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+        <div v-else class="row gy-4">
+          <div v-for="f in formationsPopulaires" :key="f.id" class="col-xl-3 col-md-6 d-flex">
+            <div class="service-item position-relative">
+              <div class="icon"><i class="bi bi-star-fill icon"></i></div>
+              <h4><router-link :to="`/formations/${f.id}`" class="stretched-link">{{ f.titre }}</router-link></h4>
+              <div class="mb-2">
+                <span v-for="s in 5" :key="s" class="star" :class="s <= Math.round(f.note_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
+                <small class="text-muted ms-1">({{ f.notes_count || 0 }})</small>
+              </div>
+              <p>{{ f.description?.substring(0, 120) }}{{ f.description?.length > 120 ? '...' : '' }}</p>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted"><i class="bi bi-people me-1"></i>{{ f.inscrits_count || 0 }} inscrits</small>
+                <small v-if="f.prix > 0" class="fw-bold text-primary">{{ f.prix?.toLocaleString('fr-FR') }} FCFA</small>
+                <small v-else class="badge bg-success">Gratuit</small>
+              </div>
+              <router-link :to="`/formations/${f.id}`" class="mt-2 d-block">Lire plus <i class="bi bi-arrow-right"></i></router-link>
+            </div>
+          </div>
+        </div>
+        <div v-if="!isLoadingFormations && !formationsPopulaires.length" class="text-center text-muted py-3">
+          <p>Aucune formation disponible pour le moment.</p>
+        </div>
       </div>
    </section>
 
@@ -101,10 +149,13 @@ import 'swiper/css/scrollbar';
 
                         <div class="meta-top">
                            <ul>
-                              <li class="d-flex align-items-center"><i class="bi bi-person"></i> <a
-                                    href="blog-details.html">John Doe</a></li>
-                              <li class="d-flex align-items-center"><i class="bi bi-clock"></i> <a
-                                    href="blog-details.html"><time datetime="2022-01-01">Jan 1, 2022</time></a>
+                              <li class="d-flex align-items-center">
+                                 <i class="bi bi-person"></i>
+                                 <a href="blog-details.html">John Doe</a>
+                              </li>
+                              <li class="d-flex align-items-center">
+                                 <i class="bi bi-clock"></i>
+                                 <a href="blog-details.html"><time datetime="2022-01-01">1er janvier 2022</time></a>
                               </li>
                            </ul>
                         </div>
@@ -117,9 +168,9 @@ import 'swiper/css/scrollbar';
                         </div>
 
                         <div class="read-more mt-auto d-flex justify-content-between">
-                           <li class="d-flex align-items-center small text-grey"><i class="bi bi-chat-dots"></i>&nbsp;
-                              <span href="blog-detspanils.html">12
-                                 Comments</span>
+                           <li class="d-flex align-items-center small text-grey">
+                              <i class="bi bi-chat-dots"></i>&nbsp;
+                              <span href="blog-details.html">12 Comments</span>
                            </li>
                            <a href="blog-details.html" class="d-block">Read More</a>
                         </div>
@@ -145,53 +196,77 @@ import 'swiper/css/scrollbar';
    </section>
 
    <section id="testimonials" class="testimonials pt-5">
-
       <div class="container mt-0">
          <h3 class="w-100 text-primary fw-bold text-center mb-5 head-temo">Témoignages</h3>
-         <div class="testimonials-slider swiper">
-            <div class="swiper-wrapper">
-               <div class="swiper-slide">
-                  <div class="testimonial-item">
-                     <img src="../assets/img/testimonials/testimonials-1.jpg" class="testimonial-img" alt="">
-                     <h3>Saul Goodman</h3>
-                     <h4>Ceo &amp; Founder</h4>
-                     <div class="stars">
-                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                           class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                     </div>
-                     <p>
+         <div v-if="isLoadingTemoignages" class="text-center py-3">
+           <div class="spinner-border text-primary" role="status">
+             <span class="visually-hidden">Chargement...</span>
+           </div>
+         </div>
+         <div v-else class="testimonials-slider swiper">
+            <swiper
+               :slides-per-view="1"
+               :space-between="30"
+               :loop="true"
+               :modules="[Navigation, Pagination, A11y, Autoplay]"
+               :pagination="{ clickable: true }"
+               :autoplay="{ delay: 4000, disableOnInteraction: false }"
+               :speed="800"
+               :grab-cursor="true"
+               :centered-slides="true"
+               class="testimonials-swiper"
+            >
+               <swiper-slide v-for="item in temoignages" :key="item.id">
+                  <div class="testimonial-item text-center">
+                     <img :src="item.photoUrl || defaultImg" class="testimonial-img" alt="">
+                     <h3>{{ item.auteur }}</h3>
+                     <p class="mx-auto" style="max-width: 700px;">
                         <i class="bi bi-quote quote-icon-left"></i>
-                        Proin iaculis purus consequat sem cure digni ssim donec porttitora entum suscipit rhoncus.
-                        Accusantium quam, ultricies eget id, aliquam eget nibh et. Maecen aliquam, risus at semper.
+                        {{ item.contenu }}
                         <i class="bi bi-quote quote-icon-right"></i>
                      </p>
                   </div>
-               </div><!-- End testimonial item -->
-               <!-- End testimonial item -->
-            </div>
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
+               </swiper-slide>
+            </swiper>
          </div>
       </div>
-   </section><!-- End Testimonials Section -->
+   </section>
 
    <section id="clients" class="clients mt-5">
       <h3 class="w-100 text-primary fw-bold text-center mb-5">Partenaires</h3>
       <div class="container">
-         <div class="clients-slider swiper">
-            <div class="swiper-wrapper align-items-center">
-               <div class="swiper-slide"><img src="../assets/img/clients/client-1.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-2.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-3.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-4.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-5.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-6.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-7.png" class="img-fluid" alt=""></div>
-               <div class="swiper-slide"><img src="../assets/img/clients/client-8.png" class="img-fluid" alt=""></div>
-            </div>
+         <div v-if="isLoadingPartenaires" class="text-center py-3">
+           <div class="spinner-border text-primary" role="status">
+             <span class="visually-hidden">Chargement...</span>
+           </div>
          </div>
-
+            <div v-else class="clients-slider swiper">
+               <swiper
+                  :slides-per-view="7"
+                  :space-between="16"
+                  :loop="true"
+                  :modules="[Autoplay]"
+                  :breakpoints="{
+                    320: { slidesPerView: 2, spaceBetween: 12 },
+                    576: { slidesPerView: 3, spaceBetween: 12 },
+                    768: { slidesPerView: 4, spaceBetween: 16 },
+                    992: { slidesPerView: 5, spaceBetween: 16 },
+                    1200: { slidesPerView: 7, spaceBetween: 16 }
+                  }"
+                  :speed="5000"
+                  :allow-touch-move="false"
+                  :autoplay="{ delay: 1, disableOnInteraction: false, pauseOnMouseEnter: false, stopOnLastSlide: false }"
+               >
+                <swiper-slide v-for="(item, index) in partenairesSlider" :key="`${item.id}-${index}`">
+                   <div class="partner-card">
+                     <a :href="item.siteWeb || '#'" target="_blank" v-if="item.siteWeb">
+                       <img :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                     </a>
+                     <img v-else :src="item.logoUrl || clientLogos[index % clientLogos.length]" class="partner-logo" :alt="item.nom">
+                   </div>
+                 </swiper-slide>
+              </swiper>
+           </div>
       </div>
    </section>
 </template>
@@ -220,4 +295,53 @@ import 'swiper/css/scrollbar';
    transition: .5s;
    width: 100% !important;
 }
+
+.swiper-slide {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}
+
+.partner-card {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   background: #fff;
+   border-radius: 8px;
+   padding: 12px 8px;
+   min-height: 100px;
+   transition: all 0.3s ease;
+   width: 100%;
+   box-shadow: none;
+}
+
+.partner-card:hover {
+   transform: translateY(-2px);
+}
+
+.clients-slider {
+   overflow: hidden;
+}
+
+.partner-card img {
+   box-shadow: none !important;
+}
+
+.partner-logo {
+   max-height: 90px;
+   max-width: 160px;
+   width: auto;
+   height: auto;
+   object-fit: contain;
+   filter: grayscale(100%);
+   opacity: 0.6;
+   transition: all 0.4s ease;
+}
+
+.partner-card:hover .partner-logo {
+   filter: grayscale(0%);
+   opacity: 1;
+}
+
 </style>

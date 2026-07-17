@@ -1,35 +1,73 @@
 import api from './api';
 
 const shopService = {
-  /**
-   * Récupérer la liste des produits (avec filtres optionnels)
-   */
-  async getProducts(params = {}) {
-    const response = await api.get('/boutique/produits', { params });
+  async getCatalogue(params = {}) {
+    const response = await api.get('/catalogue', { params });
     return response.data;
   },
 
-  /**
-   * Récupérer les détails d'un produit spécifique
-   */
   async getProduct(id) {
-    const response = await api.get(`/boutique/produits/${id}`);
+    const response = await api.get(`/catalogue/${id}`);
     return response.data;
   },
 
-  /**
-   * Récupérer la liste des catégories
-   */
   async getCategories() {
-    const response = await api.get('/boutique/categories');
+    const response = await api.get('/categories');
     return response.data;
   },
 
-  /**
-   * Créer une nouvelle commande (Checkout)
-   */
-  async createOrder(orderData) {
-    const response = await api.post('/commandes', orderData);
+  async getCart() {
+    const response = await api.get('/panier');
+    return response.data;
+  },
+
+  async addToCart(productId, quantite = 1) {
+    const response = await api.post('/panier/ajouter', { produit_id: productId, quantite });
+    return response.data;
+  },
+
+  async updateCartLine(lineId, quantite) {
+    const response = await api.put(`/panier/lignes/${lineId}`, { quantite });
+    return response.data;
+  },
+
+  async removeCartLine(lineId) {
+    const response = await api.delete(`/panier/lignes/${lineId}`);
+    return response.data;
+  },
+
+  async validateOrder() {
+    const response = await api.post('/commandes/valider');
+    return response.data;
+  },
+
+  async getOrders() {
+    const response = await api.get('/commandes');
+    return response.data;
+  },
+
+  async getOrder(id) {
+    const response = await api.get(`/commandes/${id}`);
+    return response.data;
+  },
+
+  async initPayment(paymentData) {
+    const response = await api.post('/paiements/initier', paymentData);
+    return response.data;
+  },
+
+  async getMyInscriptions() {
+    const response = await api.get('/user/inscriptions');
+    return response.data;
+  },
+
+  async getDownloadUrl(bookId) {
+    const response = await api.get(`/download/ebook/${bookId}`);
+    return response.data;
+  },
+
+  async confirmPayment(paymentId) {
+    const response = await api.post(`/paiements/confirmer/${paymentId}`);
     return response.data;
   }
 };
