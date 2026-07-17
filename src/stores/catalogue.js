@@ -89,15 +89,9 @@ export const useCatalogueStore = defineStore('catalogue', {
 
     resetFilters() {
       this.filters = {
-        categorie: '',
-        type: '',
-        prix_min: '',
-        prix_max: '',
-        recherche: '',
-        tri: 'date',
-        nouveaute: false,
-        coup_de_coeur: false,
-        gratuit: false,
+        categorie: '', type: '', prix_min: '', prix_max: '',
+        recherche: '', tri: 'date',
+        nouveaute: false, coup_de_coeur: false, gratuit: false,
       };
       this.pagination.currentPage = 1;
     },

@@ -16,33 +16,29 @@
       <div class="bg-white">
          <swiper :slides-per-view="1" :space-between="50" loop navigation :pagination="{ clickable: true }"
             @swiper="onSwiper" @slideChange="onSlideChange" :modules="[Navigation, Pagination, A11y]">
-            <swiper-slide v-for="(item, index) in slides" :key="index">
-               <div class="swiper-item position-relative">
-                  <img :src="item.image" alt="">
-                  <div class="banniere-overlay">
-                     <section id="hero-static" class="h-100 hero-static d-flex align-items-center">
-                        <div
-                           class="container d-flex flex-column justify-content-center align-items-center text-center position-relative">
-                           <h2 class="text-white fw-bold">INSTITUT NOUBOUDO <br> <span class="fw-bold text-primary">Mystères Révélés</span></h2>
-                           <p class="text-white">Bienvenue sur la plateforme de vulgarisation et de valorisation des recherches scientifiques
-                              du Centre de
-                              Réveil Spirituel – Hwéton « <b>le Soleil intérieur s’est lévé</b> » dirigé par Monsieur
-                              <i><b>Firmin
-                                    AMADJI</b></i></p>
-                           <div class="d-flex">
-                              <a href="#about" class="btn-get-started scrollto">Découvrir l'école</a>
-                           </div>
-                        </div>
-                     </section>
-                  </div>
-               </div>
-            </swiper-slide>
+             <swiper-slide v-for="(item, index) in slides" :key="item.id || index">
+                <div class="swiper-item position-relative">
+                   <img :src="item.imageUrl || defaultImg" :alt="item.titre">
+                   <div class="banniere-overlay">
+                      <section id="hero-static" class="h-100 hero-static d-flex align-items-center">
+                         <div
+                            class="container d-flex flex-column justify-content-center align-items-center text-center position-relative">
+                            <h2 class="text-white fw-bold" v-if="item.titre">{{ item.titre }}</h2>
+                            <p class="text-white" v-if="item.texte">{{ item.texte }}</p>
+                            <div class="d-flex" v-if="item.lien">
+                               <a :href="item.lien" class="btn-get-started scrollto">En savoir plus</a>
+                            </div>
+                         </div>
+                      </section>
+                   </div>
+                </div>
+             </swiper-slide>
          </swiper>
       </div>
    </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, A11y } from 'swiper/modules';
 
@@ -51,43 +47,56 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 
-import EasyLMD from '../assets/img/blog/blog-1.jpg';
-import Parent from '../assets/img/blog/blog-2.jpg';
-import Student from '../assets/img/blog/blog-3.jpg';
-import Teacher from '../assets/img/blog/blog-4.jpg';
+import publicService from '../services/publicService';
+import defaultImg from '../assets/img/blog/blog-1.jpg';
 
-const slides = ref(
-   [{
-      image: EasyLMD,
-      nom: 'EasyLMD',
-   },
-   {
-      image: Student,
-      nom: 'Student',
-   },
-   {
-      image: Parent,
-      nom: 'Parent',
-   },
-   {
-      image: Teacher,
-      nom: 'Teacher',
-   },]
-)
+const slides = ref([])
+const isLoading = ref(true)
 
+onMounted(async () => {
+  try {
+    const [slideData, eventData] = await Promise.all([
+      publicService.getSlides(),
+      publicService.getEvents()
+    ]);
+    const slidesList = slideData.data || slideData || [];
+    const eventsList = eventData.data || eventData || [];
+
+    // Garder les slides de la bdd, puis ajouter les 3 prochains événements à venir
+    const now = new Date();
+    const upcoming = eventsList
+      .filter(e => new Date(e.dateDebut) > now)
+      .slice(0, 3)
+      .map(e => ({
+        id: 'event-' + e.id,
+        titre: e.titre,
+        texte: e.description,
+        imageUrl: e.imageUrl,
+        lien: e.lieu ? '/evenements' : null
+      }));
+
+    slides.value = [...slidesList, ...upcoming];
+  } catch (error) {
+    console.error('Erreur chargement slides:', error);
+  } finally {
+    isLoading.value = false;
+  }
+})
 </script>
 <style scoped>
 
 #hero-static{
    background: transparent;
 }
+
 .swiper-item {
-   height: calc(100vh - 80px);
+   /* --header-height est déjà géré par #main dans App.vue :
+      plus besoin de soustraire 80px ni d'ajouter de margin-top ici */
+   height: calc(100vh - var(--header-height, 92px));
    width: 100%;
    display: flex;
    justify-content: center;
    align-items: center;
-   margin-top: 80px;
 }
 
 .swiper-item img {
@@ -103,4 +112,5 @@ const slides = ref(
    height: 100%;
    background-color: rgba(22, 22, 22, 0.356) !important;
    z-index: 9999;
-}</style>
+}
+</style>

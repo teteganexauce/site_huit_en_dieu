@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import defaultImg from '../../assets/img/faq.jpg'
+import defaultImg from '@/assets/img/faq.jpg'
 
 const props = defineProps({
   product: { type: Object, required: true }
