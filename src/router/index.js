@@ -29,6 +29,8 @@ import OrderSuccess from '../views/shop/OrderSuccess.vue';
 import BookReaderView from '../views/shop/BookReaderView.vue';
 import DonateView from '../views/shop/DonateView.vue';
 import KkiapayPayment from '../views/shop/KkiapayPayment.vue';
+import MesFormations from '../views/MesFormations.vue';
+import MesCommandes from '../views/MesCommandes.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -62,6 +64,8 @@ const router = createRouter({
     { path: "/mes-livres/:livreId/lire", name: "bookReader", component: BookReaderView, meta: { requiresAuth: true } },
     { path: "/dons", name: "donate", component: DonateView },
     { path: "/paiement/kkiapay", name: "kkiapayPayment", component: KkiapayPayment },
+    { path: "/profil/mes-formations", name: "mesFormations", component: MesFormations, meta: { requiresAuth: true } },
+    { path: "/profil/mes-commandes", name: "mesCommandes", component: MesCommandes, meta: { requiresAuth: true } },
   ],
 });
 
