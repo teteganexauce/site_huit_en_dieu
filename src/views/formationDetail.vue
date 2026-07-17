@@ -91,6 +91,9 @@
                 <button v-if="!isEnrolled && !enrollSuccess" class="btn btn-primary w-100 btn-lg" @click="openInscriptionModal">
                   <i class="bi bi-mortarboard me-1"></i>{{ formation.type === 'gratuite' ? "S'inscrire gratuitement" : "S'inscrire" }}
                 </button>
+                <button v-else-if="inscriptionId" class="btn btn-success w-100 btn-lg mb-2" @click="goToLearning">
+                  <i class="bi bi-play-circle me-1"></i>Continuer la formation
+                </button>
                 <button v-else class="btn btn-success w-100 btn-lg" disabled>
                   <i class="bi bi-check-circle me-1"></i>{{ enrollSuccess ? 'Inscrit avec succès' : 'Déjà inscrit' }}
                 </button>
@@ -308,8 +311,11 @@
         <h4 class="fw-bold mb-2">{{ formation.type === 'gratuite' ? 'Inscription réussie !' : 'Paiement réussi !' }}</h4>
         <p class="text-muted mb-1">Vous êtes maintenant inscrit à <strong>{{ formation.titre }}</strong>.</p>
         <p class="text-muted mb-3" v-if="formation.type !== 'gratuite'">Un email de confirmation vous a été envoyé.</p>
-        <div class="d-flex justify-content-center gap-2">
-          <router-link to="/profile-inscrit" class="btn btn-primary"><i class="bi bi-person me-1"></i>Voir mes formations</router-link>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+          <router-link v-if="inscriptionId" :to="'/apprentissage/' + inscriptionId" class="btn btn-success">
+            <i class="bi bi-play-circle me-1"></i>Commencer la formation
+          </router-link>
+          <router-link to="/profil/mes-formations" class="btn btn-primary"><i class="bi bi-person me-1"></i>Voir mes formations</router-link>
           <router-link to="/formations" class="btn btn-outline-primary">Autres formations</router-link>
         </div>
       </div>
@@ -339,6 +345,7 @@ const enrolling = ref(false)
 const enrollMessage = ref('')
 const enrollSuccess = ref(false)
 const isEnrolled = ref(false)
+const inscriptionId = ref(null)
 const showInscriptionModal = ref(false)
 const showPaymentModal = ref(false)
 const showSuccessModal = ref(false)
@@ -356,15 +363,24 @@ const closeCours = () => {
   selectedCours.value = null
 }
 
+const goToLearning = () => {
+  if (inscriptionId.value) {
+    router.push({ name: 'coursPlayer', params: { inscriptionId: inscriptionId.value } })
+  }
+}
+
 const marquerComplete = async (coursId) => {
   completingCoursId.value = coursId
   try {
     const res = await api.put(`/cours/${coursId}/completer`)
     if (res.data?.progression !== undefined) {
-      const ins = await shopService.getMyInscriptions()
+      const ins = await publicService.getMyInscriptions()
       const items = ins.data || ins
       const myIns = (items.data || items).find(i => i.formation_id == route.params.id)
-      if (myIns) isEnrolled.value = true
+      if (myIns) {
+        isEnrolled.value = true
+        inscriptionId.value = myIns.id
+      }
     }
     selectedCours.value = null
   } catch (e) {
@@ -437,6 +453,9 @@ const confirmFreeEnrollment = async () => {
   enrollMessage.value = ''
   try {
     const res = await publicService.enrollInFormation(route.params.id)
+    const data = res.data || res
+    if (data?.id) inscriptionId.value = data.id
+    if (data?.inscription?.id) inscriptionId.value = data.inscription.id
     enrollSuccess.value = true
     showInscriptionModal.value = false
     showSuccessModal.value = true
@@ -468,6 +487,7 @@ const payAndEnroll = async () => {
     }
     const res = await publicService.enrollInFormation(route.params.id, payload)
     const inscription = res.data || res
+    if (inscription?.id) inscriptionId.value = inscription.id
     const paiementUrl = inscription.paiement_url
     if (paiementUrl) {
       window.location.href = paiementUrl
@@ -501,7 +521,11 @@ onMounted(async () => {
       try {
         const insRes = await publicService.getMyInscriptions()
         const items = insRes.data || insRes
-        isEnrolled.value = Array.isArray(items) && items.some(i => i.formation_id == id)
+        if (Array.isArray(items)) {
+          const monInscription = items.find(i => i.formation_id == id)
+          isEnrolled.value = !!monInscription
+          if (monInscription) inscriptionId.value = monInscription.id
+        }
       } catch (e) { /* ignore */ }
     }
     await loadUserNote()

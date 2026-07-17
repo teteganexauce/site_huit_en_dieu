@@ -74,8 +74,11 @@ onMounted(loadFormations)
                 <div class="progress-bar bg-success" :style="{ width: (ins.progression || 0) + '%' }"></div>
               </div>
               <div class="mt-2">
+                <router-link :to="'/apprentissage/' + ins.id" class="btn btn-sm btn-success me-1">
+                  <i class="bi bi-play-circle me-1"></i>{{ ins.progression > 0 ? 'Continuer' : 'Commencer' }}
+                </router-link>
                 <router-link :to="'/formations/' + ins.formation_id" class="btn btn-sm btn-outline-primary me-1">
-                  <i class="bi bi-eye me-1"></i>Voir
+                  <i class="bi bi-eye me-1"></i>Détails
                 </router-link>
                 <router-link v-if="ins.progression === 100" :to="'/inscriptions/' + ins.id + '/certificat'" class="btn btn-sm btn-outline-warning">
                   <i class="bi bi-award me-1"></i>Certificat
