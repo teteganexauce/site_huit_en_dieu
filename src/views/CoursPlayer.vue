@@ -49,7 +49,7 @@
                 <i v-else class="bi bi-lock-fill text-muted"></i>
               </span>
               <span class="small flex-grow-1">{{ c.titre }}</span>
-              <small v-if="c.dureeMinutes" class="text-muted flex-shrink-0">{{ c.dureeMinutes }} min</small>
+              <small class="text-muted flex-shrink-0">{{ formaterDuree(dureesReelles[c.id] || c.dureeMinutes) }}</small>
             </div>
 
             <div v-if="mod.evaluation"
@@ -91,7 +91,6 @@
               <p class="text-muted small">{{ evaluationData.evaluation.questions.length }} question(s) · {{ evaluationData.evaluation.total_points }} point(s)</p>
             </div>
 
-            <!-- Résultat existant -->
             <div v-if="evaluationData.resultat" class="mb-4">
               <div class="alert" :class="evaluationData.resultat.reussite ? 'alert-success' : 'alert-danger'">
                 <h5 class="fw-bold mb-1">
@@ -103,7 +102,6 @@
               <button class="btn btn-outline-primary" @click="resetEvaluation">Recommencer l'évaluation</button>
             </div>
 
-            <!-- Questions -->
             <div v-else>
               <div v-for="(q, qi) in evaluationData.evaluation.questions" :key="q.id" class="card border-0 shadow-sm mb-3">
                 <div class="card-body">
@@ -135,24 +133,29 @@
 
         <!-- Mode Cours -->
         <template v-else-if="currentCours">
-          <div class="video-wrapper bg-black d-flex align-items-center justify-content-center" style="max-height: 60vh;">
-            <div v-if="currentCours.video" class="w-100" style="max-width: 1000px;">
-              <video
-                v-if="isVideoLocale(currentCours.video)"
-                :src="currentCours.video"
-                controls
-                autoplay
-                class="w-100"
-                style="max-height: 60vh; outline: none;"
-                @ended="onVideoEnded"
-              ></video>
-              <div v-else class="ratio ratio-16x9">
-                <iframe
-                  :src="embedUrl(currentCours.video)"
-                  class="w-100 h-100"
-                  frameborder="0"
-                  allowfullscreen
-                ></iframe>
+          <div class="video-wrapper bg-black">
+            <div v-if="currentCours.video" class="w-100 mx-auto" style="max-width: 1000px;">
+              <div class="position-relative">
+                <video
+                  v-if="isVideoLocale(currentCours.video)"
+                  ref="videoEl"
+                  :src="currentCours.video"
+                  controls
+                  autoplay
+                  class="w-100 d-block"
+                  style="max-height: 60vh; outline: none;"
+                  @loadedmetadata="onVideoMetaLoaded"
+                  @ended="onVideoEnded"
+                  @timeupdate="onTimeUpdate"
+                ></video>
+                <div v-else class="ratio ratio-16x9">
+                  <iframe
+                    :src="embedUrl(currentCours.video)"
+                    class="w-100 h-100"
+                    frameborder="0"
+                    allowfullscreen
+                  ></iframe>
+                </div>
               </div>
             </div>
             <div v-else class="text-center py-5 text-white-50">
@@ -161,12 +164,17 @@
             </div>
           </div>
 
+          <!-- Compteur prochain cours -->
+          <div v-if="nextCountdown > 0" class="bg-dark text-white text-center py-2 small">
+            Prochain cours dans {{ nextCountdown }}s...
+          </div>
+
           <div class="px-4 py-3 border-bottom bg-white">
             <div class="d-flex justify-content-between align-items-start">
               <div>
                 <h5 class="fw-bold mb-1">{{ currentCours.titre }}</h5>
-                <small class="text-muted" v-if="currentCours.dureeMinutes">
-                  <i class="bi bi-clock me-1"></i>{{ currentCours.dureeMinutes }} minutes
+                <small class="text-muted">
+                  <i class="bi bi-clock me-1"></i>{{ formaterDuree(dureeActuelle || currentCours.dureeMinutes) }}
                 </small>
               </div>
               <span v-if="currentCours.est_complete" class="badge bg-success">
@@ -178,19 +186,12 @@
             </div>
           </div>
 
-          <div class="px-4 py-3 bg-white d-flex justify-content-between align-items-center">
+          <div class="px-4 py-3 bg-white d-flex justify-content-between align-items-center" v-if="!currentCours.est_complete">
             <button class="btn btn-outline-primary" :disabled="!precedent" @click="ouvrirCours(precedent)">
               <i class="bi bi-chevron-left me-1"></i> Précédent
             </button>
-            <div class="text-center">
-              <button v-if="!currentCours.est_complete" class="btn btn-success" @click="onVideoEnded" :disabled="completing">
-                <span v-if="completing" class="spinner-border spinner-border-sm me-1"></span>
-                <i v-else class="bi bi-check-circle me-1"></i>
-                Marquer comme terminé
-              </button>
-              <div v-else class="text-success small fw-bold">
-                <i class="bi bi-check-circle-fill me-1"></i> Complété
-              </div>
+            <div class="text-center text-muted small">
+              <i class="bi bi-play-circle me-1"></i>Lisez la vidéo jusqu'à la fin
             </div>
             <button class="btn btn-primary" :disabled="!suivant" @click="ouvrirCours(suivant)">
               Suivant <i class="bi bi-chevron-right ms-1"></i>
@@ -216,7 +217,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import formationService from '../services/formationService'
 
@@ -243,7 +244,36 @@ const evaluationResultats = ref({})
 const moduleEvaluationId = ref(null)
 const soumettant = ref(false)
 
+const videoEl = ref(null)
+const dureesReelles = ref({})
+const dureeActuelle = ref(null)
+const nextCountdown = ref(0)
+let countdownInterval = null
+
 const progression = computed(() => formationData.value?.progression || 0)
+
+function formaterDuree(minutes) {
+  if (!minutes && minutes !== 0) return ''
+  const m = Math.floor(minutes)
+  if (m < 1) return Math.round(minutes * 60) + 's'
+  return m + ' min'
+}
+
+function onVideoMetaLoaded() {
+  if (!videoEl.value) return
+  const dureeSecondes = videoEl.value.duration
+  if (dureeSecondes && isFinite(dureeSecondes)) {
+    const minutes = dureeSecondes / 60
+    dureeActuelle.value = minutes
+    if (currentCours.value) {
+      dureesReelles.value[currentCours.value.id] = minutes
+    }
+  }
+}
+
+function onTimeUpdate() {
+  if (!videoEl.value || nextCountdown.value > 0) return
+}
 
 function estComplete(coursId) {
   return coursCompletesIds.value.includes(coursId)
@@ -292,28 +322,47 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+function demarrerCompteur() {
+  if (countdownInterval) clearInterval(countdownInterval)
+  nextCountdown.value = 5
+  countdownInterval = setInterval(() => {
+    nextCountdown.value--
+    if (nextCountdown.value <= 0) {
+      clearInterval(countdownInterval)
+      countdownInterval = null
+      if (suivant.value) {
+        ouvrirCours(suivant.value)
+      } else {
+        showCompletion.value = true
+      }
+    }
+  }, 1000)
+}
+
 async function onVideoEnded() {
-  if (!currentCours.value || completing.value) return
+  if (!currentCours.value || completing.value || nextCountdown.value > 0) return
   completing.value = true
   try {
-    const res = await formationService.completerCours(currentCours.value.id)
+    await formationService.completerCours(currentCours.value.id)
+    const res = await formationService.getApprentissage(inscriptionId.value)
     coursCompletesIds.value = res.cours_completes_ids || []
-    currentCours.value.est_complete = true
     if (formationData.value) formationData.value.progression = res.progression
-    if (res.suivant) {
-      setTimeout(() => ouvrirCours(res.suivant), 1000)
-    } else {
-      showCompletion.value = true
-    }
+    currentCours.value.est_complete = true
+    completing.value = false
+    demarrerCompteur()
   } catch (e) {
     console.error('Erreur complétion cours:', e)
-  } finally {
     completing.value = false
   }
 }
 
 async function ouvrirCours(coursId) {
   if (!coursId) return
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+  nextCountdown.value = 0
   mode.value = 'cours'
   evaluationData.value = null
   showCompletion.value = false
@@ -334,6 +383,10 @@ async function chargerCours(coursId) {
     coursCompletesIds.value = res.cours_completes_ids || []
     const learningRes = await formationService.getApprentissage(inscriptionId.value)
     formationData.value.progression = learningRes.progression
+    await nextTick()
+    if (videoEl.value && dureesReelles.value[coursId]) {
+      dureeActuelle.value = dureesReelles.value[coursId]
+    }
   } catch (e) {
     console.error('Erreur chargement cours:', e)
   }
@@ -374,7 +427,6 @@ async function soumettreEvaluation() {
         termine_le: new Date().toISOString(),
       }
     }
-    // Recharger pour afficher le résultat
     await ouvrirEvaluation(modules.value.find(m => m.id === modId))
   } catch (e) {
     console.error('Erreur soumission évaluation:', e)
