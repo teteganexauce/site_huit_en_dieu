@@ -468,9 +468,10 @@ const payAndEnroll = async () => {
     }
     const res = await publicService.enrollInFormation(route.params.id, payload)
     const inscription = res.data || res
-    const paymentId = inscription.paiement_id
-    if (paymentId) {
-      await publicService.confirmPayment(paymentId)
+    const paiementUrl = inscription.paiement_url
+    if (paiementUrl) {
+      window.location.href = paiementUrl
+      return
     }
     enrollSuccess.value = true
     showPaymentModal.value = false

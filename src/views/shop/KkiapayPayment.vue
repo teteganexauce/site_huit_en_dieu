@@ -123,9 +123,12 @@ onMounted(loadPaiement)
               </div>
             </div>
             <h4 class="fw-bold mb-2">Paiement réussi !</h4>
-            <p class="text-muted mb-3">Merci pour votre don de <strong>{{ Number(paiement?.montant || 0).toLocaleString('fr-FR') }} FCFA</strong>.</p>
+            <p class="text-muted mb-3" v-if="paiement?.don_id">Merci pour votre don de <strong>{{ Number(paiement.montant || 0).toLocaleString('fr-FR') }} FCFA</strong>.</p>
+            <p class="text-muted mb-3" v-else>Votre paiement de <strong>{{ Number(paiement?.montant || 0).toLocaleString('fr-FR') }} FCFA</strong> a été confirmé.</p>
             <p class="text-muted mb-4">Un reçu vous sera envoyé par email.</p>
-            <router-link to="/" class="btn btn-primary">Retour à l'accueil</router-link>
+            <router-link v-if="paiement?.commande_id" to="/profil/mes-commandes" class="btn btn-primary">Voir mes commandes</router-link>
+            <router-link v-else-if="paiement?.inscription_id" to="/profil/mes-formations" class="btn btn-primary">Voir mes formations</router-link>
+            <router-link v-else to="/" class="btn btn-primary">Retour à l'accueil</router-link>
           </div>
         </div>
 

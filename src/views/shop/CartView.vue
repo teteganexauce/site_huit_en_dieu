@@ -254,15 +254,12 @@ const checkout = async () => {
     const paymentRes = await shopService.initPayment(paymentPayload)
     const paymentData = paymentRes.data || paymentRes
 
-    if (paymentData.id) {
-      await shopService.confirmPayment(paymentData.id)
-      cartMessage.value = 'Paiement effectué avec succès ! Votre commande est confirmée.'
-      cartSuccess.value = true
-      setTimeout(() => router.push({ name: 'orderSuccess', query: { orderId, method: selectedPayment.value } }), 1500)
-    } else {
-      cartMessage.value = 'Erreur lors de l\'initialisation du paiement'
-      cartSuccess.value = false
+    if (paymentData.redirect_url) {
+      window.location.href = paymentData.redirect_url
+      return
     }
+    cartMessage.value = 'Erreur lors de l\'initialisation du paiement'
+    cartSuccess.value = false
   } catch (error) {
     cartMessage.value = error.response?.data?.message || 'Erreur lors du paiement'
     cartSuccess.value = false
