@@ -27,7 +27,12 @@ import ProductDetailView from '../views/shop/ProductDetailView.vue';
 import CartView from '../views/shop/CartView.vue';
 import OrderSuccess from '../views/shop/OrderSuccess.vue';
 import BookReaderView from '../views/shop/BookReaderView.vue';
+import DonateView from '../views/shop/DonateView.vue';
 import KkiapayPayment from '../views/shop/KkiapayPayment.vue';
+import MesFormations from '../views/MesFormations.vue';
+import MesCommandes from '../views/MesCommandes.vue';
+import CoursPlayer from '../views/CoursPlayer.vue';
+import CertificatPage from '../views/CertificatPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,7 +64,13 @@ const router = createRouter({
     { path: "/panier", name: "cart", component: CartView },
     { path: "/commande/succes", name: "orderSuccess", component: OrderSuccess, meta: { requiresAuth: true } },
     { path: "/mes-livres/:livreId/lire", name: "bookReader", component: BookReaderView, meta: { requiresAuth: true } },
+    { path: "/dons", name: "donate", component: DonateView },
     { path: "/paiement/kkiapay", name: "kkiapayPayment", component: KkiapayPayment },
+    { path: "/profil/mes-formations", name: "mesFormations", component: MesFormations, meta: { requiresAuth: true } },
+    { path: "/profil/mes-commandes", name: "mesCommandes", component: MesCommandes, meta: { requiresAuth: true } },
+    { path: "/apprentissage/:inscriptionId", name: "coursPlayer", component: CoursPlayer, meta: { requiresAuth: true } },
+    { path: "/apprentissage/:inscriptionId/:coursId", name: "coursPlayerCours", component: CoursPlayer, meta: { requiresAuth: true } },
+    { path: "/inscriptions/:id/certificat", name: "certificat", component: CertificatPage, meta: { requiresAuth: true } },
   ],
 });
 

@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import authService from '../services/authService'
 import shopService from '../services/shopService'
+import donService from '../services/donService'
 import defaultAvatar from '../assets/img/portfolio/app-1.jpg'
 
 const authStore = useAuthStore()
@@ -15,10 +16,12 @@ const isLoadingProfile = ref(false)
 const isLoadingBooks = ref(false)
 const isLoadingFormations = ref(false)
 const isLoadingOrders = ref(false)
+const isLoadingDons = ref(false)
 
 const orders = ref([])
 const purchasedBooks = ref([])
 const inscriptions = ref([])
+const dons = ref([])
 
 const showPaymentModal = ref(false)
 const selectedBook = ref(null)
@@ -60,7 +63,9 @@ const initializeForm = () => {
 const stats = computed(() => ({
   livres: purchasedBooks.value.length,
   formations: inscriptions.value.length,
-  commandes: orders.value.length
+  commandes: orders.value.length,
+  dons: dons.value.length,
+  totalDons: dons.value.reduce((sum, d) => sum + Number(d.montant), 0)
 }))
 
 async function loadOrders() {
@@ -154,6 +159,19 @@ async function loadFormations() {
   }
 }
 
+async function loadDons() {
+  isLoadingDons.value = true
+  try {
+    const res = await donService.getMyDons()
+    const data = res.data || res
+    dons.value = data.data || data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingDons.value = false
+  }
+}
+
 onMounted(async () => {
   initializeForm()
   try {
@@ -169,6 +187,7 @@ onMounted(async () => {
   loadOrders()
   loadPurchasedBooks()
   loadFormations()
+  loadDons()
 })
 
 const handleLogout = async () => {
@@ -229,7 +248,8 @@ const statusLabel = (statut) => {
   const labels = {
     payee: 'Payée', en_attente_paiement: 'En attente', expediee: 'Expédiée',
     livree: 'Livrée', annulee: 'Annulée', panier: 'Panier',
-    confirmee: 'Confirmée', en_attente: 'En attente'
+    confirmee: 'Confirmée', en_attente: 'En attente',
+    REUSSI: 'Réussi', ECHOUE: 'Échoué', EN_ATTENTE: 'En attente'
   }
   return labels[statut] || statut
 }
@@ -238,7 +258,8 @@ const statusClass = (statut) => {
   const classes = {
     payee: 'success', confirmee: 'success', livree: 'success',
     en_attente_paiement: 'warning', en_attente: 'warning',
-    expediee: 'info', annulee: 'danger'
+    expediee: 'info', annulee: 'danger',
+    REUSSI: 'success', ECHOUE: 'danger', EN_ATTENTE: 'warning'
   }
   return classes[statut] || 'secondary'
 }
@@ -259,18 +280,22 @@ const statusClass = (statut) => {
             <p class="text-muted small mb-2 text-capitalize">{{ authStore.user?.role || 'Utilisateur' }}</p>
             <p class="text-muted small mb-3"><i class="bi bi-envelope me-1"></i>{{ authStore.user?.email }}</p>
             <hr>
-            <div class="row text-center">
-              <div class="col-4">
+            <div class="row text-center g-0">
+              <div class="col-3">
                 <h6 class="fw-bold text-primary mb-0">{{ stats.livres }}</h6>
                 <small class="text-muted">Livres</small>
               </div>
-              <div class="col-4">
+              <div class="col-3">
                 <h6 class="fw-bold text-primary mb-0">{{ stats.formations }}</h6>
                 <small class="text-muted">Formations</small>
               </div>
-              <div class="col-4">
+              <div class="col-3">
                 <h6 class="fw-bold text-primary mb-0">{{ stats.commandes }}</h6>
                 <small class="text-muted">Commandes</small>
+              </div>
+              <div class="col-3">
+                <h6 class="fw-bold text-primary mb-0">{{ stats.dons }}</h6>
+                <small class="text-muted">Dons</small>
               </div>
             </div>
             <hr>
@@ -307,6 +332,11 @@ const statusClass = (statut) => {
                 </button>
               </li>
               <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'dons' }" @click="activeTab = 'dons'">
+                  <i class="bi bi-heart me-1"></i>Mes dons <span v-if="dons.length" class="badge bg-danger ms-1">{{ dons.length }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
                 <button class="nav-link" :class="{ active: activeTab === 'settings' }" @click="activeTab = 'settings'">
                   <i class="bi bi-gear me-1"></i>Paramètres
                 </button>
@@ -332,11 +362,18 @@ const statusClass = (statut) => {
                     <p class="text-muted mb-0">Formations inscrites</p>
                   </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <div class="bg-warning bg-opacity-10 rounded-3 p-3 text-center">
                     <i class="bi bi-receipt text-warning fs-1"></i>
                     <h3 class="fw-bold text-warning mt-2">{{ stats.commandes }}</h3>
-                    <p class="text-muted mb-0">Commandes passées</p>
+                    <p class="text-muted mb-0">Commandes</p>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="bg-danger bg-opacity-10 rounded-3 p-3 text-center">
+                    <i class="bi bi-heart text-danger fs-1"></i>
+                    <h3 class="fw-bold text-danger mt-2">{{ stats.totalDons.toLocaleString('fr-FR') }} FCFA</h3>
+                    <p class="text-muted mb-0">Dons ({{ stats.dons }})</p>
                   </div>
                 </div>
               </div>
@@ -442,7 +479,7 @@ const statusClass = (statut) => {
                           <router-link :to="'/formations/' + ins.formation_id" class="btn btn-sm btn-outline-primary me-1">
                             <i class="bi bi-eye me-1"></i>Voir
                           </router-link>
-                          <router-link v-if="ins.progression === 100" :to="'/inscriptions/' + ins.id + '/certificat'" class="btn btn-sm btn-outline-warning">
+                          <router-link v-if="ins.progression === 100" :to="{ name: 'certificat', params: { id: ins.id } }" class="btn btn-sm btn-outline-warning">
                             <i class="bi bi-award me-1"></i>Certificat
                           </router-link>
                         </div>
@@ -484,6 +521,38 @@ const statusClass = (statut) => {
                       <span v-for="l in order.lignes" :key="l.id" class="badge bg-light text-dark border">
                         {{ l.produit?.nom || 'Produit' }} x{{ l.quantite }}
                       </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dons -->
+            <div v-if="activeTab === 'dons'">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Mes dons</h5>
+                <span class="text-muted small">{{ stats.totalDons.toLocaleString('fr-FR') }} FCFA total</span>
+              </div>
+              <div v-if="isLoadingDons" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+              <div v-else-if="!dons.length" class="text-center py-5 text-muted">
+                <i class="bi bi-heart display-3"></i>
+                <h5 class="mt-3">Vous n'avez pas encore fait de don</h5>
+                <router-link to="/dons" class="btn btn-danger mt-3">Faire un don</router-link>
+              </div>
+              <div v-else>
+                <div v-for="don in dons" :key="don.id" class="border rounded-3 p-3 mb-3">
+                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                      <h6 class="fw-bold mb-1">Don #{{ don.id }}</h6>
+                      <small class="text-muted">{{ don.dateDon ? new Date(don.dateDon).toLocaleDateString('fr-FR') : '---' }}</small>
+                      <p v-if="don.message" class="small text-muted mt-1 mb-0">{{ don.message }}</p>
+                    </div>
+                    <div class="text-end">
+                      <span class="badge" :class="'bg-' + statusClass(don.statut)">{{ statusLabel(don.statut) }}</span>
+                      <div class="fw-bold text-danger mt-1">{{ Number(don.montant).toLocaleString('fr-FR') }} FCFA</div>
+                      <small v-if="don.reference" class="text-muted">Ref: {{ don.reference }}</small>
                     </div>
                   </div>
                 </div>

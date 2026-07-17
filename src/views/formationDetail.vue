@@ -1,125 +1,170 @@
 <template>
   <BreadcombsComponent :title="formation?.titre || 'Détail de la formation'" />
 
-  <div v-if="loading" class="text-center py-5">
-    <div class="spinner-border text-primary" role="status"></div>
+  <!-- Bannière progression -->
+  <div v-if="inscriptionInfo" class="fd-progress-banner">
+    <div class="container container-xxl fd-progress-inner">
+      <div class="fd-progress-left">
+        <span class="fd-progress-icon"><i class="bi bi-play-circle-fill"></i></span>
+        <span class="fd-progress-text">
+          <template v-if="inscriptionInfo.progression > 0 && inscriptionInfo.progression < 100">
+            Continuez votre formation — {{ Math.round(inscriptionInfo.progression) }}% complété
+          </template>
+          <template v-else-if="inscriptionInfo.progression >= 100 && inscriptionInfo.a_evaluation">
+            Félicitations ! Terminez l'évaluation pour obtenir votre certificat
+          </template>
+          <template v-else-if="inscriptionInfo.progression >= 100">
+            Formation terminée ! Téléchargez votre certificat
+          </template>
+          <template v-else-if="inscriptionInfo.statut === 'en_attente' && formation?.type !== 'gratuite'">
+            Inscription enregistrée — Veuillez finaliser votre paiement pour commencer
+          </template>
+          <template v-else>
+            Vous êtes inscrit à cette formation — Bonne formation !
+          </template>
+        </span>
+      </div>
+      <div class="fd-progress-right">
+        <div class="fd-progress-bar">
+          <div class="fd-progress-fill" :style="{ width: Math.round(inscriptionInfo.progression) + '%' }"></div>
+        </div>
+        <button v-if="inscriptionInfo.statut === 'en_attente' && formation?.type !== 'gratuite'" class="fd-btn fd-btn-warning fd-btn-sm" @click="openPaymentModal">
+          <i class="bi bi-credit-card me-1"></i>Finaliser le paiement
+        </button>
+        <router-link v-else-if="inscriptionId && inscriptionInfo.progression >= 100" :to="{ name: 'certificat', params: { id: inscriptionId } }" class="fd-btn fd-btn-success fd-btn-sm">
+          <i class="bi bi-award me-1"></i>Voir mon certificat
+        </router-link>
+        <router-link v-else-if="inscriptionId" :to="'/apprentissage/' + inscriptionId" class="fd-btn fd-btn-success fd-btn-sm">
+          <i class="bi bi-play-circle me-1"></i>Continuer
+        </router-link>
+      </div>
+    </div>
   </div>
 
-  <div v-else-if="!formation" class="text-center py-5 text-muted">
+  <div v-if="loading" class="fd-loading">
+    <div class="fd-spinner"></div>
+  </div>
+
+  <div v-else-if="!formation" class="fd-empty">
     <h5>Formation introuvable</h5>
-    <router-link to="/formations" class="btn btn-primary mt-3">Voir toutes les formations</router-link>
+    <router-link to="/formations" class="fd-btn fd-btn-primary mt-3">Voir toutes les formations</router-link>
   </div>
 
-  <section v-else id="blog" class="blog">
-    <div class="container container-xxl py-4">
+  <section v-else class="fd-page">
+    <div class="container container-xxl py-5">
       <div class="row g-5">
         <div class="col-lg-8">
-          <article class="blog-details shadow-none p-0">
-            <div class="d-flex justify-content-between flex-wrap align-items-start gap-3">
+          <article class="fd-article">
+            <div class="fd-head">
               <div>
-                <h2 class="fw-bold text-primary mb-2">{{ formation.titre }}</h2>
-                <p class="text-muted" v-if="formation.sousTitre">{{ formation.sousTitre }}</p>
-                <div class="d-flex flex-wrap gap-3 mb-2">
-                  <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ formation.dateDebut ? new Date(formation.dateDebut).toLocaleDateString('fr-FR') : 'À définir' }} — {{ formation.dateFin ? new Date(formation.dateFin).toLocaleDateString('fr-FR') : 'À définir' }}</small>
-                  <small class="text-muted"><i class="bi bi-people me-1"></i>{{ formation.inscrits_count || 0 }} inscrits</small>
-                  <small v-if="formation.places_restantes !== null" class="text-muted"><i class="bi bi-person-plus me-1"></i>{{ formation.places_restantes }} places</small>
+                <span class="fd-badge" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span>
+                <h1 class="fd-title">{{ formation.titre }}</h1>
+                <p v-if="formation.sousTitre" class="fd-subtitle">{{ formation.sousTitre }}</p>
+                <div class="fd-meta-row">
+                  <span class="fd-meta"><i class="bi bi-clock"></i>{{ formation.dateDebut ? new Date(formation.dateDebut).toLocaleDateString('fr-FR') : 'À définir' }} — {{ formation.dateFin ? new Date(formation.dateFin).toLocaleDateString('fr-FR') : 'À définir' }}</span>
+                  <span class="fd-meta"><i class="bi bi-people"></i>{{ formation.inscrits_count || 0 }} inscrits</span>
+                  <span v-if="formation.places_restantes !== null" class="fd-meta"><i class="bi bi-person-plus"></i>{{ formation.places_restantes }} places</span>
                 </div>
-              </div>
-              <div class="text-end">
-                <span class="badge fs-6 mb-2 d-block" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span>
-                <h3 class="fw-bold text-primary mb-0">{{ formatPrice(formation.prix) }}</h3>
               </div>
             </div>
 
-            <div class="content mt-4">
-              <h5 class="fw-bold">Description</h5>
-              <p>{{ formation.description }}</p>
-              <div v-if="formation.objectifs" class="mt-4">
-                <h5 class="fw-bold">Objectifs</h5>
-                <p style="white-space: pre-line;">{{ formation.objectifs }}</p>
+            <div class="fd-content">
+              <h5 class="fd-h5">Description</h5>
+              <p class="fd-text">{{ formation.description }}</p>
+
+              <div v-if="formation.objectifs" class="fd-block">
+                <h5 class="fd-h5">Objectifs</h5>
+                <p class="fd-text fd-pre">{{ formation.objectifs }}</p>
               </div>
-              <div v-if="formation.publicCible" class="mt-4">
-                <h5 class="fw-bold">Public cible</h5>
-                <p>{{ formation.publicCible }}</p>
+
+              <div v-if="formation.publicCible" class="fd-block">
+                <h5 class="fd-h5">Public cible</h5>
+                <p class="fd-text">{{ formation.publicCible }}</p>
               </div>
-              <div class="mt-4">
-                <h5 class="fw-bold mb-3">Programme</h5>
-                <div v-if="modulesLoading" class="text-center py-3">
-                  <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                </div>
-                <div v-else-if="!modules.length" class="text-muted small">Aucun module pour le moment.</div>
-                <div v-else class="accordion" id="modulesAccordion">
-                  <div v-for="(mod, i) in modules" :key="mod.id" class="accordion-item border-0 mb-2">
-                    <h2 class="accordion-header">
-                      <button class="accordion-button collapsed shadow-none rounded-3" type="button" data-bs-toggle="collapse" :data-bs-target="'#mod' + mod.id">
-                        <span class="d-flex align-items-center gap-3">
-                          <span class="fw-bold text-primary">{{ String(i + 1).padStart(2, '0') }}</span>
-                          <span><strong>{{ mod.titre }}</strong><br><small class="text-muted">{{ mod.description }}</small></span>
-                        </span>
-                      </button>
-                    </h2>
-                    <div :id="'mod' + mod.id" class="accordion-collapse collapse" data-bs-parent="#modulesAccordion">
-                      <div class="accordion-body">
-                        <div v-if="mod.cours?.length">
-                          <div v-for="c in mod.cours" :key="c.id" class="d-flex justify-content-between align-items-center border-bottom py-2" style="cursor:pointer;" @click="openCours(c)">
-                            <div class="d-flex align-items-center gap-2">
-                              <i class="bi bi-play-circle-fill text-primary"></i>
-                              <span class="text-primary-hover">{{ c.titre }}</span>
-                              <span v-if="c.estGratuit" class="badge bg-success bg-opacity-10 text-success small">Gratuit</span>
-                            </div>
-                            <small class="text-muted" v-if="c.dureeMinutes">{{ c.dureeMinutes }} min</small>
-                          </div>
+
+              <div class="fd-block">
+                <h5 class="fd-h5 fd-mb-3">Programme</h5>
+                <div v-if="modulesLoading" class="fd-loading-inline"><div class="fd-spinner fd-spinner-sm"></div></div>
+                <div v-else-if="!modules.length" class="fd-text-muted">Aucun module pour le moment.</div>
+
+                <div v-else class="fd-program">
+                  <details v-for="(mod, i) in modules" :key="mod.id" class="fd-module" :open="i === 0">
+                    <summary class="fd-module-summary">
+                      <span class="fd-module-index">{{ String(i + 1).padStart(2, '0') }}</span>
+                      <span class="fd-module-info">
+                        <strong>{{ mod.titre }}</strong>
+                        <small>{{ mod.description }}</small>
+                      </span>
+                      <i class="bi bi-chevron-down fd-module-chevron"></i>
+                    </summary>
+                    <div class="fd-module-body">
+                      <div v-if="mod.cours?.length">
+                        <div v-for="c in mod.cours" :key="c.id" class="fd-lesson-row" @click="openCours(c)">
+                          <span class="fd-lesson-left">
+                            <i class="bi bi-play-circle-fill"></i>
+                            <span>{{ c.titre }}</span>
+                            <span v-if="c.estGratuit" class="fd-free-tag">Gratuit</span>
+                          </span>
+                          <small v-if="c.dureeMinutes">{{ c.dureeMinutes }} min</small>
                         </div>
-                        <div v-else class="text-muted small">Aucun cours.</div>
                       </div>
+                      <div v-else class="fd-text-muted fd-p-3">Aucun cours.</div>
                     </div>
-                  </div>
+                  </details>
                 </div>
               </div>
             </div>
           </article>
         </div>
 
-        <!-- Sidebar -->
         <div class="col-lg-4">
-          <div class="position-sticky" style="top: 100px;">
-            <div class="card border-0 shadow-sm mb-4">
-              <div class="card-body text-center">
-                <img :src="formation.imageUrl || defaultImg" class="img-fluid rounded-3 mb-3" :alt="formation.titre">
-                <h4 class="fw-bold">{{ formatPrice(formation.prix) }}</h4>
-                <p class="text-muted small">{{ formation.type === 'gratuite' ? 'Formation 100% gratuite' : 'Paiement sécurisé' }}</p>
-                <button v-if="!isEnrolled && !enrollSuccess" class="btn btn-primary w-100 btn-lg" @click="openInscriptionModal">
+          <div class="fd-sticky">
+            <div class="fd-buy-card">
+              <img :src="formation.imageUrl || defaultImg" class="fd-buy-img" :alt="formation.titre">
+              <div class="fd-buy-body">
+                <div class="fd-price">{{ formatPrice(formation.prix) }}</div>
+                <p class="fd-price-sub">{{ formation.type === 'gratuite' ? 'Formation 100% gratuite' : 'Paiement sécurisé' }}</p>
+
+                <button v-if="!isEnrolled && !enrollSuccess" class="fd-btn fd-btn-primary fd-btn-block fd-btn-lg" @click="openInscriptionModal">
                   <i class="bi bi-mortarboard me-1"></i>{{ formation.type === 'gratuite' ? "S'inscrire gratuitement" : "S'inscrire" }}
                 </button>
-                <button v-else class="btn btn-success w-100 btn-lg" disabled>
+                <template v-else-if="inscriptionId">
+                  <button v-if="inscriptionInfo && inscriptionInfo.statut === 'en_attente' && formation.type !== 'gratuite'" class="fd-btn fd-btn-warning fd-btn-block fd-btn-lg fd-mb-2" @click="openPaymentModal">
+                    <i class="bi bi-credit-card me-1"></i>Finaliser le paiement
+                  </button>
+                  <button v-else class="fd-btn fd-btn-success fd-btn-block fd-btn-lg fd-mb-2" @click="goToLearning">
+                    <i class="bi bi-play-circle me-1"></i>Continuer la formation
+                  </button>
+                </template>
+                <button v-else class="fd-btn fd-btn-success fd-btn-block fd-btn-lg" disabled>
                   <i class="bi bi-check-circle me-1"></i>{{ enrollSuccess ? 'Inscrit avec succès' : 'Déjà inscrit' }}
                 </button>
-                <div v-if="enrollMessage && !showInscriptionModal" class="mt-2 small" :class="enrollSuccess ? 'text-success' : 'text-danger'">{{ enrollMessage }}</div>
+
+                <div v-if="enrollMessage && !showInscriptionModal" class="fd-message" :class="enrollSuccess ? 'is-success' : 'is-danger'">{{ enrollMessage }}</div>
               </div>
             </div>
-            <div class="card border-0 shadow-sm">
-              <div class="card-body">
-                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-1"></i>Informations</h6>
-                <div class="d-flex justify-content-between mb-2"><small class="text-muted">Type</small><small><span class="badge" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span></small></div>
-                <div class="d-flex justify-content-between mb-2"><small class="text-muted">Inscrits</small><small>{{ formation.inscrits_count || 0 }}</small></div>
-                <div class="d-flex justify-content-between" v-if="formation.capaciteMax"><small class="text-muted">Capacité</small><small>{{ formation.capaciteMax }}</small></div>
-              </div>
+
+            <div class="fd-info-card">
+              <h6 class="fd-info-title"><i class="bi bi-info-circle me-1"></i>Informations</h6>
+              <div class="fd-info-row"><span>Type</span><span class="fd-badge fd-badge-sm" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span></div>
+              <div class="fd-info-row"><span>Inscrits</span><span>{{ formation.inscrits_count || 0 }}</span></div>
+              <div v-if="formation.capaciteMax" class="fd-info-row"><span>Capacité</span><span>{{ formation.capaciteMax }}</span></div>
             </div>
-            <div class="card border-0 shadow-sm mt-3">
-              <div class="card-body">
-                <h6 class="fw-bold mb-3"><i class="bi bi-star me-1"></i>Noter cette formation</h6>
-                <div class="text-center mb-2">
-                  <span v-for="s in 5" :key="s"
-                    class="star-rating fs-3"
-                    :class="(noteUtilisateur || noteHover) >= s ? 'text-warning' : 'text-muted'"
-                    @mouseover="noteHover = s"
-                    @mouseleave="noteHover = 0"
-                    @click="submitNote(s)"
-                    style="cursor: pointer;">&#9733;</span>
-                </div>
-                <p v-if="noteMessage" class="small text-center mb-0" :class="noteMessageType === 'success' ? 'text-success' : 'text-danger'">{{ noteMessage }}</p>
-                <p v-else class="small text-center text-muted mb-0">Cliquez pour noter</p>
+
+            <div class="fd-rate-card">
+              <h6 class="fd-info-title"><i class="bi bi-star me-1"></i>Noter cette formation</h6>
+              <div class="fd-stars">
+                <span
+                  v-for="s in 5" :key="s"
+                  class="fd-star"
+                  :class="{ 'is-filled': (noteUtilisateur || noteHover) >= s }"
+                  @mouseover="noteHover = s"
+                  @mouseleave="noteHover = 0"
+                  @click="submitNote(s)"
+                >&#9733;</span>
               </div>
+              <p v-if="noteMessage" class="fd-note-message" :class="noteMessageType === 'success' ? 'is-success' : 'is-danger'">{{ noteMessage }}</p>
+              <p v-else class="fd-note-hint">Cliquez pour noter</p>
             </div>
           </div>
         </div>
@@ -127,191 +172,57 @@
     </div>
   </section>
 
-  <!-- Modal 1 : Formulaire d'inscription -->
-  <div v-if="showInscriptionModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold">Confirmer votre inscription</h5>
-          <button type="button" class="btn-close" @click="showInscriptionModal = false"></button>
+  <div v-if="showInscriptionModal" class="fd-modal-overlay">
+    <div class="fd-modal">
+      <div class="fd-modal-head">
+        <h5>Confirmer votre inscription</h5>
+        <button type="button" class="fd-modal-close" @click="showInscriptionModal = false"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="fd-modal-body">
+        <div class="fd-modal-summary">
+          <h6>{{ formation.titre }}</h6>
+          <span class="fd-badge" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span>
+          <div class="fd-modal-price">{{ formatPrice(formation.prix) }}</div>
         </div>
-        <div class="modal-body">
-          <div class="text-center mb-3">
-            <h6 class="fw-bold">{{ formation.titre }}</h6>
-            <span class="badge fs-6" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span>
-            <h4 class="fw-bold text-primary mt-2">{{ formatPrice(formation.prix) }}</h4>
-          </div>
-          <hr>
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Nom complet</label>
-            <input type="text" class="form-control" :value="authStore.user?.name || (authStore.user?.prenom + ' ' + authStore.user?.nom)" disabled>
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Email</label>
-            <input type="email" class="form-control" :value="authStore.user?.email" disabled>
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Téléphone</label>
-            <input type="text" class="form-control" :value="authStore.user?.telephone || 'Non renseigné'" disabled>
-          </div>
+        <hr class="fd-hr">
+        <div class="fd-field">
+          <label>Nom complet</label>
+          <input type="text" :value="authStore.user?.name || (authStore.user?.prenom + ' ' + authStore.user?.nom)" disabled>
         </div>
-        <div class="modal-footer border-0">
-          <button class="btn btn-outline-secondary" @click="showInscriptionModal = false">Annuler</button>
-          <button v-if="formation.type === 'gratuite'" class="btn btn-success" @click="confirmFreeEnrollment" :disabled="enrolling">
-            <span v-if="enrolling" class="spinner-border spinner-border-sm me-1"></span>
-            Confirmer l'inscription
-          </button>
-          <button v-else class="btn btn-primary" @click="openPaymentModal">
-            Continuer vers le paiement <i class="bi bi-arrow-right ms-1"></i>
-          </button>
+        <div class="fd-field">
+          <label>Email</label>
+          <input type="email" :value="authStore.user?.email" disabled>
         </div>
+        <div class="fd-field">
+          <label>Téléphone</label>
+          <input type="text" :value="authStore.user?.telephone || 'Non renseigné'" disabled>
+        </div>
+      </div>
+      <div class="fd-modal-foot">
+        <button class="fd-btn fd-btn-ghost" @click="showInscriptionModal = false">Annuler</button>
+        <button v-if="formation.type === 'gratuite'" class="fd-btn fd-btn-success" @click="confirmFreeEnrollment" :disabled="enrolling">
+          <span v-if="enrolling" class="fd-spinner fd-spinner-sm"></span>
+          Confirmer l'inscription
+        </button>
+        <button v-else class="fd-btn fd-btn-primary" @click="openPaymentModal">
+          Continuer vers le paiement <i class="bi bi-arrow-right ms-1"></i>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 2 : Paiement -->
-  <div v-if="showPaymentModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold"><i class="bi bi-credit-card me-2"></i>Paiement</h5>
-          <button type="button" class="btn-close" @click="showPaymentModal = false"></button>
-        </div>
-        <div class="modal-body">
-          <div class="text-center mb-3">
-            <h6 class="fw-bold">{{ formation.titre }}</h6>
-            <h4 class="fw-bold text-primary">{{ formatPrice(formation.prix) }}</h4>
-          </div>
-
-          <div class="row g-2 mb-3">
-            <div class="col-4">
-              <button class="btn w-100 border p-2 text-center" :class="paymentMode === 'mobile_money' ? 'border-primary bg-primary bg-opacity-10' : ''" @click="paymentMode = 'mobile_money'">
-                <i class="bi bi-phone fs-4 d-block"></i><small>Mobile</small>
-              </button>
-            </div>
-            <div class="col-4">
-              <button class="btn w-100 border p-2 text-center" :class="paymentMode === 'carte_bancaire' ? 'border-primary bg-primary bg-opacity-10' : ''" @click="paymentMode = 'carte_bancaire'">
-                <i class="bi bi-credit-card fs-4 d-block"></i><small>Carte</small>
-              </button>
-            </div>
-            <div class="col-4">
-              <button class="btn w-100 border p-2 text-center" :class="paymentMode === 'paypal' ? 'border-primary bg-primary bg-opacity-10' : ''" @click="paymentMode = 'paypal'">
-                <i class="bi bi-paypal fs-4 d-block"></i><small>PayPal</small>
-              </button>
-            </div>
-          </div>
-
-          <!-- Mobile Money -->
-          <div v-if="paymentMode === 'mobile_money'" class="border rounded-3 p-3 bg-light">
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Opérateur</label>
-              <select class="form-select" v-model="paymentForm.operateur">
-                <option value="">Sélectionner</option>
-                <option value="mtn">MTN Mobile Money</option>
-                <option value="moov">Moov Money</option>
-                <option value="celpaid">Celpaid</option>
-                <option value="afri">AfriCash</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Numéro de téléphone</label>
-              <input type="tel" class="form-control" v-model="paymentForm.telephone" placeholder="22996000001">
-            </div>
-          </div>
-
-          <!-- Carte bancaire -->
-          <div v-if="paymentMode === 'carte_bancaire'" class="border rounded-3 p-3 bg-light">
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Titulaire</label>
-              <input type="text" class="form-control" v-model="paymentForm.titulaire_carte" placeholder="Nom du titulaire">
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Numéro de carte</label>
-              <input type="text" class="form-control" v-model="paymentForm.numero_carte" placeholder="1234 5678 9012 3456" maxlength="19">
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <label class="form-label small fw-bold">Expiration</label>
-                <input type="text" class="form-control" v-model="paymentForm.date_expiration" placeholder="MM/AA" maxlength="7">
-              </div>
-              <div class="col-6">
-                <label class="form-label small fw-bold">CVV</label>
-                <input type="text" class="form-control" v-model="paymentForm.cvv" placeholder="123" maxlength="4">
-              </div>
-            </div>
-          </div>
-
-          <!-- PayPal -->
-          <div v-if="paymentMode === 'paypal'" class="text-center py-3">
-            <i class="bi bi-paypal fs-1 d-block mb-2"></i>
-            <p class="text-muted mb-0">Redirection vers PayPal.</p>
-          </div>
-
-          <div v-if="enrollMessage" class="mt-2 small" :class="enrollSuccess ? 'text-success' : 'text-danger'">{{ enrollMessage }}</div>
-        </div>
-        <div class="modal-footer border-0">
-          <button class="btn btn-outline-secondary" @click="showPaymentModal = false; showInscriptionModal = true">Retour</button>
-          <button class="btn btn-success" @click="payAndEnroll" :disabled="enrolling || !canPay">
-            <span v-if="enrolling" class="spinner-border spinner-border-sm me-1"></span>
-            <span v-else><i class="bi bi-lock me-1"></i></span>
-            Payer {{ formatPrice(formation.prix) }} et s'inscrire
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Cours Modal -->
-  <div v-if="selectedCours" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold">{{ selectedCours.titre }}</h5>
-          <button type="button" class="btn-close" @click="closeCours"></button>
-        </div>
-        <div class="modal-body">
-          <div v-if="selectedCours.video" class="mb-4">
-            <div class="ratio ratio-16x9 bg-dark rounded-3 overflow-hidden">
-              <video v-if="selectedCours.video.endsWith('.mp4') || selectedCours.video.includes('video')" :src="selectedCours.video" controls class="w-100 h-100"></video>
-              <iframe v-else :src="selectedCours.video.replace('watch?v=', 'embed/')" class="w-100 h-100" frameborder="0" allowfullscreen></iframe>
-            </div>
-          </div>
-          <div v-else class="text-center py-4 text-muted">
-            <i class="bi bi-camera-video-off fs-1 d-block mb-2"></i>
-            <p>Aucune vidéo disponible pour ce cours.</p>
-          </div>
-          <div class="mt-3" v-if="selectedCours.contenu">
-            <h6 class="fw-bold">Contenu du cours</h6>
-            <div style="white-space: pre-line;">{{ selectedCours.contenu }}</div>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-            <small class="text-muted" v-if="selectedCours.dureeMinutes"><i class="bi bi-clock me-1"></i>{{ selectedCours.dureeMinutes }} minutes</small>
-            <button v-if="isEnrolled" class="btn btn-success" @click="marquerComplete(selectedCours.id)" :disabled="completingCoursId === selectedCours.id">
-              <span v-if="completingCoursId === selectedCours.id" class="spinner-border spinner-border-sm me-1"></span>
-              <i class="bi bi-check-circle me-1"></i>Marquer comme terminé
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Succès -->
-  <div v-if="showSuccessModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content text-center p-4">
-        <div class="mb-3">
-          <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3">
-            <i class="bi bi-check-circle-fill text-success display-4"></i>
-          </div>
-        </div>
-        <h4 class="fw-bold mb-2">{{ formation.type === 'gratuite' ? 'Inscription réussie !' : 'Paiement réussi !' }}</h4>
-        <p class="text-muted mb-1">Vous êtes maintenant inscrit à <strong>{{ formation.titre }}</strong>.</p>
-        <p class="text-muted mb-3" v-if="formation.type !== 'gratuite'">Un email de confirmation vous a été envoyé.</p>
-        <div class="d-flex justify-content-center gap-2">
-          <router-link to="/profile-inscrit" class="btn btn-primary"><i class="bi bi-person me-1"></i>Voir mes formations</router-link>
-          <router-link to="/formations" class="btn btn-outline-primary">Autres formations</router-link>
-        </div>
+  <div v-if="showSuccessModal" class="fd-modal-overlay">
+    <div class="fd-modal fd-modal-center">
+      <div class="fd-success-icon"><i class="bi bi-check-lg"></i></div>
+      <h4>{{ formation.type === 'gratuite' ? 'Inscription réussie !' : 'Paiement réussi !' }}</h4>
+      <p class="fd-text-muted">Vous êtes maintenant inscrit à <strong>{{ formation.titre }}</strong>.</p>
+      <p v-if="formation.type !== 'gratuite'" class="fd-text-muted">Un email de confirmation vous a été envoyé.</p>
+      <div class="fd-modal-actions">
+        <router-link v-if="inscriptionId" :to="'/apprentissage/' + inscriptionId" class="fd-btn fd-btn-success">
+          <i class="bi bi-play-circle me-1"></i>Commencer la formation
+        </router-link>
+        <router-link to="/profil/mes-formations" class="fd-btn fd-btn-primary"><i class="bi bi-person me-1"></i>Mes formations</router-link>
+        <router-link to="/formations" class="fd-btn fd-btn-ghost">Autres formations</router-link>
       </div>
     </div>
   </div>
@@ -339,39 +250,39 @@ const enrolling = ref(false)
 const enrollMessage = ref('')
 const enrollSuccess = ref(false)
 const isEnrolled = ref(false)
+const inscriptionId = ref(null)
+const inscriptionInfo = ref(null)
+const showCompletionBanner = ref(false)
 const showInscriptionModal = ref(false)
-const showPaymentModal = ref(false)
 const showSuccessModal = ref(false)
-const paymentMode = ref('mobile_money')
-const paymentForm = ref({ operateur: '', telephone: '', titulaire_carte: '', numero_carte: '', date_expiration: '', cvv: '' })
 
-const selectedCours = ref(null)
-const completingCoursId = ref(null)
-
-const openCours = async (c) => {
-  selectedCours.value = c
-}
-
-const closeCours = () => {
-  selectedCours.value = null
-}
-
-const marquerComplete = async (coursId) => {
-  completingCoursId.value = coursId
-  try {
-    const res = await api.put(`/cours/${coursId}/completer`)
-    if (res.data?.progression !== undefined) {
-      const ins = await shopService.getMyInscriptions()
-      const items = ins.data || ins
-      const myIns = (items.data || items).find(i => i.formation_id == route.params.id)
-      if (myIns) isEnrolled.value = true
-    }
-    selectedCours.value = null
-  } catch (e) {
-    alert(e.response?.data?.message || 'Erreur')
-  } finally {
-    completingCoursId.value = null
+const goToLearning = () => {
+  if (inscriptionId.value) {
+    router.push({ name: 'coursPlayer', params: { inscriptionId: inscriptionId.value } })
   }
+}
+
+const openCours = (c) => {
+  if (c.estGratuit) {
+    router.push({ name: 'login', query: { redirect: route.fullPath, coursId: c.id } })
+    return
+  }
+  if (!authStore.isAuthenticated) {
+    router.push({ name: 'login', query: { redirect: route.fullPath } })
+    return
+  }
+  if (!isEnrolled.value) {
+    openInscriptionModal()
+    return
+  }
+  if (inscriptionInfo.value?.statut === 'en_attente' && formation.value?.type !== 'gratuite') {
+    openPaymentModal()
+    return
+  }
+  router.push({
+    name: 'coursPlayerCours',
+    params: { inscriptionId: inscriptionId.value, coursId: c.id }
+  })
 }
 
 const noteUtilisateur = ref(0)
@@ -409,12 +320,6 @@ const loadUserNote = async () => {
   } catch (e) { /* pas de note existante */ }
 }
 
-const canPay = computed(() => {
-  if (paymentMode.value === 'mobile_money') return paymentForm.value.operateur && paymentForm.value.telephone
-  if (paymentMode.value === 'carte_bancaire') return paymentForm.value.titulaire_carte && paymentForm.value.numero_carte && paymentForm.value.date_expiration && paymentForm.value.cvv
-  return true
-})
-
 const formatPrice = (price) => {
   const num = parseFloat(price)
   if (num <= 0) return 'Gratuit'
@@ -422,7 +327,7 @@ const formatPrice = (price) => {
 }
 
 const badgeLabel = (type) => ({ initiale: 'Initiale', specialisee: 'Spécialisée', gratuite: 'Gratuite' }[type] || type)
-const badgeClass = (type) => ({ initiale: 'bg-primary', specialisee: 'bg-warning text-dark', gratuite: 'bg-success' }[type] || 'bg-secondary')
+const badgeClass = (type) => ({ initiale: 'is-primary', specialisee: 'is-warning', gratuite: 'is-success' }[type] || 'is-secondary')
 
 const openInscriptionModal = () => {
   if (!authStore.isAuthenticated) {
@@ -437,6 +342,9 @@ const confirmFreeEnrollment = async () => {
   enrollMessage.value = ''
   try {
     const res = await publicService.enrollInFormation(route.params.id)
+    const data = res.data || res
+    if (data?.id) inscriptionId.value = data.id
+    if (data?.inscription?.id) inscriptionId.value = data.inscription.id
     enrollSuccess.value = true
     showInscriptionModal.value = false
     showSuccessModal.value = true
@@ -449,37 +357,23 @@ const confirmFreeEnrollment = async () => {
 
 const openPaymentModal = () => {
   showInscriptionModal.value = false
-  showPaymentModal.value = true
+  redirectToKkiapay()
 }
 
-const payAndEnroll = async () => {
+const redirectToKkiapay = async () => {
   enrolling.value = true
   enrollMessage.value = ''
   try {
-    const payload = { mode_paiement: paymentMode.value }
-    if (paymentMode.value === 'mobile_money') {
-      payload.telephone = paymentForm.value.telephone
-      payload.operateur = paymentForm.value.operateur
-    } else if (paymentMode.value === 'carte_bancaire') {
-      payload.numero_carte = paymentForm.value.numero_carte
-      payload.date_expiration = paymentForm.value.date_expiration
-      payload.cvv = paymentForm.value.cvv
-      payload.titulaire_carte = paymentForm.value.titulaire_carte
-    }
+    const payload = { mode_paiement: 'mobile_money' }
     const res = await publicService.enrollInFormation(route.params.id, payload)
     const inscription = res.data || res
-    const paymentId = inscription.paiement_id
-
-    if (paymentMode.value === 'mobile_money' && inscription.paiement_url) {
-      window.location.href = inscription.paiement_url
+    if (inscription?.id) inscriptionId.value = inscription.id
+    const paiementUrl = inscription.paiement_url
+    if (paiementUrl) {
+      window.location.href = paiementUrl
       return
     }
-
-    if (paymentId) {
-      await publicService.confirmPayment(paymentId)
-    }
     enrollSuccess.value = true
-    showPaymentModal.value = false
     showSuccessModal.value = true
   } catch (e) {
     enrollMessage.value = e.response?.data?.message || 'Erreur lors du paiement'
@@ -493,6 +387,11 @@ onMounted(async () => {
   try {
     const res = await publicService.getFormation(id)
     formation.value = res.data || res
+    if (res.inscription) {
+      inscriptionInfo.value = res.inscription
+      inscriptionId.value = res.inscription.id
+      isEnrolled.value = true
+    }
     modulesLoading.value = true
     try {
       const modRes = await publicService.getFormationModules(id)
@@ -502,11 +401,18 @@ onMounted(async () => {
     } finally {
       modulesLoading.value = false
     }
-    if (authStore.isAuthenticated) {
+    if (!res.inscription && authStore.isAuthenticated) {
       try {
         const insRes = await publicService.getMyInscriptions()
         const items = insRes.data || insRes
-        isEnrolled.value = Array.isArray(items) && items.some(i => i.formation_id == id)
+        if (Array.isArray(items)) {
+          const monInscription = items.find(i => i.formation_id == id)
+          isEnrolled.value = !!monInscription
+          if (monInscription) {
+            inscriptionId.value = monInscription.id
+            inscriptionInfo.value = monInscription
+          }
+        }
       } catch (e) { /* ignore */ }
     }
     await loadUserNote()
@@ -520,6 +426,197 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.accordion-button:not(.collapsed) { background-color: rgba(13, 110, 253, 0.05); color: inherit; }
-.accordion-button::after { background-size: 1rem; }
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.fd-page, .fd-progress-banner, .fd-modal-overlay {
+  --fd-primary: #2952E3;
+  --fd-primary-dark: #1B3AAE;
+  --fd-ink: #14182B;
+  --fd-muted: #6B7280;
+  --fd-bg: #F7F8FC;
+  --fd-border: #E6E9F2;
+  --fd-success: #17A672;
+  --fd-danger: #E5484D;
+  --fd-warning: #F5A623;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--fd-ink);
+}
+.fd-page h1, .fd-page h4, .fd-page h5, .fd-page h6 { font-family: 'Manrope', sans-serif; }
+
+.fd-page { background: var(--fd-bg); }
+
+/* ---- bannière progression ---- */
+.fd-progress-banner {
+  background: #EAF7F1; border-bottom: 1px solid #CFEEE0; padding: 12px 0;
+}
+.fd-progress-inner { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.fd-progress-left { display: flex; align-items: center; gap: 10px; }
+.fd-progress-icon { color: var(--fd-success); font-size: 1.2rem; }
+.fd-progress-text { font-weight: 600; font-size: 0.88rem; }
+.fd-progress-right { display: flex; align-items: center; gap: 12px; }
+.fd-progress-bar { width: 110px; height: 7px; background: #D3EFE1; border-radius: 999px; overflow: hidden; }
+.fd-progress-fill { height: 100%; background: var(--fd-success); border-radius: 999px; transition: width .4s; }
+
+/* ---- header / titre ---- */
+.fd-article { max-width: 780px; }
+.fd-badge {
+  display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+  color: #fff; margin-bottom: 12px;
+}
+.fd-badge.is-primary { background: var(--fd-primary); }
+.fd-badge.is-warning { background: var(--fd-warning); }
+.fd-badge.is-success { background: var(--fd-success); }
+.fd-badge.is-secondary { background: #9AA1B4; }
+.fd-badge-sm { padding: 3px 10px; font-size: 0.68rem; }
+
+.fd-title { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 800; line-height: 1.15; margin-bottom: 8px; }
+.fd-subtitle { color: var(--fd-muted); font-size: 1rem; margin-bottom: 14px; }
+.fd-meta-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; }
+.fd-meta { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--fd-muted); }
+
+/* ---- contenu ---- */
+.fd-content { margin-top: 26px; }
+.fd-h5 { font-weight: 700; font-size: 1.05rem; margin-bottom: 10px; }
+.fd-mb-3 { margin-bottom: 16px; }
+.fd-block { margin-top: 28px; }
+.fd-text { color: #3C4257; line-height: 1.65; }
+.fd-pre { white-space: pre-line; }
+.fd-text-muted { color: var(--fd-muted); font-size: 0.88rem; }
+
+/* ---- programme (accordéon natif) ---- */
+.fd-program { border: 1px solid var(--fd-border); border-radius: 16px; overflow: hidden; background: #fff; }
+.fd-module { border-bottom: 1px solid var(--fd-border); }
+.fd-module:last-child { border-bottom: none; }
+.fd-module-summary {
+  list-style: none; cursor: pointer; padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px; user-select: none;
+}
+.fd-module-summary::-webkit-details-marker { display: none; }
+.fd-module-summary:hover { background: #F7F9FF; }
+.fd-module-index { font-weight: 800; color: var(--fd-primary); font-size: 0.85rem; flex-shrink: 0; }
+.fd-module-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fd-module-info strong { font-size: 0.92rem; }
+.fd-module-info small { color: var(--fd-muted); font-size: 0.78rem; }
+.fd-module-chevron { color: var(--fd-muted); transition: transform .2s; flex-shrink: 0; }
+.fd-module[open] .fd-module-chevron { transform: rotate(180deg); }
+.fd-module-body { padding: 0 18px 14px 50px; }
+.fd-lesson-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 0; border-top: 1px solid #F1F2F7; cursor: pointer;
+}
+.fd-module-body > div > .fd-lesson-row:first-child { border-top: none; }
+.fd-lesson-row:hover { color: var(--fd-primary); }
+.fd-lesson-left { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; }
+.fd-lesson-left i { color: var(--fd-primary); }
+.fd-free-tag {
+  background: #E6F7EF; color: var(--fd-success); font-size: 0.68rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px;
+}
+.fd-p-3 { padding: 12px 0; }
+
+/* ---- colonne latérale ---- */
+.fd-sticky { position: sticky; top: 100px; display: flex; flex-direction: column; gap: 16px; }
+.fd-buy-card {
+  background: #fff; border: 1px solid var(--fd-border); border-radius: 18px; overflow: hidden;
+  box-shadow: 0 12px 30px -14px rgba(20,24,43,.15);
+}
+.fd-buy-img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+.fd-buy-body { padding: 20px 22px 22px; text-align: center; }
+.fd-price { font-size: 1.7rem; font-weight: 800; color: var(--fd-primary); }
+.fd-price-sub { color: var(--fd-muted); font-size: 0.82rem; margin-bottom: 16px; }
+
+.fd-message { margin-top: 10px; font-size: 0.82rem; }
+.fd-message.is-success { color: var(--fd-success); }
+.fd-message.is-danger { color: var(--fd-danger); }
+
+.fd-info-card, .fd-rate-card {
+  background: #fff; border: 1px solid var(--fd-border); border-radius: 16px; padding: 18px 20px;
+}
+.fd-info-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; }
+.fd-info-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; color: var(--fd-muted); }
+.fd-info-row span:last-child { color: var(--fd-ink); font-weight: 600; }
+
+.fd-stars { text-align: center; margin-bottom: 8px; }
+.fd-star { font-size: 1.6rem; color: #D9DCE6; cursor: pointer; transition: color .1s; margin: 0 2px; }
+.fd-star.is-filled { color: var(--fd-warning); }
+.fd-note-message { text-align: center; font-size: 0.82rem; margin: 0; }
+.fd-note-message.is-success { color: var(--fd-success); }
+.fd-note-message.is-danger { color: var(--fd-danger); }
+.fd-note-hint { text-align: center; font-size: 0.82rem; color: var(--fd-muted); margin: 0; }
+
+/* ---- boutons ---- */
+.fd-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.88rem;
+  padding: 11px 20px; border-radius: 11px; border: 1px solid transparent;
+  cursor: pointer; text-decoration: none; transition: background .15s, border-color .15s, transform .1s;
+}
+.fd-btn:disabled { opacity: .5; cursor: not-allowed; }
+.fd-btn:active:not(:disabled) { transform: translateY(1px); }
+.fd-btn-primary { background: var(--fd-primary); color: #fff; }
+.fd-btn-primary:hover:not(:disabled) { background: var(--fd-primary-dark); }
+.fd-btn-success { background: var(--fd-success); color: #fff; }
+.fd-btn-success:hover:not(:disabled) { background: #128A5D; }
+.fd-btn-warning { background: var(--fd-warning); color: #fff; }
+.fd-btn-warning:hover:not(:disabled) { background: #DB9515; }
+.fd-btn-ghost { background: #fff; color: var(--fd-ink); border-color: var(--fd-border); }
+.fd-btn-ghost:hover:not(:disabled) { border-color: var(--fd-primary); color: var(--fd-primary); }
+.fd-btn-block { width: 100%; }
+.fd-btn-lg { padding: 13px 22px; font-size: 0.95rem; }
+.fd-btn-sm { padding: 7px 14px; font-size: 0.8rem; }
+.fd-mb-2 { margin-bottom: 8px; }
+
+/* ---- modales ---- */
+.fd-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,17,32,.55); z-index: 1050;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.fd-modal {
+  background: #fff; border-radius: 18px; width: 100%; max-width: 440px; max-height: 90vh;
+  overflow-y: auto; box-shadow: 0 25px 60px -15px rgba(0,0,0,.35);
+}
+.fd-modal-center { text-align: center; padding: 36px 30px; }
+.fd-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+.fd-modal-head h5 { font-weight: 700; margin: 0; }
+.fd-modal-close {
+  border: none; background: #F1F2F7; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--fd-muted);
+}
+.fd-modal-body { padding: 18px 24px 4px; }
+.fd-modal-summary { text-align: center; margin-bottom: 12px; }
+.fd-modal-summary h6 { font-weight: 700; margin-bottom: 8px; }
+.fd-modal-price { font-weight: 800; font-size: 1.3rem; color: var(--fd-primary); margin-top: 6px; }
+.fd-hr { border: none; border-top: 1px solid var(--fd-border); margin: 16px 0; }
+.fd-field { margin-bottom: 14px; }
+.fd-field label { display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 5px; color: var(--fd-muted); }
+.fd-field input {
+  width: 100%; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--fd-border);
+  background: #F7F8FC; font-size: 0.88rem; color: var(--fd-ink);
+}
+.fd-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 22px; }
+
+.fd-success-icon {
+  width: 68px; height: 68px; border-radius: 50%; background: #E6F7EF; color: var(--fd-success);
+  display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;
+}
+.fd-modal-center h4 { font-weight: 800; margin-bottom: 8px; }
+.fd-modal-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+
+/* ---- états ---- */
+.fd-loading, .fd-empty { min-height: 50vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+.fd-loading-inline { padding: 16px 0; }
+.fd-spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid #E6E9F2; border-top-color: #2952E3; animation: fd-spin .8s linear infinite; }
+.fd-spinner-sm { width: 15px; height: 15px; border-width: 2px; }
+@keyframes fd-spin { to { transform: rotate(360deg); } }
+
+/* ---- responsive ---- */
+@media (max-width: 991px) {
+  .fd-sticky { position: static; margin-top: 30px; }
+}
+@media (max-width: 575px) {
+  .fd-progress-inner { flex-direction: column; align-items: flex-start; }
+  .fd-progress-right { width: 100%; justify-content: space-between; }
+  .fd-modal-foot { flex-direction: column-reverse; }
+  .fd-modal-foot .fd-btn { width: 100%; }
+}
 </style>

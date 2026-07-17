@@ -1,56 +1,64 @@
 <template>
   <BreadcombsComponent title="Paiement" />
   <div class="container py-5">
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2 text-muted">Chargement du paiement...</p>
-    </div>
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div v-if="isLoading" class="text-center py-5">
+          <div class="spinner-border text-primary"></div>
+        </div>
 
-    <div v-else-if="error" class="text-center py-5">
-      <i class="bi bi-x-circle-fill text-danger display-3"></i>
-      <h4 class="mt-3 text-danger">Erreur</h4>
-      <p class="text-muted">{{ error }}</p>
-      <router-link to="/" class="btn btn-primary mt-3">Retour à l'accueil</router-link>
-    </div>
+        <div v-else-if="error && !paiement" class="alert alert-danger text-center">{{ error }}</div>
 
-    <div v-else-if="success" class="text-center py-5">
-      <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-        <i class="bi bi-check-circle-fill text-success display-4"></i>
-      </div>
-      <h3 class="fw-bold text-success">Paiement réussi !</h3>
-      <p class="text-muted">{{ successMessage }}</p>
-      <div class="d-flex justify-content-center gap-2 mt-3">
-        <router-link :to="redirectPath" class="btn btn-primary">{{ redirectLabel }}</router-link>
-        <router-link to="/" class="btn btn-outline-primary">Accueil</router-link>
-      </div>
-    </div>
-
-    <div v-else class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
+        <div v-else-if="success" class="card border-0 shadow-sm">
           <div class="card-body text-center p-5">
-            <i class="bi bi-phone fs-1 text-primary d-block mb-3"></i>
-            <h4 class="fw-bold mb-2">Paiement Mobile Money</h4>
-            <p class="text-muted mb-1" v-if="paiement">
-              Montant : <strong>{{ formatPrice(paiement.montant) }}</strong>
-            </p>
-            <p class="text-muted mb-4">Cliquez sur le bouton ci-dessous pour ouvrir le widget KKiaPay et effectuer votre paiement.</p>
+            <div class="mb-4">
+              <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                <i class="bi bi-check-circle fs-1 text-success"></i>
+              </div>
+            </div>
+            <h4 class="fw-bold mb-2">Paiement réussi !</h4>
+            <p class="text-muted mb-3" v-if="paiement?.don_id">Merci pour votre don de <strong>{{ Number(paiement.montant || 0).toLocaleString('fr-FR') }} FCFA</strong>.</p>
+            <p class="text-muted mb-3" v-else>Votre paiement de <strong>{{ Number(paiement?.montant || 0).toLocaleString('fr-FR') }} FCFA</strong> a été confirmé.</p>
+            <p class="text-muted mb-4">Un reçu vous sera envoyé par email.</p>
+            <router-link v-if="paiement?.commande_id" to="/profil/mes-commandes" class="btn btn-primary">Voir mes commandes</router-link>
+            <router-link v-else-if="paiement?.inscription_id" to="/profil/mes-formations" class="btn btn-primary">Voir mes formations</router-link>
+            <router-link v-else to="/" class="btn btn-primary">Retour à l'accueil</router-link>
+          </div>
+        </div>
 
-            <button v-if="!widgetOpened" class="btn btn-primary btn-lg w-100" @click="openKkiapay" :disabled="opening">
-              <span v-if="opening" class="spinner-border spinner-border-sm me-1"></span>
-              <i v-else class="bi bi-wallet2 me-1"></i>
-              Payer avec KKiaPay
-            </button>
+        <div v-else class="card border-0 shadow-sm">
+          <div class="card-body text-center p-5">
+            <div class="mb-4">
+              <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
+                <i class="bi bi-credit-card fs-1 text-primary"></i>
+              </div>
+            </div>
+            <h4 class="fw-bold mb-2">Paiement sécurisé</h4>
+            <p class="text-muted mb-1">Montant : <strong class="text-primary">{{ Number(paiement?.montant || 0).toLocaleString('fr-FR') }} FCFA</strong></p>
+            <p class="text-muted mb-4">Référence : <code>{{ paiement?.referenceTransaction || '—' }}</code></p>
 
-            <div v-if="!sandbox && !widgetOpened" class="mt-3">
-              <button class="btn btn-outline-success" @click="simulatePayment" :disabled="simulating">
-                <span v-if="simulating" class="spinner-border spinner-border-sm me-1"></span>
-                <span v-else><i class="bi bi-check-circle me-1"></i></span>
-                Simuler le paiement
-              </button>
+            <hr class="my-4">
+
+            <div class="alert alert-info text-start">
+              <i class="bi bi-info-circle me-1"></i>
+              <small>
+                Vous allez payer via <strong>KKiaPay</strong>. Une fenêtre s'ouvrira pour saisir votre numéro de téléphone
+                et confirmer le paiement.
+              </small>
             </div>
 
-            <p v-if="errorMsg" class="text-danger mt-3 mb-0 small">{{ errorMsg }}</p>
+            <div class="d-flex flex-column gap-2">
+              <button class="btn btn-primary btn-lg w-100" :disabled="!widgetLoaded || paying" @click="openKkiapay">
+                <span v-if="paying" class="spinner-border spinner-border-sm me-1"></span>
+                <i v-else class="bi bi-wallet2 me-2"></i>
+                {{ paying ? 'Paiement en cours...' : 'Payer avec KKiaPay' }}
+              </button>
+              <button v-if="isLocalDev" class="btn btn-warning btn-lg w-100" :disabled="paying" @click="simulerPaiement">
+                <i class="bi bi-flask me-2"></i>
+                {{ paying ? 'Simulation en cours...' : 'Simuler le paiement (test local)' }}
+              </button>
+              <router-link to="/" class="btn btn-outline-secondary">Annuler</router-link>
+            </div>
           </div>
         </div>
       </div>
@@ -60,156 +68,106 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import BreadcombsComponent from '../../includes/breadcombs.vue'
 import api from '../../services/api'
 
 const route = useRoute()
-const router = useRouter()
-
-const loading = ref(true)
-const error = ref('')
+const paiementId = route.query.paiement_id
+const isLoading = ref(true)
 const paiement = ref(null)
-const publicKey = ref('')
-const sandbox = ref(true)
-const opening = ref(false)
-const simulating = ref(false)
-const widgetOpened = ref(false)
+const error = ref('')
+const kkiapayConfig = ref(null)
+const widgetLoaded = ref(false)
+const paying = ref(false)
 const success = ref(false)
-const successMessage = ref('')
-const redirectPath = ref('/')
-const redirectLabel = ref('Accueil')
-const errorMsg = ref('')
-
-const formatPrice = (price) => {
-  const num = parseFloat(price)
-  if (isNaN(num)) return '0 FCFA'
-  return num.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' }).replace('XOF', '').trim() + ' FCFA'
-}
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
 async function loadPaiement() {
-  const paiementId = route.query.paiement_id
   if (!paiementId) {
-    error.value = 'Aucun paiement à traiter.'
-    loading.value = false
+    error.value = "Aucun paiement spécifié."
+    isLoading.value = false
     return
   }
-
   try {
     const [paiementRes, configRes] = await Promise.all([
       api.get(`/paiements/${paiementId}`),
       api.get('/config/kkiapay')
     ])
-    paiement.value = paiementRes.data?.data || paiementRes.data || paiementRes
-    publicKey.value = configRes.data?.public_key || configRes.public_key
-    sandbox.value = configRes.data?.sandbox !== undefined ? configRes.data.sandbox : configRes.sandbox
+    paiement.value = paiementRes.data || paiementRes
+    kkiapayConfig.value = configRes.data || configRes
 
-    if (paiement.value.statut !== 'en_attente') {
-      handleSuccess(paiement.value)
+    if (paiement.value.statut === 'reussi') {
+      success.value = true
+      return
     }
+
+    await loadKkiapayScript()
   } catch (e) {
-    error.value = e.response?.data?.message || 'Impossible de charger les informations de paiement.'
+    error.value = "Impossible de charger les informations du paiement."
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
 
-function handleSuccess(pay) {
-  success.value = true
-  if (pay.commande_id) {
-    successMessage.value = 'Votre commande a été payée avec succès.'
-    redirectPath.value = `/commande/succes?orderId=${pay.commande_id}&method=kkiapay`
-    redirectLabel.value = 'Voir ma commande'
-  } else if (pay.inscription_id) {
-    successMessage.value = 'Vous êtes maintenant inscrit à la formation.'
-    redirectPath.value = '/profile-inscrit'
-    redirectLabel.value = 'Voir mes formations'
-  } else if (pay.don_id) {
-    successMessage.value = 'Merci pour votre don !'
-    redirectPath.value = '/profile-inscrit'
-    redirectLabel.value = 'Voir mon profil'
-  } else {
-    successMessage.value = 'Paiement effectué avec succès.'
-    redirectPath.value = '/'
-    redirectLabel.value = 'Accueil'
-  }
+function loadKkiapayScript() {
+  return new Promise((resolve) => {
+    if (window.kkiapay) {
+      widgetLoaded.value = true
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://cdn.kkiapay.me/k.js'
+    script.onload = () => {
+      widgetLoaded.value = true
+      resolve()
+    }
+    document.head.appendChild(script)
+  })
 }
 
 function openKkiapay() {
-  if (!window.openKkiapayWidget) {
-    errorMsg.value = 'Le widget KKiaPay n\'est pas encore chargé. Veuillez réessayer.'
-    return
-  }
+  if (!widgetLoaded.value || !kkiapayConfig.value || !paiement.value) return
+  paying.value = true
+  const callbackUrl = `${window.location.origin}/paiement/kkiapay?paiement_id=${paiementId}`
 
-  opening.value = true
-  errorMsg.value = ''
+  window.addSuccessListener(async function() {
+    paying.value = false
+    success.value = true
+    try {
+      await api.post('/paiements/confirmer/' + paiementId)
+    } catch (e) {
+      console.error('Confirmation failed:', e)
+    }
+  })
 
+  window.addFailedListener(function() {
+    paying.value = false
+    error.value = "Le paiement a échoué. Veuillez réessayer."
+  })
+
+  window.openKkiapayWidget({
+    amount: Number(paiement.value.montant),
+    key: kkiapayConfig.value.public_key,
+    sandbox: kkiapayConfig.value.sandbox,
+    data: String(paiementId),
+    callback: callbackUrl,
+    theme: "#0d6efd"
+  })
+}
+
+async function simulerPaiement() {
+  paying.value = true
   try {
-    const amount = Math.round(parseFloat(paiement.value.montant))
-    const key = publicKey.value
-    const isSandbox = sandbox.value
-    const paiementId = paiement.value.id
-
-    window.openKkiapayWidget({
-      amount,
-      key,
-      sandbox: isSandbox,
-      data: String(paiementId),
-      callback: (response) => {
-        widgetOpened.value = true
-        if (response && response.status === 'SUCCESS') {
-          confirmPayment(paiementId)
-        } else {
-          errorMsg.value = 'Paiement annulé ou échoué.'
-          opening.value = false
-        }
-      }
-    })
-
-    window.addSuccessListener((response) => {
-      confirmPayment(paiementId)
-    })
-
-    window.addFailedListener((response) => {
-      errorMsg.value = 'Le paiement a échoué. Veuillez réessayer.'
-      opening.value = false
-    })
+    await api.post('/paiements/confirmer/' + paiementId)
+    paying.value = false
+    success.value = true
   } catch (e) {
-    errorMsg.value = 'Erreur lors de l\'ouverture du widget.'
-    opening.value = false
+    paying.value = false
+    error.value = "La simulation a échoué."
   }
 }
 
-async function confirmPayment(paiementId) {
-  try {
-    const res = await api.post(`/paiements/confirmer/${paiementId}`)
-    const pay = res.data?.data || paiement.value
-    handleSuccess(pay)
-  } catch (e) {
-    errorMsg.value = e.response?.data?.message || 'Erreur lors de la confirmation du paiement.'
-    opening.value = false
-  }
-}
-
-async function simulatePayment() {
-  simulating.value = true
-  errorMsg.value = ''
-  try {
-    await api.post(`/paiements/confirmer/${paiement.value.id}`)
-    handleSuccess(paiement.value)
-  } catch (e) {
-    errorMsg.value = e.response?.data?.message || 'Erreur lors de la simulation.'
-  } finally {
-    simulating.value = false
-  }
-}
-
-onMounted(() => {
-  loadPaiement()
-
-  const script = document.createElement('script')
-  script.src = 'https://cdn.kkiapay.me/k.js'
-  script.async = true
-  document.head.appendChild(script)
-})
+onMounted(loadPaiement)
 </script>
