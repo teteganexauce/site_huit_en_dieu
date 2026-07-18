@@ -140,50 +140,82 @@
               <h4>{{ evaluationData.evaluation.titre }}</h4>
               <p v-if="evaluationData.evaluation.instructions">{{ evaluationData.evaluation.instructions }}</p>
               <span class="cp-eval-meta">
-                {{ evaluationData.evaluation.questions.length }} question(s) · {{ evaluationData.evaluation.total_points }} point(s)
+                {{ nbQuestions }} question(s) · {{ evaluationData.evaluation.total_points }} point(s) · Question {{ currentQuestionIndex + 1 }}/{{ nbQuestions }}
               </span>
             </div>
 
-            <div v-if="evaluationData.resultat" class="cp-result" :class="evaluationData.resultat.reussite ? 'is-success' : 'is-fail'">
+            <div v-if="quizTermine && scoreFinal" class="cp-result" :class="scoreFinal.reussite ? 'is-success' : 'is-fail'">
               <div class="cp-result-icon">
-                <i :class="evaluationData.resultat.reussite ? 'bi bi-check-lg' : 'bi bi-x-lg'"></i>
+                <i :class="scoreFinal.reussite ? 'bi bi-check-lg' : 'bi bi-x-lg'"></i>
               </div>
               <div>
-                <h5>{{ evaluationData.resultat.reussite ? 'Réussi !' : 'Non réussi' }}</h5>
-                <p>Score : {{ evaluationData.resultat.score }}% · Terminé le {{ formatDate(evaluationData.resultat.termine_le) }}</p>
+                <h5>{{ scoreFinal.reussite ? 'Réussi !' : 'Non réussi' }}</h5>
+                <p>Score : {{ scoreFinal.score }}% · {{ scoreFinal.points_obtenus }}/{{ scoreFinal.total_points }} point(s)</p>
+                <p v-if="scoreFinal.resultat?.termine_le">Terminé le {{ formatDate(scoreFinal.resultat.termine_le) }}</p>
               </div>
-              <button class="cp-btn cp-btn-ghost cp-ms-auto" @click="resetEvaluation">Recommencer</button>
+              <button class="cp-btn cp-btn-ghost cp-ms-auto" @click="recommencerEvaluation">Recommencer</button>
             </div>
 
             <div v-else>
-              <div v-for="(q, qi) in evaluationData.evaluation.questions" :key="q.id" class="cp-question">
-                <h6>{{ qi + 1 }}. {{ q.texte }}</h6>
+              <div class="cp-question">
+                <h6>{{ currentQuestionIndex + 1 }}. {{ questionCourante.texte }}</h6>
                 <label
-                  v-for="opt in q.options"
+                  v-for="opt in questionCourante.options"
                   :key="opt.value"
                   class="cp-option"
-                  :class="{ 'is-selected': evaluationReponses[q.id] === opt.value }"
+                  :class="{
+                    'is-selected': evaluationReponses[questionCourante.id] === opt.value,
+                    'is-correct': questionValidee && opt.value === questionCourante.bonne_reponse,
+                    'is-wrong': questionValidee && evaluationReponses[questionCourante.id] === opt.value && opt.value !== questionCourante.bonne_reponse,
+                  }"
                 >
                   <input
                     type="radio"
-                    :name="'q_' + q.id"
+                    :name="'q_' + questionCourante.id"
                     :value="opt.value"
-                    v-model="evaluationReponses[q.id]"
+                    v-model="evaluationReponses[questionCourante.id]"
+                    :disabled="questionValidee"
                   >
                   <span class="cp-option-dot"></span>
                   <span>{{ opt.label }}</span>
                 </label>
               </div>
 
-              <button
-                class="cp-btn cp-btn-success cp-btn-block"
-                @click="soumettreEvaluation"
-                :disabled="soumettant || Object.keys(evaluationReponses).length < evaluationData.evaluation.questions.length"
-              >
-                <span v-if="soumettant" class="cp-spinner cp-spinner-sm"></span>
-                <i v-else class="bi bi-send-check me-1"></i>
-                {{ soumettant ? 'Correction en cours…' : 'Soumettre mes réponses' }}
-              </button>
+              <div v-if="questionValidee" class="cp-feedback-bar">
+                <span v-if="reponseCorrecte" class="cp-feedback-correct">
+                  <i class="bi bi-check-circle-fill me-1"></i>Bonne réponse !
+                </span>
+                <span v-else class="cp-feedback-wrong">
+                  <i class="bi bi-x-circle-fill me-1"></i>Mauvaise réponse. La bonne réponse est : {{ libelleBonneReponse }}
+                </span>
+              </div>
+
+              <div class="cp-eval-actions">
+                <button
+                  v-if="!questionValidee"
+                  class="cp-btn cp-btn-primary"
+                  @click="validerQuestion"
+                  :disabled="!evaluationReponses[questionCourante.id]"
+                >
+                  Valider
+                </button>
+                <button
+                  v-if="questionValidee && currentQuestionIndex < nbQuestions - 1"
+                  class="cp-btn cp-btn-primary"
+                  @click="questionSuivante"
+                >
+                  Suivant <i class="bi bi-chevron-right ms-1"></i>
+                </button>
+                <button
+                  v-if="questionValidee && currentQuestionIndex === nbQuestions - 1"
+                  class="cp-btn cp-btn-success"
+                  @click="terminerEvaluation"
+                  :disabled="soumettant"
+                >
+                  <span v-if="soumettant" class="cp-spinner cp-spinner-sm"></span>
+                  <template v-else><i class="bi bi-send-check me-1"></i>Terminer</template>
+                </button>
+              </div>
             </div>
           </div>
         </template>
@@ -287,6 +319,20 @@ const evaluationResultats = ref({})
 const moduleEvaluationId = ref(null)
 const formationEvaluations = ref([])
 const soumettant = ref(false)
+
+const currentQuestionIndex = ref(0)
+const questionValidee = ref(false)
+const reponseCorrecte = ref(false)
+const quizTermine = ref(false)
+const scoreFinal = ref(null)
+
+const nbQuestions = computed(() => evaluationData.value?.evaluation?.questions?.length || 0)
+const questionCourante = computed(() => evaluationData.value?.evaluation?.questions?.[currentQuestionIndex.value] || {})
+const libelleBonneReponse = computed(() => {
+  if (!questionCourante.value.options || !questionCourante.value.bonne_reponse) return ''
+  const opt = questionCourante.value.options.find(o => o.value === questionCourante.value.bonne_reponse)
+  return opt ? opt.label : ''
+})
 
 const videoEl = ref(null)
 const dureesReelles = ref({})
@@ -449,19 +495,41 @@ async function ouvrirEvaluationById(evaluationId) {
   currentCours.value = null
   moduleEvaluationId.value = evaluationId
   sidebarOuvert.value = false
+  currentQuestionIndex.value = 0
+  questionValidee.value = false
+  reponseCorrecte.value = false
+  quizTermine.value = false
+  scoreFinal.value = null
   try {
     const res = await formationService.getEvaluationById(evaluationId)
     evaluationData.value = res
     evaluationReponses.value = {}
     if (res.resultat) {
       evaluationResultats.value[evaluationId] = res.resultat
+      quizTermine.value = true
+      scoreFinal.value = res.resultat
     }
   } catch (e) {
     console.error('Erreur chargement évaluation:', e)
   }
 }
 
-async function soumettreEvaluation() {
+function validerQuestion() {
+  const q = questionCourante.value
+  if (!q || !evaluationReponses.value[q.id]) return
+  reponseCorrecte.value = evaluationReponses.value[q.id] === q.bonne_reponse
+  questionValidee.value = true
+}
+
+function questionSuivante() {
+  if (currentQuestionIndex.value < nbQuestions.value - 1) {
+    currentQuestionIndex.value++
+    questionValidee.value = false
+    reponseCorrecte.value = false
+  }
+}
+
+async function terminerEvaluation() {
   if (!evaluationData.value) return
   soumettant.value = true
   try {
@@ -470,8 +538,13 @@ async function soumettreEvaluation() {
       reponse,
     }))
     const res = await formationService.soumettreEvaluation(evaluationData.value.evaluation.id, reponses)
-    await ouvrirEvaluationById(evaluationData.value.evaluation.id)
-
+    scoreFinal.value = res
+    quizTermine.value = true
+    evaluationResultats.value[evaluationData.value.evaluation.id] = {
+      score: res.score,
+      reussite: res.reussite,
+      termine_le: res.resultat?.termine_le || new Date().toISOString(),
+    }
     const learningRes = await formationService.getApprentissage(inscriptionId.value)
     formationEvaluations.value = learningRes.evaluations || []
     if (formationData.value) formationData.value.progression = learningRes.progression
@@ -482,7 +555,12 @@ async function soumettreEvaluation() {
   }
 }
 
-function resetEvaluation() {
+function recommencerEvaluation() {
+  currentQuestionIndex.value = 0
+  questionValidee.value = false
+  reponseCorrecte.value = false
+  quizTermine.value = false
+  scoreFinal.value = null
   evaluationReponses.value = {}
   evaluationData.value = { ...evaluationData.value, resultat: null }
 }
@@ -788,6 +866,21 @@ onMounted(chargerApprentissage)
 .cp-option.is-selected .cp-option-dot::after {
   content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--cp-primary);
 }
+.cp-option.is-correct { border-color: var(--cp-success); background: #E6F7EF; }
+.cp-option.is-correct .cp-option-dot { border-color: var(--cp-success); }
+.cp-option.is-correct .cp-option-dot::after { background: var(--cp-success); }
+.cp-option.is-wrong { border-color: var(--cp-danger); background: #FDEBEC; }
+.cp-option.is-wrong .cp-option-dot { border-color: var(--cp-danger); }
+.cp-option.is-wrong .cp-option-dot::after { background: var(--cp-danger); }
+
+.cp-feedback-bar {
+  padding: 12px 18px; border-radius: 10px; margin-bottom: 16px;
+  font-weight: 600; font-size: 0.9rem;
+}
+.cp-feedback-correct { color: var(--cp-success); background: #E6F7EF; display: block; }
+.cp-feedback-wrong { color: var(--cp-danger); background: #FDEBEC; display: block; }
+
+.cp-eval-actions { display: flex; gap: 10px; margin-bottom: 30px; }
 
 /* ---------- Fin de formation ---------- */
 .cp-completion {
