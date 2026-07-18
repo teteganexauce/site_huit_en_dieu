@@ -282,19 +282,36 @@
           <h4>Félicitations !</h4>
           <p>Vous avez terminé tous les cours de cette formation.</p>
           <p class="cp-completion-sub">Votre progression est de 100&nbsp;%. Vous pouvez télécharger votre certificat.</p>
-          <router-link :to="{ name: 'certificat', params: { id: inscriptionId } }" class="cp-btn cp-btn-warning cp-btn-lg">
+          <button class="cp-btn cp-btn-warning cp-btn-lg" @click="verifierCertificat">
             <i class="bi bi-award me-1"></i>Obtenir mon certificat
-          </router-link>
+          </button>
         </div>
       </main>
     </div>
   </div>
+
+  <!-- Modal certificat non disponible -->
+  <Transition name="cp-modal">
+    <div v-if="showCertificatModal" class="cp-modal-overlay" @click.self="showCertificatModal = false">
+      <div class="cp-modal-card">
+        <div class="cp-modal-icon is-warning">
+          <i class="bi bi-award"></i>
+        </div>
+        <h4>{{ certificatError.title }}</h4>
+        <p>{{ certificatError.message }}</p>
+        <button class="cp-btn cp-btn-primary" @click="showCertificatModal = false">
+          <i class="bi bi-check me-1"></i>Compris
+        </button>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import formationService from '../services/formationService'
+import api from '../services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -311,6 +328,8 @@ const suivant = ref(null)
 const coursCompletesIds = ref([])
 const completing = ref(false)
 const showCompletion = ref(false)
+const showCertificatModal = ref(false)
+const certificatError = ref({ title: '', message: '' })
 
 const mode = ref('cours')
 const evaluationData = ref(null)
@@ -563,6 +582,28 @@ function recommencerEvaluation() {
   scoreFinal.value = null
   evaluationReponses.value = {}
   evaluationData.value = { ...evaluationData.value, resultat: null }
+}
+
+async function verifierCertificat() {
+  try {
+    const res = await api.get(`/inscriptions/${inscriptionId.value}/certificat/verifier`)
+    const data = res.data || res
+    if (!data.accessible) {
+      certificatError.value = {
+        title: 'Certificat non disponible',
+        message: data.message || 'Vous devez réussir au moins une évaluation avec le score requis.',
+      }
+      showCertificatModal.value = true
+    } else {
+      router.push({ name: 'certificat', params: { id: inscriptionId.value } })
+    }
+  } catch (e) {
+    certificatError.value = {
+      title: 'Erreur',
+      message: e.response?.data?.message || 'Impossible de vérifier le certificat.',
+    }
+    showCertificatModal.value = true
+  }
 }
 
 const accessError = ref(null)
@@ -901,6 +942,29 @@ onMounted(chargerApprentissage)
 .cp-completion h4 { font-weight: 800; margin-bottom: 6px; position: relative; }
 .cp-completion p { color: var(--cp-muted); margin: 0 0 2px; max-width: 420px; position: relative; }
 .cp-completion-sub { margin-bottom: 20px !important; }
+
+/* ---------- Modal certificat ---------- */
+.cp-modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(20, 24, 43, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.cp-modal-card {
+  background: var(--cp-surface); border-radius: 20px;
+  padding: 40px 36px; max-width: 420px; width: 100%;
+  text-align: center; box-shadow: 0 20px 60px rgba(20,24,43,.25);
+}
+.cp-modal-icon {
+  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+}
+.cp-modal-icon.is-warning { background: #FFF3DA; color: #F5A623; }
+.cp-modal-card h4 { font-weight: 800; margin-bottom: 8px; }
+.cp-modal-card p { color: var(--cp-muted); margin-bottom: 22px; }
+
+.cp-modal-enter-active, .cp-modal-leave-active { transition: opacity .2s, transform .2s; }
+.cp-modal-enter-from, .cp-modal-leave-to { opacity: 0; transform: scale(.94); }
 
 /* ---------- États (erreur / introuvable) ---------- */
 .cp-state-screen { display: flex; align-items: center; justify-content: center; min-height: 70vh; padding: 20px; font-family: 'Inter', sans-serif; }
