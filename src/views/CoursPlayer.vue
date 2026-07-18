@@ -294,13 +294,16 @@
   <Transition name="cp-modal">
     <div v-if="showCertificatModal" class="cp-modal-overlay" @click.self="showCertificatModal = false">
       <div class="cp-modal-card">
+        <button class="cp-modal-close" @click="showCertificatModal = false">
+          <i class="bi bi-x-lg"></i>
+        </button>
         <div class="cp-modal-icon is-warning">
-          <i class="bi bi-award"></i>
+          <i class="bi bi-shield-exclamation"></i>
         </div>
         <h4>{{ certificatError.title }}</h4>
         <p>{{ certificatError.message }}</p>
-        <button class="cp-btn cp-btn-primary" @click="showCertificatModal = false">
-          <i class="bi bi-check me-1"></i>Compris
+        <button class="cp-btn cp-btn-primary cp-btn-block" @click="showCertificatModal = false">
+          <i class="bi bi-arrow-left me-1"></i>Retour à la formation
         </button>
       </div>
     </div>
@@ -945,26 +948,42 @@ onMounted(chargerApprentissage)
 
 /* ---------- Modal certificat ---------- */
 .cp-modal-overlay {
-  position: fixed; inset: 0; z-index: 9999;
-  background: rgba(20, 24, 43, 0.6);
+  position: fixed; inset: 0; z-index: 99999;
+  background: rgba(0, 0, 0, 0.55);
   display: flex; align-items: center; justify-content: center;
-  padding: 20px;
+  padding: 24px;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 .cp-modal-card {
-  background: var(--cp-surface); border-radius: 20px;
-  padding: 40px 36px; max-width: 420px; width: 100%;
-  text-align: center; box-shadow: 0 20px 60px rgba(20,24,43,.25);
+  background: #fff; border-radius: 24px;
+  padding: 48px 40px 36px; max-width: 440px; width: 100%;
+  text-align: center; position: relative;
+  box-shadow: 0 25px 80px rgba(0,0,0,.3);
 }
+.cp-modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: none; background: #F4F6FB; color: #6B7280;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.9rem; transition: background .15s;
+}
+.cp-modal-close:hover { background: #E6E9F2; }
 .cp-modal-icon {
-  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
-  display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center; font-size: 2rem;
 }
-.cp-modal-icon.is-warning { background: #FFF3DA; color: #F5A623; }
-.cp-modal-card h4 { font-weight: 800; margin-bottom: 8px; }
-.cp-modal-card p { color: var(--cp-muted); margin-bottom: 22px; }
+.cp-modal-icon.is-warning { background: #FFF3DA; color: #D48F0B; }
+.cp-modal-card h4 {
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-weight: 800; font-size: 1.25rem; margin-bottom: 10px; color: #14182B;
+}
+.cp-modal-card p {
+  font-size: 0.95rem; line-height: 1.5; color: #6B7280; margin-bottom: 26px;
+}
+.cp-modal-card .cp-btn-block { margin-bottom: 0; }
 
-.cp-modal-enter-active, .cp-modal-leave-active { transition: opacity .2s, transform .2s; }
-.cp-modal-enter-from, .cp-modal-leave-to { opacity: 0; transform: scale(.94); }
+.cp-modal-enter-active, .cp-modal-leave-active { transition: opacity .25s, transform .25s; }
+.cp-modal-enter-from, .cp-modal-leave-to { opacity: 0; transform: scale(.92); }
 
 /* ---------- États (erreur / introuvable) ---------- */
 .cp-state-screen { display: flex; align-items: center; justify-content: center; min-height: 70vh; padding: 20px; font-family: 'Inter', sans-serif; }
