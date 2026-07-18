@@ -100,24 +100,25 @@
               <span class="cp-lesson-duration">{{ formaterDuree(dureesReelles[c.id] || c.dureeMinutes) }}</span>
             </button>
 
+          </div>
+
+          <div v-if="formationEvaluations.length > 0" class="cp-eval-section">
+            <div class="cp-eval-section-title">Évaluations</div>
             <button
-              v-if="mod.evaluation"
+              v-for="ev in formationEvaluations"
+              :key="ev.id"
               type="button"
               class="cp-lesson cp-lesson-eval"
-              :class="{
-                'is-active': mode === 'evaluation' && moduleEvaluationId === mod.evaluation.id,
-                'is-locked': !tousCoursModuleCompletes(mod),
-              }"
-              :disabled="!tousCoursModuleCompletes(mod)"
-              @click="ouvrirEvaluation(mod)"
+              :class="{ 'is-active': mode === 'evaluation' && moduleEvaluationId === ev.id }"
+              @click="ouvrirEvaluationById(ev.id)"
             >
               <span class="cp-lesson-icon">
-                <i v-if="evaluationResultats[mod.evaluation.id]?.reussite" class="bi bi-check-lg"></i>
-                <i v-else-if="evaluationResultats[mod.evaluation.id]" class="bi bi-x-lg"></i>
-                <i v-else-if="mode === 'evaluation' && moduleEvaluationId === mod.evaluation.id" class="bi bi-pencil-fill"></i>
+                <i v-if="ev.reussite" class="bi bi-check-lg"></i>
+                <i v-else-if="ev.nb_tentatives > 0" class="bi bi-x-lg"></i>
                 <i v-else class="bi bi-pencil"></i>
               </span>
-              <span class="cp-lesson-label">Évaluation · {{ mod.evaluation.titre }}</span>
+              <span class="cp-lesson-label">{{ ev.titre }}</span>
+              <span v-if="ev.nb_tentatives > 0" class="cp-lesson-duration">{{ ev.dernier_score }}%</span>
             </button>
           </div>
 
@@ -284,6 +285,7 @@ const evaluationData = ref(null)
 const evaluationReponses = ref({})
 const evaluationResultats = ref({})
 const moduleEvaluationId = ref(null)
+const formationEvaluations = ref([])
 const soumettant = ref(false)
 
 const videoEl = ref(null)
@@ -338,10 +340,6 @@ function estDebloque(coursId) {
   const index = tous.indexOf(coursId)
   if (index <= 0) return true
   return coursCompletesIds.value.includes(tous[index - 1])
-}
-
-function tousCoursModuleCompletes(mod) {
-  return mod.cours.every(c => coursCompletesIds.value.includes(c.id))
 }
 
 function mesCoursOrdonnes() {
@@ -446,18 +444,17 @@ async function chargerCours(coursId) {
   }
 }
 
-async function ouvrirEvaluation(mod) {
-  if (!tousCoursModuleCompletes(mod)) return
+async function ouvrirEvaluationById(evaluationId) {
   mode.value = 'evaluation'
   currentCours.value = null
-  moduleEvaluationId.value = mod.evaluation.id
+  moduleEvaluationId.value = evaluationId
   sidebarOuvert.value = false
   try {
-    const res = await formationService.getEvaluation(mod.id)
+    const res = await formationService.getEvaluationById(evaluationId)
     evaluationData.value = res
     evaluationReponses.value = {}
     if (res.resultat) {
-      evaluationResultats.value[mod.evaluation.id] = res.resultat
+      evaluationResultats.value[evaluationId] = res.resultat
     }
   } catch (e) {
     console.error('Erreur chargement évaluation:', e)
@@ -473,16 +470,11 @@ async function soumettreEvaluation() {
       reponse,
     }))
     const res = await formationService.soumettreEvaluation(evaluationData.value.evaluation.id, reponses)
-    const modId = evaluationData.value.evaluation.module_id
-    const mod = modules.value.find(m => m.id === modId)
-    if (mod?.evaluation) {
-      evaluationResultats.value[mod.evaluation.id] = {
-        score: res.score,
-        reussite: res.reussite,
-        termine_le: new Date().toISOString(),
-      }
-    }
-    await ouvrirEvaluation(modules.value.find(m => m.id === modId))
+    await ouvrirEvaluationById(evaluationData.value.evaluation.id)
+
+    const learningRes = await formationService.getApprentissage(inscriptionId.value)
+    formationEvaluations.value = learningRes.evaluations || []
+    if (formationData.value) formationData.value.progression = learningRes.progression
   } catch (e) {
     console.error('Erreur soumission évaluation:', e)
   } finally {
@@ -504,6 +496,7 @@ async function chargerApprentissage() {
     const res = await formationService.getApprentissage(inscriptionId.value)
     formationData.value = { ...res.formation, progression: res.progression }
     modules.value = res.modules
+    formationEvaluations.value = res.evaluations || []
     coursCompletesIds.value = res.cours_completes_ids || []
 
     let coursTarget = coursInitialId.value
@@ -673,6 +666,20 @@ onMounted(chargerApprentissage)
 .cp-lesson-eval { border-top: 1px dashed var(--cp-border); margin-top: 4px; padding-top: 12px; }
 
 .cp-empty { text-align: center; padding: 40px 10px; color: var(--cp-muted); font-size: 0.85rem; }
+
+.cp-eval-section {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 2px solid var(--cp-border);
+}
+.cp-eval-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--cp-muted);
+  padding: 6px 10px 10px;
+}
 
 /* ---------- Zone principale ---------- */
 .cp-main { flex: 1; min-width: 0; }
