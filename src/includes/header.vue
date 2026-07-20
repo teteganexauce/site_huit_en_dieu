@@ -56,7 +56,7 @@
             <ul class="site-dropdown">
               <li><router-link to="/boutique" class="site-nav__link">Toute la boutique</router-link></li>
               <li><router-link to="/e-book" class="site-nav__link">Nos e-books</router-link></li>
-              <li><router-link to="/objets" class="site-nav__link">Objets en vente</router-link></li>
+              <li><router-link to="/boutique?type=objet_sacre" class="site-nav__link">Objets en vente</router-link></li>
             </ul>
           </li>
           <li class="site-nav__item">
@@ -133,7 +133,7 @@
           <ul>
             <li><router-link to="/boutique" @click="closeMobileNav">Toute la boutique</router-link></li>
             <li><router-link to="/e-book" @click="closeMobileNav">Nos e-books</router-link></li>
-            <li><router-link to="/objets" @click="closeMobileNav">Objets en vente</router-link></li>
+            <li><router-link to="/boutique?type=objet_sacre" @click="closeMobileNav">Objets en vente</router-link></li>
           </ul>
         </li>
 
