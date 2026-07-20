@@ -39,6 +39,7 @@
                 <router-link to="/partenaires">Nos partenaires</router-link>
                 <router-link to="/formations">Nos formations</router-link>
                 <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
+                <router-link to="/accompagnement">Demande d'accompagnement</router-link>
                 <router-link to="/services">Nos services</router-link>
               </li>
             </ul>
@@ -119,6 +120,7 @@
             <li><router-link to="/partenaires" @click="closeMobileNav">Nos partenaires</router-link></li>
             <li><router-link to="/formations" @click="closeMobileNav">Nos formations</router-link></li>
             <li><router-link to="/rubriques-culture" @click="closeMobileNav">Rubriques culturelles</router-link></li>
+            <li><router-link to="/accompagnement" @click="closeMobileNav">Demande d'accompagnement</router-link></li>
             <li><router-link to="/services" @click="closeMobileNav">Nos services</router-link></li>
           </ul>
         </li>

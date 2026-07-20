@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import authService from '../services/authService'
 import shopService from '../services/shopService'
 import donService from '../services/donService'
+import accompagnementService from '../services/accompagnementService'
 import defaultAvatar from '../assets/img/portfolio/app-1.jpg'
 
 const authStore = useAuthStore()
@@ -17,15 +18,20 @@ const isLoadingBooks = ref(false)
 const isLoadingFormations = ref(false)
 const isLoadingOrders = ref(false)
 const isLoadingDons = ref(false)
+const isLoadingAccompagnements = ref(false)
 
 const orders = ref([])
 const purchasedBooks = ref([])
 const inscriptions = ref([])
 const dons = ref([])
+const accompagnements = ref([])
 
 const showPaymentModal = ref(false)
 const selectedBook = ref(null)
 const modalType = ref('pending')
+
+const showDemandeModal = ref(false)
+const selectedDemande = ref(null)
 
 const form = ref({
   nom: '', prenom: '', telephone: '', adresse: '',
@@ -65,7 +71,8 @@ const stats = computed(() => ({
   formations: inscriptions.value.length,
   commandes: orders.value.length,
   dons: dons.value.length,
-  totalDons: dons.value.reduce((sum, d) => sum + Number(d.montant), 0)
+  totalDons: dons.value.reduce((sum, d) => sum + Number(d.montant), 0),
+  accompagnements: accompagnements.value.length
 }))
 
 async function loadOrders() {
@@ -172,6 +179,28 @@ async function loadDons() {
   }
 }
 
+async function loadAccompagnements() {
+  isLoadingAccompagnements.value = true
+  try {
+    const res = await accompagnementService.getHistorique()
+    accompagnements.value = res.data || res
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingAccompagnements.value = false
+  }
+}
+
+function viewDemandeDetails(demande) {
+  selectedDemande.value = demande
+  showDemandeModal.value = true
+}
+
+function closeDemandeModal() {
+  showDemandeModal.value = false
+  selectedDemande.value = null
+}
+
 onMounted(async () => {
   initializeForm()
   try {
@@ -188,6 +217,7 @@ onMounted(async () => {
   loadPurchasedBooks()
   loadFormations()
   loadDons()
+  loadAccompagnements()
 })
 
 const handleLogout = async () => {
@@ -259,9 +289,26 @@ const statusClass = (statut) => {
     payee: 'success', confirmee: 'success', livree: 'success',
     en_attente_paiement: 'warning', en_attente: 'warning',
     expediee: 'info', annulee: 'danger',
-    REUSSI: 'success', ECHOUE: 'danger', EN_ATTENTE: 'warning'
+    REUSSI: 'success', ECHOUE: 'danger', EN_ATTENTE: 'warning',
+    en_traitement: 'primary', traite: 'success', ferme: 'secondary'
   }
   return classes[statut] || 'secondary'
+}
+
+const statusDemandeLabel = (statut) => {
+  const statuts = {
+    'en_attente': 'En attente',
+    'en_traitement': 'En traitement',
+    'traite': 'Traité',
+    'ferme': 'Fermé'
+  }
+  return statuts[statut] || statut
+}
+
+const formatDemandeDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 </script>
 
@@ -296,6 +343,12 @@ const statusClass = (statut) => {
               <div class="col-3">
                 <h6 class="fw-bold text-primary mb-0">{{ stats.dons }}</h6>
                 <small class="text-muted">Dons</small>
+              </div>
+            </div>
+            <div class="row text-center g-0 mt-3 border-top pt-3">
+              <div class="col-12">
+                <h6 class="fw-bold text-primary mb-0">{{ stats.accompagnements }}</h6>
+                <small class="text-muted">Demandes d'accompagnement</small>
               </div>
             </div>
             <hr>
@@ -334,6 +387,11 @@ const statusClass = (statut) => {
               <li class="nav-item" role="presentation">
                 <button class="nav-link" :class="{ active: activeTab === 'dons' }" @click="activeTab = 'dons'">
                   <i class="bi bi-heart me-1"></i>Mes dons <span v-if="dons.length" class="badge bg-danger ms-1">{{ dons.length }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'accompagnements' }" @click="activeTab = 'accompagnements'">
+                  <i class="bi bi-person-lines-fill me-1"></i>Accompagnements
                 </button>
               </li>
               <li class="nav-item" role="presentation">
@@ -559,6 +617,55 @@ const statusClass = (statut) => {
               </div>
             </div>
 
+            <!-- Accompagnements -->
+            <div v-if="activeTab === 'accompagnements'">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Mes demandes d'accompagnement</h5>
+              </div>
+              <div v-if="isLoadingAccompagnements" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+              <div v-else-if="!accompagnements.length" class="text-center py-5 text-muted">
+                <i class="bi bi-person-lines-fill display-3"></i>
+                <h5 class="mt-3">Aucune demande soumise</h5>
+                <router-link to="/accompagnement" class="btn btn-primary mt-3">Faire une demande</router-link>
+              </div>
+              <div v-else class="table-responsive">
+                <table class="table table-hover align-middle border rounded">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Date</th>
+                      <th>Titre / Type</th>
+                      <th>Statut</th>
+                      <th>Détails</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="demande in accompagnements" :key="demande.id">
+                      <td>{{ formatDemandeDate(demande.dateDemande) }}</td>
+                      <td>
+                        <strong>{{ demande.titre }}</strong><br>
+                        <small class="text-muted text-capitalize">{{ demande.type }}</small>
+                      </td>
+                      <td>
+                        <span class="badge" :class="'bg-' + statusClass(demande.statut)">
+                          {{ statusDemandeLabel(demande.statut) }}
+                        </span>
+                      </td>
+                      <td>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" @click="viewDemandeDetails(demande)">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mt-3 text-end">
+                <router-link to="/accompagnement" class="btn btn-outline-primary">Faire une nouvelle demande</router-link>
+              </div>
+            </div>
+
             <!-- Settings -->
             <div v-if="activeTab === 'settings'">
               <div v-if="successMessage" class="alert alert-success py-2">{{ successMessage }}</div>
@@ -706,6 +813,45 @@ const statusClass = (statut) => {
         <button type="button" class="btn btn-primary px-4" @click="closePaymentModal">
           <i class="bi bi-check-lg me-1"></i>Compris
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Demande Accompagnement Modal -->
+<div v-if="showDemandeModal" class="modal-backdrop fade show"></div>
+<div v-if="showDemandeModal" class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold text-primary">{{ selectedDemande?.titre }}</h5>
+        <button type="button" class="btn-close" @click="closeDemandeModal"></button>
+      </div>
+      <div class="modal-body py-4">
+        <div class="mb-3">
+          <span class="fw-bold d-block">Type :</span> 
+          <span class="text-capitalize">{{ selectedDemande?.type }}</span>
+        </div>
+        <div class="mb-3">
+          <span class="fw-bold d-block">Description :</span>
+          <p class="text-break bg-light p-3 rounded text-muted" style="font-size: 0.9rem;">{{ selectedDemande?.description }}</p>
+        </div>
+        <hr>
+        <div class="mb-3">
+          <span class="fw-bold d-block">Statut actuel :</span>
+          <span class="badge mt-1" :class="'bg-' + statusClass(selectedDemande?.statut)">
+            {{ statusDemandeLabel(selectedDemande?.statut) }}
+          </span>
+        </div>
+        <div v-if="selectedDemande?.reponse" class="alert alert-info mt-3 border-0 shadow-sm">
+          <h6 class="alert-heading fw-bold"><i class="bi bi-chat-quote-fill me-2"></i>Réponse de l'administration :</h6>
+          <p class="mb-0 text-break" style="font-size: 0.9rem;">{{ selectedDemande?.reponse }}</p>
+          <hr v-if="selectedDemande?.dateReponse">
+          <small v-if="selectedDemande?.dateReponse" class="text-muted d-block text-end">Le {{ formatDemandeDate(selectedDemande?.dateReponse) }}</small>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 justify-content-end">
+        <button type="button" class="btn btn-secondary px-4" @click="closeDemandeModal">Fermer</button>
       </div>
     </div>
   </div>

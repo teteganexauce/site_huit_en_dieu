@@ -34,6 +34,8 @@ import MesCommandes from '../views/MesCommandes.vue';
 import CoursPlayer from '../views/CoursPlayer.vue';
 import CertificatPage from '../views/CertificatPage.vue';
 
+import AccompagnementView from '../views/user/AccompagnementView.vue';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -54,6 +56,7 @@ const router = createRouter({
     { path: "/page/:slug", name: "page", component: PageView },
     { path: "/rubriques-culture", name: "rubriquesCulture", component: RubriquesCulture },
     { path: "/partenaires", name: "partenaires", component: Partenaires },
+    { path: "/accompagnement", name: "accompagnement", component: AccompagnementView, meta: { requiresAuth: true } },
     { path: "/profile-inscrit", name: "profileInscrit", component: profileInscrit, meta: { requiresAuth: true } },
     { path: "/login", name: "login", component: LoginView, meta: { guestOnly: true } },
     { path: "/register", name: "register", component: RegisterView, meta: { guestOnly: true } },
