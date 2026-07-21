@@ -4,7 +4,6 @@ import publicService from '../services/publicService'
 export const useSiteStore = defineStore('site', {
   state: () => ({
     settings: {},
-    loaded: false,
   }),
   getters: {
     siteName: (state) => state.settings.SITE_NAME || 'École HED',
@@ -26,11 +25,9 @@ export const useSiteStore = defineStore('site', {
   },
   actions: {
     async fetchSettings() {
-      if (this.loaded) return
       try {
         const data = await publicService.getSettings()
         this.settings = data
-        this.loaded = true
       } catch (e) {
         console.warn('Impossible de charger les paramètres du site', e)
       }
