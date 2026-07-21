@@ -97,6 +97,11 @@ const publicService = {
     const response = await api.get('/user/inscriptions');
     return response.data;
   },
+
+  async getPublications(params = {}) {
+    const response = await api.get('/publications', { params });
+    return response.data;
+  },
 };
 
 export default publicService;

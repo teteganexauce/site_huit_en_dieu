@@ -7,6 +7,8 @@ import authService from '../services/authService'
 import shopService from '../services/shopService'
 import donService from '../services/donService'
 import accompagnementService from '../services/accompagnementService'
+import chercheurService from '../services/chercheurService'
+import ArticleModal from '../components/ArticleModal.vue'
 import defaultAvatar from '../assets/img/portfolio/app-1.jpg'
 
 const authStore = useAuthStore()
@@ -14,17 +16,19 @@ const router = useRouter()
 
 const activeTab = ref('dashboard')
 const isLoadingProfile = ref(false)
-const isLoadingBooks = ref(false)
-const isLoadingFormations = ref(false)
-const isLoadingOrders = ref(false)
-const isLoadingDons = ref(false)
-const isLoadingAccompagnements = ref(false)
+const isLoadingBooks = ref(true)
+const isLoadingFormations = ref(true)
+const isLoadingOrders = ref(true)
+const isLoadingDons = ref(true)
+const isLoadingAccompagnements = ref(true)
+const isLoadingArticles = ref(true)
 
 const orders = ref([])
 const purchasedBooks = ref([])
 const inscriptions = ref([])
 const dons = ref([])
 const accompagnements = ref([])
+const articlesChercheur = ref([])
 
 const showPaymentModal = ref(false)
 const selectedBook = ref(null)
@@ -32,6 +36,22 @@ const modalType = ref('pending')
 
 const showDemandeModal = ref(false)
 const selectedDemande = ref(null)
+
+const showArticleModal = ref(false)
+const selectedArticle = ref(null)
+
+const showDeleteArticleModal = ref(false)
+const articleToDelete = ref(null)
+
+const showSubmitArticleModal = ref(false)
+const articleToSubmit = ref(null)
+
+const showActionRequestModal = ref(false)
+const actionType = ref('')
+const actionMotif = ref('')
+const articleForAction = ref(null)
+
+const showSuccessModal = ref(false)
 
 const form = ref({
   nom: '', prenom: '', telephone: '', adresse: '',
@@ -72,7 +92,8 @@ const stats = computed(() => ({
   commandes: orders.value.length,
   dons: dons.value.length,
   totalDons: dons.value.reduce((sum, d) => sum + Number(d.montant), 0),
-  accompagnements: accompagnements.value.length
+  accompagnements: accompagnements.value.length,
+  articles: articlesChercheur.value.length
 }))
 
 async function loadOrders() {
@@ -201,6 +222,114 @@ function closeDemandeModal() {
   selectedDemande.value = null
 }
 
+async function loadArticles() {
+  if (authStore.user?.role !== 'chercheur') return
+  isLoadingArticles.value = true
+  try {
+    const res = await chercheurService.getMesArticles()
+    articlesChercheur.value = res.data?.data || res.data || []
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingArticles.value = false
+  }
+}
+
+function openArticleModal(article = null) {
+  selectedArticle.value = article
+  showArticleModal.value = true
+}
+
+function closeArticleModal() {
+  showArticleModal.value = false
+  selectedArticle.value = null
+}
+
+async function saveArticle(formData, id) {
+  try {
+    if (id) {
+      await chercheurService.updateArticle(id, formData)
+    } else {
+      await chercheurService.createArticle(formData)
+    }
+    closeArticleModal()
+    loadArticles()
+  } catch (error) {
+    console.error(error)
+    alert("Erreur lors de l'enregistrement de l'article")
+  }
+}
+
+function openSubmitArticleModal(id) {
+  articleToSubmit.value = id
+  showSubmitArticleModal.value = true
+}
+
+function closeSubmitArticleModal() {
+  showSubmitArticleModal.value = false
+  articleToSubmit.value = null
+}
+
+async function processSubmitArticle() {
+  if (!articleToSubmit.value) return
+  try {
+    await chercheurService.soumettreArticle(articleToSubmit.value)
+    loadArticles()
+    closeSubmitArticleModal()
+  } catch (error) {
+    console.error(error)
+    alert("Erreur lors de la soumission de l'article")
+  }
+}
+
+function openActionRequestModal(id, type) {
+  articleForAction.value = id
+  actionType.value = type
+  actionMotif.value = ''
+  showActionRequestModal.value = true
+}
+
+function closeActionRequestModal() {
+  showActionRequestModal.value = false
+  articleForAction.value = null
+  actionMotif.value = ''
+}
+
+async function processActionRequest() {
+  if (!articleForAction.value || !actionMotif.value) return
+  try {
+    await chercheurService.demanderAction(articleForAction.value, actionType.value, actionMotif.value)
+    loadArticles()
+    closeActionRequestModal()
+    showSuccessModal.value = true
+  } catch (error) {
+    console.error(error)
+    alert("Erreur lors de l'envoi de la demande.")
+  }
+}
+
+function removeArticle(id) {
+  articleToDelete.value = id
+  showDeleteArticleModal.value = true
+}
+
+function closeDeleteArticleModal() {
+  showDeleteArticleModal.value = false
+  articleToDelete.value = null
+}
+
+async function confirmDeleteArticle() {
+  if (!articleToDelete.value) return
+  try {
+    await chercheurService.deleteArticle(articleToDelete.value)
+    loadArticles()
+    closeDeleteArticleModal()
+  } catch (error) {
+    console.error(error)
+    alert("Erreur lors de la suppression de l'article")
+  }
+}
+
 onMounted(async () => {
   initializeForm()
   try {
@@ -218,6 +347,7 @@ onMounted(async () => {
   loadFormations()
   loadDons()
   loadAccompagnements()
+  loadArticles()
 })
 
 const handleLogout = async () => {
@@ -279,7 +409,9 @@ const statusLabel = (statut) => {
     payee: 'Payée', en_attente_paiement: 'En attente', expediee: 'Expédiée',
     livree: 'Livrée', annulee: 'Annulée', panier: 'Panier',
     confirmee: 'Confirmée', en_attente: 'En attente',
-    REUSSI: 'Réussi', ECHOUE: 'Échoué', EN_ATTENTE: 'En attente'
+    REUSSI: 'Réussi', ECHOUE: 'Échoué', EN_ATTENTE: 'En attente',
+    brouillon: 'Brouillon', publie: 'Publié', rejete: 'Rejeté',
+    approuve: 'Publié', refuse: 'Rejeté', soumis: 'En attente', en_revue: 'En révision'
   }
   return labels[statut] || statut
 }
@@ -290,7 +422,9 @@ const statusClass = (statut) => {
     en_attente_paiement: 'warning', en_attente: 'warning',
     expediee: 'info', annulee: 'danger',
     REUSSI: 'success', ECHOUE: 'danger', EN_ATTENTE: 'warning',
-    en_traitement: 'primary', traite: 'success', ferme: 'secondary'
+    en_traitement: 'primary', traite: 'success', ferme: 'secondary',
+    brouillon: 'secondary', publie: 'success', rejete: 'danger',
+    approuve: 'success', refuse: 'danger', soumis: 'warning', en_revue: 'info'
   }
   return classes[statut] || 'secondary'
 }
@@ -351,6 +485,12 @@ const formatDemandeDate = (dateString) => {
                 <small class="text-muted">Demandes d'accompagnement</small>
               </div>
             </div>
+            <div class="row text-center g-0 mt-3 border-top pt-3" v-if="authStore.user?.role === 'chercheur'">
+              <div class="col-12">
+                <h6 class="fw-bold text-primary mb-0">{{ stats.articles }}</h6>
+                <small class="text-muted">Publications</small>
+              </div>
+            </div>
             <hr>
             <button @click="handleLogout" class="btn btn-outline-danger btn-sm w-100">
               <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
@@ -392,6 +532,11 @@ const formatDemandeDate = (dateString) => {
               <li class="nav-item" role="presentation">
                 <button class="nav-link" :class="{ active: activeTab === 'accompagnements' }" @click="activeTab = 'accompagnements'">
                   <i class="bi bi-person-lines-fill me-1"></i>Accompagnements
+                </button>
+              </li>
+              <li class="nav-item" role="presentation" v-if="authStore.user?.role === 'chercheur'">
+                <button class="nav-link" :class="{ active: activeTab === 'articles' }" @click="activeTab = 'articles'">
+                  <i class="bi bi-journal-text me-1"></i>Mes publications <span v-if="articlesChercheur.length" class="badge bg-primary ms-1">{{ articlesChercheur.length }}</span>
                 </button>
               </li>
               <li class="nav-item" role="presentation">
@@ -666,6 +811,78 @@ const formatDemandeDate = (dateString) => {
               </div>
             </div>
 
+            <!-- Articles (Chercheur) -->
+            <div v-if="activeTab === 'articles' && authStore.user?.role === 'chercheur'">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Mes publications</h5>
+                <button class="btn btn-primary btn-sm" @click="openArticleModal()">
+                  <i class="bi bi-plus-lg me-1"></i>Nouveau
+                </button>
+              </div>
+              <div v-if="isLoadingArticles" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+              <div v-else-if="!articlesChercheur.length" class="text-center py-5 text-muted">
+                <i class="bi bi-journal-x display-3"></i>
+                <h5 class="mt-3">Aucune publication trouvée</h5>
+                <p>Vous n'avez pas encore publié d'article ou de ressource documentaire.</p>
+                <button class="btn btn-primary mt-2" @click="openArticleModal()">Ajouter une publication</button>
+              </div>
+              <div v-else class="table-responsive">
+                <table class="table table-hover align-middle border rounded">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Titre</th>
+                      <th>Type</th>
+                      <th>Statut</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="art in articlesChercheur" :key="art.id">
+                      <td>
+                        <strong>{{ art.titre }}</strong><br>
+                        <small class="text-muted">{{ new Date(art.created_at).toLocaleDateString('fr-FR') }}</small>
+                        <div v-if="art.commentairesRevue" class="mt-2 small p-2 bg-light border border-warning rounded text-secondary" style="border-left: 4px solid #ffc107 !important;">
+                          <strong class="text-dark"><i class="bi bi-chat-left-dots"></i> Remarque de l'administrateur :</strong><br> {{ art.commentairesRevue }}
+                        </div>
+                      </td>
+                      <td class="text-capitalize">{{ art.type }}</td>
+                      <td>
+                        <span class="badge" :class="'bg-' + statusClass(art.statut)">
+                          {{ statusLabel(art.statut) }}
+                        </span>
+                      </td>
+                      <td>
+                        <button v-if="art.statut === 'brouillon' || art.statut === 'refuse'" class="btn btn-sm btn-outline-primary me-2" @click="openArticleModal(art)" title="Modifier">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button v-if="art.statut === 'brouillon' || art.statut === 'refuse'" class="btn btn-sm btn-outline-danger me-2" @click="removeArticle(art.id)" title="Supprimer">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                        <button v-if="art.statut === 'brouillon' || art.statut === 'refuse'" class="btn btn-sm btn-outline-success" @click="openSubmitArticleModal(art.id)" title="Soumettre pour validation">
+                          <i class="bi bi-send"></i>
+                        </button>
+
+                          <!-- Actions when published (approuve) and no pending request -->
+                          <div v-if="art.requete_action" class="badge bg-warning text-dark mt-2 d-block">
+                            <i class="bi bi-hourglass-split"></i> Demande de {{ art.requete_action }}
+                          </div>
+                          <div v-if="art.statut === 'approuve' && !art.requete_action" class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary me-2" @click="openActionRequestModal(art.id, 'modification')" title="Demander une modification">
+                              <i class="bi bi-pencil"></i> Demander modification
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @click="openActionRequestModal(art.id, 'suppression')" title="Demander la suppression">
+                              <i class="bi bi-trash"></i> Retirer
+                            </button>
+                          </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <!-- Settings -->
             <div v-if="activeTab === 'settings'">
               <div v-if="successMessage" class="alert alert-success py-2">{{ successMessage }}</div>
@@ -852,6 +1069,97 @@ const formatDemandeDate = (dateString) => {
       </div>
       <div class="modal-footer border-0 pt-0 justify-content-end">
         <button type="button" class="btn btn-secondary px-4" @click="closeDemandeModal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Article Modal (Chercheur) -->
+<ArticleModal v-if="showArticleModal" :article="selectedArticle" @close="closeArticleModal" @save="saveArticle" />
+
+<!-- Delete Article Modal -->
+<div v-if="showDeleteArticleModal" class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold text-danger">Confirmer la suppression</h5>
+        <button type="button" class="btn-close" @click="closeDeleteArticleModal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body py-4 text-center">
+        <i class="bi bi-exclamation-triangle text-warning display-1 mb-3"></i>
+        <p class="mb-0 fs-5">Êtes-vous sûr de vouloir supprimer cet article ?</p>
+        <p class="text-muted small mt-2">Cette action est irréversible et supprimera le document PDF associé.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center bg-light">
+        <button type="button" class="btn btn-outline-secondary px-4" @click="closeDeleteArticleModal">Annuler</button>
+        <button type="button" class="btn btn-danger px-4" @click="confirmDeleteArticle">Supprimer définitivement</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Article Modal -->
+<div v-if="showSubmitArticleModal" class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold text-success">Confirmer la soumission</h5>
+        <button type="button" class="btn-close" @click="closeSubmitArticleModal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body py-4 text-center">
+        <i class="bi bi-send-check text-success display-1 mb-3"></i>
+        <p class="mb-0 fs-5">Êtes-vous sûr de vouloir soumettre cet article pour validation ?</p>
+        <p class="text-muted small mt-2">Il ne pourra plus être modifié une fois soumis.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center bg-light">
+        <button type="button" class="btn btn-outline-secondary px-4" @click="closeSubmitArticleModal">Annuler</button>
+        <button type="button" class="btn btn-success px-4" @click="processSubmitArticle">Oui, soumettre</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Request Modal -->
+<div v-if="showActionRequestModal" class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" :class="actionType === 'suppression' ? 'text-danger' : 'text-primary'">
+          Demande de {{ actionType }}
+        </h5>
+        <button type="button" class="btn-close" @click="closeActionRequestModal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body py-4">
+        <p class="mb-3">Cette publication est actuellement en ligne. Pour la modifier ou la supprimer, veuillez envoyer une demande à l'administrateur avec le motif.</p>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Motif de la demande *</label>
+          <textarea class="form-control" v-model="actionMotif" rows="3" required placeholder="Expliquez brièvement votre demande..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer border-0 bg-light">
+        <button type="button" class="btn btn-outline-secondary px-4" @click="closeActionRequestModal">Annuler</button>
+        <button type="button" class="btn px-4" :class="actionType === 'suppression' ? 'btn-danger' : 'btn-primary'" @click="processActionRequest" :disabled="!actionMotif">
+          Envoyer la demande
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Request Success Modal -->
+<div v-if="showSuccessModal" class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close" @click="showSuccessModal = false" aria-label="Close"></button>
+      </div>
+      <div class="modal-body py-4 text-center">
+        <i class="bi bi-check-circle-fill text-success display-1 mb-3"></i>
+        <h5 class="fw-bold">Demande envoyée !</h5>
+        <p class="mb-0 text-muted">Votre demande a bien été envoyée à l'administrateur.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-success px-4" @click="showSuccessModal = false">Compris</button>
       </div>
     </div>
   </div>
