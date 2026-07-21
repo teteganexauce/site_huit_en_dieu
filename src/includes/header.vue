@@ -281,6 +281,14 @@ onUnmounted(() => {
   transform: rotate(-3deg) scale(1.05);
 }
 
+.site-logo__img {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .site-logo__text {
   display: flex;
   flex-direction: column;
@@ -660,15 +668,12 @@ onUnmounted(() => {
     display: none;
   }
 
-.site-logo__img {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
+  .site-logo__img {
+    width: 38px;
+    height: 38px;
+  }
 
-.site-logo__mark {
+  .site-logo__mark {
     width: 38px;
     height: 38px;
     font-size: 0.9rem;
