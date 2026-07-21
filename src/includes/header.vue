@@ -23,30 +23,30 @@
               <span>Centre de formation / École</span>
               <i class="bi bi-chevron-down site-nav__indicator"></i>
             </a>
-            <ul class="site-dropdown site-dropdown--mega">
-              <li>
-                <a href="#">À la découverte du centre / école</a>
-                <a href="#">Les réalités du centre / école</a>
-                <a href="#">Hors des murs du centre</a>
-              </li>
-              <li>
-                <a href="#">Orientation et choix de vie</a>
-                <router-link to="/temoignages">Témoignages</router-link>
-                <router-link to="/equipe-animation">Équipe d'animation</router-link>
-              </li>
-              <li>
-                <router-link to="/galerie">Galerie d'images & vidéos</router-link>
-                <router-link to="/partenaires">Nos partenaires</router-link>
-                <router-link to="/formations">Nos formations</router-link>
-                <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
-                <router-link to="/accompagnement">Demande d'accompagnement</router-link>
-                <router-link to="/services">Nos services</router-link>
-              </li>
-            </ul>
+                          <ul class="site-dropdown site-dropdown--mega">
+                <li>
+                  <a href="#">À la découverte du centre / école</a>
+                  <a href="#">Les réalités du centre / école</a>
+                  <a href="#">Hors des murs du centre</a>
+                  <a href="#">Orientation et choix de vie</a>
+                </li>
+                <li>
+                  <router-link to="/temoignages">Témoignages</router-link>
+                  <router-link to="/publications">Publications</router-link>
+                  <router-link to="/galerie">Galerie d'images & vidéos</router-link>
+                  <router-link to="/partenaires">Nos partenaires</router-link>
+                </li>
+                <li>
+                  <router-link to="/formations">Nos formations</router-link>
+                  <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
+                  <router-link to="/accompagnement">Demande d'accompagnement</router-link>
+                  <router-link to="/services">Nos services</router-link>
+                </li>
+              </ul>
           </li>
 
           <li class="site-nav__item">
-            <router-link to="/publications" class="site-nav__link">Publications</router-link>
+            <router-link to="/equipe-animation" class="site-nav__link">Équipe</router-link>
           </li>
 
           <li class="site-nav__item site-nav__item--dropdown">
@@ -115,7 +115,7 @@
             <li><a href="#">Hors des murs du centre</a></li>
             <li><a href="#">Orientation et choix de vie</a></li>
             <li><router-link to="/temoignages" @click="closeMobileNav">Témoignages</router-link></li>
-            <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe d'animation</router-link></li>
+            <li><router-link to="/publications" @click="closeMobileNav">Publications</router-link></li>
             <li><router-link to="/galerie" @click="closeMobileNav">Galerie d'images & vidéos</router-link></li>
             <li><router-link to="/partenaires" @click="closeMobileNav">Nos partenaires</router-link></li>
             <li><router-link to="/formations" @click="closeMobileNav">Nos formations</router-link></li>
@@ -125,7 +125,7 @@
           </ul>
         </li>
 
-        <li><router-link to="/publications" @click="closeMobileNav">Publications</router-link></li>
+        <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe</router-link></li>
 
         <li class="site-mobile-nav__dropdown">
           <a href="#" @click.prevent="toggleMobileDropdown">
@@ -452,7 +452,9 @@ onUnmounted(() => {
    largeur bornée par la fenêtre (jamais de débordement) */
 .site-dropdown--mega {
   width: min(720px, 92vw);
+  display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
 }
 
 .site-dropdown--mega li {

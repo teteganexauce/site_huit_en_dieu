@@ -102,6 +102,11 @@ const publicService = {
     const response = await api.get('/publications', { params });
     return response.data;
   },
+
+  async getCatalogue(params = {}) {
+    const response = await api.get('/catalogue', { params });
+    return response.data;
+  },
 };
 
 export default publicService;
