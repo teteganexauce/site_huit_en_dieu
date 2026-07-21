@@ -4,10 +4,13 @@
 
       <!-- Logo -->
       <router-link to="/" class="site-logo">
-        <span class="site-logo__mark">HED</span>
+        <span class="site-logo__mark" v-if="!siteStore.siteLogo">
+          {{ siteStore.siteMark }}
+        </span>
+        <img v-else :src="siteStore.siteLogo" alt="Logo" class="site-logo__img">
         <div class="site-logo__text">
-          <strong>École HED</strong>
-          <small>Éducation · Formation · Engagement</small>
+          <strong>{{ siteStore.siteName }}</strong>
+          <small>{{ siteStore.siteSlogan }}</small>
         </div>
       </router-link>
 
@@ -166,9 +169,11 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
+import { useSiteStore } from '../stores/site'
 
 const authStore = useAuthStore()
 const cartStore = useCartStore()
+const siteStore = useSiteStore()
 const route = useRoute()
 
 const isMobileNavOpen = ref(false)
@@ -195,6 +200,7 @@ function handleScroll() {
 watch(() => route.fullPath, closeMobileNav)
 
 onMounted(() => {
+  siteStore.fetchSettings()
   window.addEventListener('scroll', handleScroll, { passive: true })
 })
 
@@ -654,7 +660,15 @@ onUnmounted(() => {
     display: none;
   }
 
-  .site-logo__mark {
+.site-logo__img {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.site-logo__mark {
     width: 38px;
     height: 38px;
     font-size: 0.9rem;
