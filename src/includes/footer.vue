@@ -5,12 +5,12 @@
         <div class="row">
           <div class="col-lg-4 col-md-6">
             <div class="footer-info">
-              <h3 class="mb-0">INSTITUT NOUBOUDO</h3>
-              <h6 class="mb-4">Mystères Révélés</h6>
+              <h3 class="mb-0">{{ siteStore.siteName }}</h3>
+              <h6 class="mb-4">{{ siteStore.siteSlogan }}</h6>
               <p>
-                <strong>Phone:</strong> {{ settings.telephone || '+1 5589 55488 55' }}<br>
-                <strong>Email:</strong> {{ settings.email_contact || 'info@example.com' }}<br>
-                <strong>Adresse:</strong> {{ settings.adresse || '' }}<br>
+                <strong>Phone:</strong> {{ siteStore.settings.TELEPHONE || '+1 5589 55488 55' }}<br>
+                <strong>Email:</strong> {{ siteStore.settings.CONTACT_EMAIL || 'info@example.com' }}<br>
+                <strong>Adresse:</strong> {{ siteStore.settings.ADRESSE || '' }}<br>
               </p>
             </div>
           </div>
@@ -38,32 +38,22 @@
       <div class="container d-flex flex-column flex-lg-row justify-content-center justify-content-lg-between align-items-center">
         <div class="d-flex flex-column align-items-center align-items-lg-start">
           <div class="copyright">
-            &copy; Copyright <strong><span>Institut Nouboundo</span></strong>. Tous droits réservés
+            &copy; Copyright <strong><span>{{ siteStore.siteName }}</span></strong>. Tous droits réservés
           </div>
         </div>
         <div class="social-links order-first order-lg-last mb-3 mb-lg-0">
-          <a v-if="settings.reseaux_sociaux_facebook" :href="settings.reseaux_sociaux_facebook" class="facebook"><i class="bi bi-facebook"></i></a>
-          <a v-if="settings.reseaux_sociaux_twitter" :href="settings.reseaux_sociaux_twitter" class="twitter"><i class="bi bi-twitter"></i></a>
-          <a v-if="settings.reseaux_sociaux_instagram" :href="settings.reseaux_sociaux_instagram" class="instagram"><i class="bi bi-instagram"></i></a>
-          <a v-if="settings.reseaux_sociaux_youtube" :href="settings.reseaux_sociaux_youtube" class="youtube"><i class="bi bi-youtube"></i></a>
+          <a v-if="siteStore.settings.FACEBOOK_URL" :href="siteStore.settings.FACEBOOK_URL" class="facebook"><i class="bi bi-facebook"></i></a>
+          <a v-if="siteStore.settings.TWITTER_URL" :href="siteStore.settings.TWITTER_URL" class="twitter"><i class="bi bi-twitter"></i></a>
+          <a v-if="siteStore.settings.INSTAGRAM_URL" :href="siteStore.settings.INSTAGRAM_URL" class="instagram"><i class="bi bi-instagram"></i></a>
+          <a v-if="siteStore.settings.YOUTUBE_URL" :href="siteStore.settings.YOUTUBE_URL" class="youtube"><i class="bi bi-youtube"></i></a>
         </div>
       </div>
     </div>
   </footer>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
-import publicService from '../services/publicService'
+import { useSiteStore } from '../stores/site'
 
-const settings = ref({})
-
-onMounted(async () => {
-  try {
-    const data = await publicService.getSettings();
-    settings.value = data.data || data;
-  } catch (error) {
-    console.error('Erreur chargement settings:', error);
-  }
-})
+const siteStore = useSiteStore()
 </script>
 <style></style>

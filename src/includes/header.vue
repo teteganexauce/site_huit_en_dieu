@@ -196,8 +196,10 @@ function handleScroll() {
   isScrolled.value = window.scrollY > 12
 }
 
-// Ferme le menu mobile automatiquement au changement de page
-watch(() => route.fullPath, closeMobileNav)
+watch(() => route.fullPath, () => {
+  closeMobileNav()
+  siteStore.fetchSettings()
+})
 
 onMounted(() => {
   siteStore.fetchSettings()
