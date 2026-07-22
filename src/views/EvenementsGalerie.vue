@@ -12,6 +12,7 @@ const filtreActif = ref('tout')
 const searchQuery = ref('')
 const playVideo = ref(false)
 const videoTimer = ref(null)
+const videoEnded = ref(false)
 
 const maintenant = computed(() => new Date())
 
@@ -80,9 +81,26 @@ function isExternalUrl(url) {
   return url?.includes('youtube') || url?.includes('youtu.be') || url?.includes('vimeo') || url?.includes('dailymotion')
 }
 
+function onVideoEnded() {
+  playVideo.value = false
+  videoEnded.value = true
+  setTimeout(() => { videoEnded.value = false }, 300)
+}
+
+function handleYouTubeMessage(event) {
+  if (!firstVideo.value || !isExternalUrl(firstVideo.value.url)) return
+  try {
+    const data = JSON.parse(event.data)
+    if (data.event === 'onStateChange' && data.info === 0) {
+      onVideoEnded()
+    }
+  } catch {}
+}
+
 function startVideoTimer() {
   stopVideoTimer()
   playVideo.value = false
+  videoEnded.value = false
   videoTimer.value = setTimeout(() => {
     if (firstVideo.value) {
       playVideo.value = true
@@ -173,10 +191,12 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+  window.addEventListener('message', handleYouTubeMessage)
 })
 
 onUnmounted(() => {
   stopVideoTimer()
+  window.removeEventListener('message', handleYouTubeMessage)
 })
 </script>
 
@@ -269,8 +289,16 @@ onUnmounted(() => {
         <div class="col-lg-8">
           <div v-if="selectedEvent.imageUrl || firstVideo" class="rounded-4 overflow-hidden shadow-sm mb-4 position-relative" style="aspect-ratio:16/9;max-height:500px;background:#000">
             <img v-if="!playVideo && selectedEvent.imageUrl" :src="getImageUrl(selectedEvent)" :alt="selectedEvent.titre" class="w-100 h-100" style="object-fit:cover">
-            <iframe v-if="playVideo && firstVideo && isExternalUrl(firstVideo.url)" :src="firstVideo.url.includes('youtube') ? firstVideo.url.replace('watch?v=', 'embed/').split('&')[0] : firstVideo.url" class="w-100 h-100" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
-            <video v-if="playVideo && firstVideo && !isExternalUrl(firstVideo.url)" :src="firstVideo.url" class="w-100 h-100" style="object-fit:cover" controls autoplay muted playsinline></video>
+            <iframe v-if="playVideo && firstVideo && isExternalUrl(firstVideo.url)" :src="(firstVideo.url.includes('youtube') ? firstVideo.url.replace('watch?v=', 'embed/').split('&')[0] : firstVideo.url) + (firstVideo.url.includes('youtube') ? '?enablejsapi=1&autoplay=1' : '')" class="w-100 h-100" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+            <video v-if="playVideo && firstVideo && !isExternalUrl(firstVideo.url)" :src="firstVideo.url" class="w-100 h-100" style="object-fit:cover" controls autoplay playsinline @ended="onVideoEnded"></video>
+            <button v-if="playVideo" class="btn btn-sm btn-dark bg-opacity-50 position-absolute top-0 start-0 m-2 border-0" @click="playVideo = false; videoEnded = false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>
+              Photo
+            </button>
+            <button v-if="videoEnded && !playVideo" class="btn btn-sm btn-dark bg-opacity-50 position-absolute bottom-0 end-0 m-2 border-0" @click="playVideo = true; videoEnded = false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Revoir
+            </button>
           </div>
 
           <div class="d-flex flex-wrap gap-3 mb-3">
