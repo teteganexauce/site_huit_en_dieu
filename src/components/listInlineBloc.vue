@@ -28,6 +28,8 @@ const formatDate = (dateString) => {
 const clientLogos = [client1, client2, client3, client4, client5, client6, client7, client8]
 
 const formationsPopulaires = ref([])
+const boutiqueProduits = ref([])
+const publicationsRecentes = ref([])
 const isLoadingFormations = ref(true)
 
 const temoignages = ref([])
@@ -98,7 +100,27 @@ onMounted(async () => {
   } finally {
     isLoadingPartenaires.value = false;
   }
+
+  try {
+    const pData = await publicService.getCatalogue({ sort_by: 'ventes', per_page: 4, has_image: 1 });
+    boutiqueProduits.value = pData.data || pData;
+  } catch (error) {
+    console.error('Erreur chargement boutique:', error);
+  }
+
+  try {
+    const pubData = await publicService.getPublications({ per_page: 3 });
+    publicationsRecentes.value = pubData.data || pubData;
+  } catch (error) {
+    console.error('Erreur chargement publications:', error);
+  }
 })
+
+const getImageUrl = (url) => {
+    if (!url) return faqImg
+    if (url.includes('placeholder')) return faqImg
+    return url.startsWith('http') ? url : `http://localhost:8000${url}`
+}
 </script>
 
 <template>
