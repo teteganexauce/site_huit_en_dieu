@@ -15,9 +15,11 @@
               </p>
               <div class="social-links mt-3">
                 <a v-if="siteStore.settings.FACEBOOK_URL" :href="siteStore.settings.FACEBOOK_URL" class="facebook" target="_blank" rel="noopener"><i class="bi bi-facebook"></i></a>
-                <a v-if="siteStore.settings.TWITTER_URL" :href="siteStore.settings.TWITTER_URL" class="twitter" target="_blank" rel="noopener"><i class="bi bi-twitter-x"></i></a>
+                <a v-if="siteStore.settings.TWITTER_URL" :href="siteStore.settings.TWITTER_URL" class="twitter" target="_blank" rel="noopener"><i class="bi bi-twitter"></i></a>
                 <a v-if="siteStore.settings.INSTAGRAM_URL" :href="siteStore.settings.INSTAGRAM_URL" class="instagram" target="_blank" rel="noopener"><i class="bi bi-instagram"></i></a>
                 <a v-if="siteStore.settings.YOUTUBE_URL" :href="siteStore.settings.YOUTUBE_URL" class="youtube" target="_blank" rel="noopener"><i class="bi bi-youtube"></i></a>
+                <a v-if="siteStore.settings.LINKEDIN_URL" :href="siteStore.settings.LINKEDIN_URL" class="linkedin" target="_blank" rel="noopener"><i class="bi bi-linkedin"></i></a>
+                <a v-if="siteStore.settings.WHATSAPP_NUMBER" :href="'https://wa.me/' + siteStore.settings.WHATSAPP_NUMBER" class="whatsapp" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i></a>
               </div>
             </div>
           </div>
