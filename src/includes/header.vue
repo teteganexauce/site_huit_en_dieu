@@ -4,10 +4,13 @@
 
       <!-- Logo -->
       <router-link to="/" class="site-logo">
-        <span class="site-logo__mark">HED</span>
+        <span class="site-logo__mark" v-if="!siteStore.siteLogo">
+          {{ siteStore.siteMark }}
+        </span>
+        <img v-else :src="siteStore.siteLogo" alt="Logo" class="site-logo__img">
         <div class="site-logo__text">
-          <strong>École HED</strong>
-          <small>Éducation · Formation · Engagement</small>
+          <strong>{{ siteStore.siteName }}</strong>
+          <small>{{ siteStore.siteSlogan }}</small>
         </div>
       </router-link>
 
@@ -23,29 +26,30 @@
               <span>Centre de formation / École</span>
               <i class="bi bi-chevron-down site-nav__indicator"></i>
             </a>
-            <ul class="site-dropdown site-dropdown--mega">
-              <li>
-                <a href="#">À la découverte du centre / école</a>
-                <a href="#">Les réalités du centre / école</a>
-                <a href="#">Hors des murs du centre</a>
-              </li>
-              <li>
-                <a href="#">Orientation et choix de vie</a>
-                <router-link to="/temoignages">Témoignages</router-link>
-                <router-link to="/equipe-animation">Équipe d'animation</router-link>
-              </li>
-              <li>
-                <router-link to="/galerie">Galerie d'images & vidéos</router-link>
-                <router-link to="/partenaires">Nos partenaires</router-link>
-                <router-link to="/formations">Nos formations</router-link>
-                <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
-                <router-link to="/services">Nos services</router-link>
-              </li>
-            </ul>
+                          <ul class="site-dropdown site-dropdown--mega">
+                <li>
+                  <a href="#">À la découverte du centre / école</a>
+                  <a href="#">Les réalités du centre / école</a>
+                  <a href="#">Hors des murs du centre</a>
+                  <a href="#">Orientation et choix de vie</a>
+                </li>
+                <li>
+                  <router-link to="/temoignages">Témoignages</router-link>
+                  <router-link to="/publications">Publications</router-link>
+                  <router-link to="/galerie">Évènements</router-link>
+                  <router-link to="/partenaires">Nos partenaires</router-link>
+                </li>
+                <li>
+                  <router-link to="/formations">Nos formations</router-link>
+                  <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
+                  <router-link to="/accompagnement">Demande d'accompagnement</router-link>
+                  <router-link to="/services">Nos services</router-link>
+                </li>
+              </ul>
           </li>
 
           <li class="site-nav__item">
-            <router-link to="/publications" class="site-nav__link">Publications</router-link>
+            <router-link to="/equipe-animation" class="site-nav__link">Équipe</router-link>
           </li>
 
           <li class="site-nav__item site-nav__item--dropdown">
@@ -56,7 +60,7 @@
             <ul class="site-dropdown">
               <li><router-link to="/boutique" class="site-nav__link">Toute la boutique</router-link></li>
               <li><router-link to="/e-book" class="site-nav__link">Nos e-books</router-link></li>
-              <li><router-link to="/objets" class="site-nav__link">Objets en vente</router-link></li>
+              <li><router-link to="/boutique?type=objet_sacre" class="site-nav__link">Objets en vente</router-link></li>
             </ul>
           </li>
           <li class="site-nav__item">
@@ -73,7 +77,7 @@
             {{ cartStore.itemCount }}
           </span>
         </router-link>
-        <router-link to="/#about" class="site-btn site-btn--donate">
+        <router-link to="/dons" class="site-btn site-btn--donate">
           <i class="bi bi-heart-fill"></i>
           Faire un don
         </router-link>
@@ -114,16 +118,17 @@
             <li><a href="#">Hors des murs du centre</a></li>
             <li><a href="#">Orientation et choix de vie</a></li>
             <li><router-link to="/temoignages" @click="closeMobileNav">Témoignages</router-link></li>
-            <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe d'animation</router-link></li>
-            <li><router-link to="/galerie" @click="closeMobileNav">Galerie d'images & vidéos</router-link></li>
+            <li><router-link to="/publications" @click="closeMobileNav">Publications</router-link></li>
+            <li><router-link to="/galerie" @click="closeMobileNav">Évènements</router-link></li>
             <li><router-link to="/partenaires" @click="closeMobileNav">Nos partenaires</router-link></li>
             <li><router-link to="/formations" @click="closeMobileNav">Nos formations</router-link></li>
             <li><router-link to="/rubriques-culture" @click="closeMobileNav">Rubriques culturelles</router-link></li>
+            <li><router-link to="/accompagnement" @click="closeMobileNav">Demande d'accompagnement</router-link></li>
             <li><router-link to="/services" @click="closeMobileNav">Nos services</router-link></li>
           </ul>
         </li>
 
-        <li><router-link to="/publications" @click="closeMobileNav">Publications</router-link></li>
+        <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe</router-link></li>
 
         <li class="site-mobile-nav__dropdown">
           <a href="#" @click.prevent="toggleMobileDropdown">
@@ -133,7 +138,7 @@
           <ul>
             <li><router-link to="/boutique" @click="closeMobileNav">Toute la boutique</router-link></li>
             <li><router-link to="/e-book" @click="closeMobileNav">Nos e-books</router-link></li>
-            <li><router-link to="/objets" @click="closeMobileNav">Objets en vente</router-link></li>
+            <li><router-link to="/boutique?type=objet_sacre" @click="closeMobileNav">Objets en vente</router-link></li>
           </ul>
         </li>
 
@@ -164,9 +169,11 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
+import { useSiteStore } from '../stores/site'
 
 const authStore = useAuthStore()
 const cartStore = useCartStore()
+const siteStore = useSiteStore()
 const route = useRoute()
 
 const isMobileNavOpen = ref(false)
@@ -189,10 +196,13 @@ function handleScroll() {
   isScrolled.value = window.scrollY > 12
 }
 
-// Ferme le menu mobile automatiquement au changement de page
-watch(() => route.fullPath, closeMobileNav)
+watch(() => route.fullPath, () => {
+  closeMobileNav()
+  siteStore.fetchSettings()
+})
 
 onMounted(() => {
+  siteStore.fetchSettings()
   window.addEventListener('scroll', handleScroll, { passive: true })
 })
 
@@ -271,6 +281,14 @@ onUnmounted(() => {
 .site-logo:hover .site-logo__mark {
   box-shadow: 0 14px 35px rgba(37, 99, 235, 0.35);
   transform: rotate(-3deg) scale(1.05);
+}
+
+.site-logo__img {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .site-logo__text {
@@ -450,7 +468,9 @@ onUnmounted(() => {
    largeur bornée par la fenêtre (jamais de débordement) */
 .site-dropdown--mega {
   width: min(720px, 92vw);
+  display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
 }
 
 .site-dropdown--mega li {
@@ -650,6 +670,11 @@ onUnmounted(() => {
 @media (max-width: 576px) {
   .site-logo__text small {
     display: none;
+  }
+
+  .site-logo__img {
+    width: 38px;
+    height: 38px;
   }
 
   .site-logo__mark {

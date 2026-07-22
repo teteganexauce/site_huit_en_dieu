@@ -31,6 +31,11 @@ const publicService = {
     return response.data;
   },
 
+  async getEventSimilaires(id) {
+    const response = await api.get(`/evenements/${id}/similaires`);
+    return response.data;
+  },
+
   async getGallery(params = {}) {
     const response = await api.get('/galerie', { params });
     return response.data;
@@ -95,6 +100,16 @@ const publicService = {
 
   async getMyInscriptions() {
     const response = await api.get('/user/inscriptions');
+    return response.data;
+  },
+
+  async getPublications(params = {}) {
+    const response = await api.get('/publications', { params });
+    return response.data;
+  },
+
+  async getCatalogue(params = {}) {
+    const response = await api.get('/catalogue', { params });
     return response.data;
   },
 };

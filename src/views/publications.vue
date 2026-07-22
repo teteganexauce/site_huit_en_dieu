@@ -1,22 +1,52 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import BookComponent from '../components/book.vue'
+import publicService from '../services/publicService'
 
 const categories = ref([
-   {
-      title: "Travaux de recherches"
-   },
-   {
-      title: "Pensées quotidienne"
-   },
-   {
-      title: "Réflexion sur les travaux de recherches"
-   },
+   { id: 'tous', title: "Toutes les publications" },
+   { id: 'article', title: "Articles" },
+   { id: 'livre', title: "Livres" },
+   { id: 'these', title: "Thèses" },
+   { id: 'video', title: "Vidéos" },
+   { id: 'audio', title: "Audios" },
 ])
 
-</script>
+const activeTab = ref('tous')
+const expandedPublications = ref([])
 
+const toggleReadMore = (id) => {
+  if (expandedPublications.value.includes(id)) {
+    expandedPublications.value = expandedPublications.value.filter(pubId => pubId !== id)
+  } else {
+    expandedPublications.value.push(id)
+  }
+}
+const publications = ref([])
+const isLoading = ref(true)
+
+onMounted(async () => {
+  try {
+    const response = await publicService.getPublications()
+    publications.value = response.data || []
+  } catch (error) {
+    console.error("Erreur lors de la récupération des publications", error)
+  } finally {
+    isLoading.value = false
+  }
+})
+
+const filteredPublications = computed(() => {
+  if (activeTab.value === 'tous') return publications.value
+  return publications.value.filter(pub => pub.type === activeTab.value)
+})
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+</script>
 
 <template>
    <BreadcombsComponent title="Nos Publications" />
@@ -25,107 +55,104 @@ const categories = ref([
          <!-- Tabs -->
          <div class="bg-ps-primary">
             <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
-
-               <li class="py-0" v-for="(item, index) in categories" :key="index">
-                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == $route.params.key }"
-                     data-bs-toggle="pill" :href="`#tab${index + 1}`"
-                     aria-selected="{{ (index==$route.params.key) ? 'false':'' }}" role="tab" tabindex="-1">
+               <li class="py-0" v-for="item in categories" :key="item.id">
+                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': activeTab === item.id }"
+                     href="#" @click.prevent="activeTab = item.id" role="tab">
                      {{ item.title }}
                   </a>
                </li>
-            </ul><!-- End Tabs -->
+            </ul>
          </div>
 
-         <!-- Tab Content -->
-         <div class="tab-content container p-0">
-            <div v-for="(item, index) in categories" :key="index" class="tab-pane fade p-0 m-0"
-               :class="{ 'active show': index == $route.params.key }" :id="`tab${index + 1}`" role="tabpanel">
-               <div class="d-flex mt-4 align-items-center justify-content-between">
-                  <h3 class="text-secondary mb-0">{{ item.title }}</h3>
-                  <div class="search">
-                     <span class="bg-light py-2 px-3" data-bs-toggle="collapse" data-bs-target="#collapseExample"
-                        aria-expanded="false" aria-controls="collapseExample"><i class="bi bi-search"></i></span>
-                  </div>
+         <!-- Content -->
+         <div class="container p-0">
+            <div class="d-flex mt-4 align-items-center justify-content-between">
+               <h3 class="text-secondary mb-0">
+                  {{ categories.find(c => c.id === activeTab)?.title }}
+               </h3>
+               <div class="search">
+                  <span class="bg-light py-2 px-3 rounded" data-bs-toggle="collapse" data-bs-target="#collapseSearch"
+                     aria-expanded="false" aria-controls="collapseSearch"><i class="bi bi-search"></i></span>
                </div>
-               <div>
-                  <div class="collapse mt-4" id="collapseExample">
-                     <form action="" class="d-flex">
-                        <div class="w-100">
-                           <input class="form-control rounded-1 shadow-none" type="text" name="search" id="search"
-                              placeholder="Faites un recherche">
-                        </div>
-                        <div class="d-flex">
-                           <button class="btn btn-primary mx-1 rounded-1" type="submit">Rechercher</button>
-                           <button class="btn btn-danger rounded-1" type="reset">Annuler</button>
-                        </div>
-                     </form>
+            </div>
+            
+            <div class="collapse mt-4" id="collapseSearch">
+               <form action="" class="d-flex" @submit.prevent>
+                  <div class="w-100">
+                     <input class="form-control rounded-1 shadow-none" type="text" placeholder="Faites une recherche">
                   </div>
-               </div>
-               <section id="blog" class="blog mt-4 pt-4">
-                  <div class="container aos-init aos-animate" data-aos="fade-up">
-                     <div class="row g-5">
-                        <div class="col-lg-12">
-                           <div class="row gy-4 posts-list">
+                  <div class="d-flex">
+                     <button class="btn btn-primary mx-1 rounded-1" type="submit">Rechercher</button>
+                  </div>
+               </form>
+            </div>
 
-                              <div class="col-lg-4" v-for="n in 5">
-                                 <article class="d-flex flex-column">
-
-                                    <div class="post-img">
-                                       <img src="../assets/img/blog/blog-3.jpg" width="100m" class="img-fluid">
-                                    </div>
-
-                                    <h5 class="title mt-3">
-                                       <router-link to="/publications/detail" class="pub-title fs-5">Possimus soluta ut id
-                                          suscipit ea ut.
-                                          In quo quia et soluta libero sit sint.</router-link>
-                                    </h5>
-
-                                    <div class="meta-top">
-                                       <ul>
-                                          <li class="d-flex align-items-center"><i class="bi bi-person"></i> <a
-                                                href="blog-details.html">John Doe</a></li>
-                                          <li class="d-flex align-items-center"><i class="bi bi-clock"></i> <a
-                                                href="blog-details.html"><time datetime="2022-01-01">Jan 1, 2022</time></a>
-                                          </li>
-                                       </ul>
-                                    </div>
-
-                                    <div class="content mb-3">
-                                       <p>
-                                          Aut iste neque ut illum qui perspiciatis similique recusandae non. Fugit autem
-                                          dolorem labore omnis et. Eum temporibus fugiat voluptate enim tenetur sunt omnis.
-                                       </p>
-                                    </div>
-
-                                    <div class="read-more mt-auto d-flex justify-content-between">
-                                       <li class="d-flex align-items-center small text-grey"><i
-                                             class="bi bi-chat-dots"></i>&nbsp; <span href="blog-detspanils.html">12
-                                             Comments</span></li>
-                                       <a href="blog-details.html" class="d-block">Read More</a>
-                                    </div>
-
-                                 </article>
-                              </div><!-- End post list item -->
-
-                           </div><!-- End blog posts list -->
-
-                           <div class="blog-pagination">
-                              <ul class="justify-content-center">
-                                 <li><a href="#">1</a></li>
-                                 <li class="active"><a href="#">2</a></li>
-                                 <li><a href="#">3</a></li>
-                              </ul>
-                           </div><!-- End blog pagination -->
-
-                        </div>
-
+            <section id="blog" class="blog mt-4 pt-4 mb-5">
+               <div class="container">
+                  <div v-if="isLoading" class="text-center py-5">
+                     <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
                      </div>
-
                   </div>
-               </section>
-            </div><!-- End Tab 1 Content -->
-         </div>
+                  
+                  <div v-else-if="filteredPublications.length === 0" class="text-center py-5 text-muted">
+                     <i class="bi bi-journal-x display-1 text-secondary opacity-50 mb-3"></i>
+                     <h4>Aucune publication trouvée</h4>
+                     <p>Il n'y a pas encore de publications dans cette catégorie.</p>
+                  </div>
 
+                  <div v-else class="row g-4 posts-list">
+                     <div class="col-lg-4 col-md-6" v-for="pub in filteredPublications" :key="pub.id">
+                        <article class="d-flex flex-column h-100">
+                           <div class="post-img">
+                              <img v-if="pub.image_url" :src="pub.image_url" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                              <img v-else src="../assets/img/blog/blog-3.jpg" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                           </div>
+                           
+                           <h5 class="title mt-3">
+                              <a href="#" class="pub-title fs-5">{{ pub.titre }}</a>
+                           </h5>
+                           
+                           <div class="meta-top">
+                              <ul>
+                                 <li class="d-flex align-items-center">
+                                    <i class="bi bi-person"></i> 
+                                    <a href="#">{{ pub.chercheur?.nom || 'Auteur inconnu' }}</a>
+                                 </li>
+                                 <li class="d-flex align-items-center">
+                                    <i class="bi bi-clock"></i> 
+                                    <a href="#"><time>{{ formatDate(pub.created_at || pub.dateSoumission) }}</time></a>
+                                 </li>
+                                 <li class="d-flex align-items-center text-capitalize">
+                                    <i class="bi bi-journal-text"></i> 
+                                    <a href="#">{{ pub.type }}</a>
+                                 </li>
+                              </ul>
+                           </div>
+                           
+                                                                                 <div class="content mb-3 flex-grow-1">
+                              <p :class="{'line-clamp': !expandedPublications.includes(pub.id)}" class="text-muted mb-1">
+                                 {{ pub.resume || 'Aucun résumé disponible pour cette publication.' }}
+                              </p>
+                              <button class="btn btn-link p-0 text-decoration-none small text-primary" @click="toggleReadMore(pub.id)" v-if="pub.resume && pub.resume.length > 150">
+                                 {{ expandedPublications.includes(pub.id) ? 'Lire moins' : 'Lire plus' }}
+                              </button>
+                           </div>
+                           
+                           <div class="read-more mt-auto align-self-end" v-if="pub.fichierUrl || pub.lien_externe">
+                              <a v-if="pub.fichierUrl" :href="pub.fichierUrl" target="_blank" class="me-3">
+                                 <i class="bi bi-file-earmark-pdf"></i> Consulter le document
+                              </a>
+                              <a v-else-if="pub.lien_externe" :href="pub.lien_externe" target="_blank" class="text-secondary">
+                                 <i class="bi bi-box-arrow-up-right"></i> Lien externe
+                              </a>
+                           </div>
+                        </article>
+                     </div>
+                  </div>
+               </div>
+            </section>
+         </div>
       </div>
    </div>
 </template>
@@ -149,35 +176,33 @@ const categories = ref([
    color: white;
 }
 
-/* .bg-ps-light {
-   background-color: rgba(238, 238, 238, 0.233);
-} */
+.bg-ps-primary {
+   background-color: var(--color-primary);
+   padding-top: 15px;
+   border-radius: 0 0 10px 10px;
+}
 
 .pub-title {
+   display: -webkit-box;
    -webkit-line-clamp: 2;
-   display: -webkit-box;
    -webkit-box-orient: vertical;
    overflow: hidden;
-   word-wrap: break-word;
 }
 
-.posts-list .content {
-   -webkit-line-clamp: 3;
+.card-text {
    display: -webkit-box;
+   -webkit-line-clamp: 4;
    -webkit-box-orient: vertical;
    overflow: hidden;
-   word-wrap: break-word;
 }
 
-/* .text-grey {
-   color: rgb(131, 131, 131);
-} */
+.card {
+   transition: transform 0.2s, box-shadow 0.2s;
+}
 
-.post-img img {
-   max-height: 150px !important;
-   object-fit: cover;
-   transition: .5s;
-   width: 100% !important;
+.card:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
 }
 
 .search span {
@@ -186,10 +211,12 @@ const categories = ref([
 }
 
 .search span:hover {
-   background-color: rgb(224, 224, 224) !important;
+   background-color: #e9ecef !important;
 }
-
-.post-img:hover img {
-   transform: scale(1.05);
+.line-clamp {
+   display: -webkit-box;
+   -webkit-line-clamp: 4;
+   -webkit-box-orient: vertical;
+   overflow: hidden;
 }
 </style>
