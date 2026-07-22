@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
 import defaultImg from '../assets/img/blog/blog-3.jpg'
@@ -10,6 +10,8 @@ const selectedEvent = ref(null)
 const similaires = ref([])
 const filtreActif = ref('tout')
 const searchQuery = ref('')
+const playVideo = ref(false)
+const videoTimer = ref(null)
 
 const maintenant = computed(() => new Date())
 
@@ -69,6 +71,32 @@ const eventsFiltres = computed(() => {
 
 const lightboxUrl = ref(null)
 
+const firstVideo = computed(() => {
+  if (!selectedEvent.value?.media?.length) return null
+  return selectedEvent.value.media.find(m => m.type === 'video') || null
+})
+
+function isExternalUrl(url) {
+  return url?.includes('youtube') || url?.includes('youtu.be') || url?.includes('vimeo') || url?.includes('dailymotion')
+}
+
+function startVideoTimer() {
+  stopVideoTimer()
+  playVideo.value = false
+  videoTimer.value = setTimeout(() => {
+    if (firstVideo.value) {
+      playVideo.value = true
+    }
+  }, 5000)
+}
+
+function stopVideoTimer() {
+  if (videoTimer.value) {
+    clearTimeout(videoTimer.value)
+    videoTimer.value = null
+  }
+}
+
 function openLightbox(url) {
   lightboxUrl.value = url
 }
@@ -79,7 +107,9 @@ function closeLightbox() {
 
 function selectEvent(event) {
   selectedEvent.value = event
+  playVideo.value = false
   window.scrollTo({ top: 0, behavior: 'smooth' })
+  startVideoTimer()
   if (event?.id) {
     publicService.getEventSimilaires(event.id).then(data => {
       similaires.value = data.data || data || []
@@ -92,6 +122,8 @@ function selectEvent(event) {
 function closeDetail() {
   selectedEvent.value = null
   similaires.value = []
+  stopVideoTimer()
+  playVideo.value = false
 }
 
 function formatDate(dateStr) {
@@ -141,6 +173,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+})
+
+onUnmounted(() => {
+  stopVideoTimer()
 })
 </script>
 
@@ -231,8 +267,9 @@ onMounted(async () => {
 
       <div class="row g-5">
         <div class="col-lg-8">
-          <div v-if="selectedEvent.imageUrl" class="rounded-4 overflow-hidden shadow-sm mb-4" style="max-height:420px">
-            <img :src="getImageUrl(selectedEvent)" :alt="selectedEvent.titre" class="w-100 h-100" style="object-fit:cover">
+          <div v-if="selectedEvent.imageUrl" class="rounded-4 overflow-hidden shadow-sm mb-4 position-relative" style="max-height:420px">
+            <img v-if="!playVideo" :src="getImageUrl(selectedEvent)" :alt="selectedEvent.titre" class="w-100 h-100" style="object-fit:cover">
+            <video v-else :src="firstVideo?.url" class="w-100 h-100" style="object-fit:cover" controls autoplay muted playsinline></video>
           </div>
 
           <div class="d-flex flex-wrap gap-3 mb-3">
@@ -264,8 +301,11 @@ onMounted(async () => {
                 <div v-if="m.type === 'image'" class="rounded-3 overflow-hidden shadow-sm" style="height:200px;cursor:pointer" @click="openLightbox(m.url)">
                   <img :src="m.url" :alt="m.titre || 'Photo'" class="w-100 h-100" style="object-fit:cover;transition:.3s" @mouseover="$event.target.style.transform='scale(1.05)'" @mouseout="$event.target.style.transform='scale(1)'">
                 </div>
-                <div v-else class="rounded-3 overflow-hidden shadow-sm position-relative" style="height:200px;background:#000">
+                <div v-else-if="isExternalUrl(m.url)" class="rounded-3 overflow-hidden shadow-sm position-relative" style="height:200px;background:#000">
                   <iframe :src="m.url.includes('youtube') ? m.url.replace('watch?v=', 'embed/').split('&')[0] : m.url" class="w-100 h-100" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div v-else class="rounded-3 overflow-hidden shadow-sm position-relative" style="height:200px;background:#000">
+                  <video :src="m.url" class="w-100 h-100" style="object-fit:cover" controls preload="metadata"></video>
                 </div>
               </div>
             </div>
