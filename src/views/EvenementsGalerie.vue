@@ -267,7 +267,7 @@ onUnmounted(() => {
 
       <div class="row g-5">
         <div class="col-lg-8">
-          <div v-if="selectedEvent.imageUrl || firstVideo" class="rounded-4 overflow-hidden shadow-sm mb-4 position-relative" style="max-height:420px;background:#000">
+          <div v-if="selectedEvent.imageUrl || firstVideo" class="rounded-4 overflow-hidden shadow-sm mb-4 position-relative" style="aspect-ratio:16/9;max-height:500px;background:#000">
             <img v-if="!playVideo && selectedEvent.imageUrl" :src="getImageUrl(selectedEvent)" :alt="selectedEvent.titre" class="w-100 h-100" style="object-fit:cover">
             <iframe v-if="playVideo && firstVideo && isExternalUrl(firstVideo.url)" :src="firstVideo.url.includes('youtube') ? firstVideo.url.replace('watch?v=', 'embed/').split('&')[0] : firstVideo.url" class="w-100 h-100" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
             <video v-if="playVideo && firstVideo && !isExternalUrl(firstVideo.url)" :src="firstVideo.url" class="w-100 h-100" style="object-fit:cover" controls autoplay muted playsinline></video>
@@ -299,13 +299,13 @@ onUnmounted(() => {
             </h4>
             <div class="row g-3">
               <div v-for="m in selectedEvent.media" :key="m.id" class="col-md-4 col-sm-6">
-                <div v-if="m.type === 'image'" class="rounded-3 overflow-hidden shadow-sm" style="height:200px;cursor:pointer" @click="openLightbox(m.url)">
+                <div v-if="m.type === 'image'" class="rounded-3 overflow-hidden shadow-sm" style="aspect-ratio:3/2;cursor:pointer" @click="openLightbox(m.url)">
                   <img :src="m.url" :alt="m.titre || 'Photo'" class="w-100 h-100" style="object-fit:cover;transition:.3s" @mouseover="$event.target.style.transform='scale(1.05)'" @mouseout="$event.target.style.transform='scale(1)'">
                 </div>
-                <div v-else-if="isExternalUrl(m.url)" class="rounded-3 overflow-hidden shadow-sm position-relative" style="height:200px;background:#000">
+                <div v-else-if="isExternalUrl(m.url)" class="rounded-3 overflow-hidden shadow-sm position-relative" style="aspect-ratio:3/2;background:#000">
                   <iframe :src="m.url.includes('youtube') ? m.url.replace('watch?v=', 'embed/').split('&')[0] : m.url" class="w-100 h-100" frameborder="0" allowfullscreen></iframe>
                 </div>
-                <div v-else class="rounded-3 overflow-hidden shadow-sm position-relative" style="height:200px;background:#000">
+                <div v-else class="rounded-3 overflow-hidden shadow-sm position-relative" style="aspect-ratio:3/2;background:#000">
                   <video :src="m.url" class="w-100 h-100" style="object-fit:cover" controls preload="metadata"></video>
                 </div>
               </div>
