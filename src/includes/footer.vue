@@ -13,6 +13,12 @@
                 <strong>Adresse :</strong> {{ siteStore.settings.ADRESSE || '' }}<br>
                 <span v-if="siteStore.settings.HORAIRE"><strong>Horaires :</strong> {{ siteStore.settings.HORAIRE }}<br></span>
               </p>
+              <div class="social-links mt-3">
+                <a v-if="siteStore.settings.FACEBOOK_URL" :href="siteStore.settings.FACEBOOK_URL" class="facebook" target="_blank" rel="noopener"><i class="bi bi-facebook"></i></a>
+                <a v-if="siteStore.settings.TWITTER_URL" :href="siteStore.settings.TWITTER_URL" class="twitter" target="_blank" rel="noopener"><i class="bi bi-twitter-x"></i></a>
+                <a v-if="siteStore.settings.INSTAGRAM_URL" :href="siteStore.settings.INSTAGRAM_URL" class="instagram" target="_blank" rel="noopener"><i class="bi bi-instagram"></i></a>
+                <a v-if="siteStore.settings.YOUTUBE_URL" :href="siteStore.settings.YOUTUBE_URL" class="youtube" target="_blank" rel="noopener"><i class="bi bi-youtube"></i></a>
+              </div>
             </div>
           </div>
           <div class="col-lg-4 col-md-6 footer-links">
@@ -36,15 +42,9 @@
       </div>
     </div>
     <div class="footer-legal text-center">
-      <div class="container d-flex flex-column flex-lg-row justify-content-center align-items-center gap-3">
+      <div class="container">
         <div class="copyright">
           &copy; Copyright <strong><span>{{ siteStore.siteName }}</span></strong>. Tous droits réservés
-        </div>
-        <div class="social-links">
-          <a v-if="siteStore.settings.FACEBOOK_URL" :href="siteStore.settings.FACEBOOK_URL" class="facebook"><i class="bi bi-facebook"></i></a>
-          <a v-if="siteStore.settings.TWITTER_URL" :href="siteStore.settings.TWITTER_URL" class="twitter"><i class="bi bi-twitter"></i></a>
-          <a v-if="siteStore.settings.INSTAGRAM_URL" :href="siteStore.settings.INSTAGRAM_URL" class="instagram"><i class="bi bi-instagram"></i></a>
-          <a v-if="siteStore.settings.YOUTUBE_URL" :href="siteStore.settings.YOUTUBE_URL" class="youtube"><i class="bi bi-youtube"></i></a>
         </div>
       </div>
     </div>
