@@ -72,7 +72,7 @@ onMounted(async () => {
       publicService.getSlides(),
       publicService.getEvents()
     ]);
-    const slidesList = slideData.data || slideData || [];
+    const slidesList = (slideData.data || slideData || []).map(s => ({ ...s, lien: null }));
     const eventsList = eventData.data || eventData || [];
 
     // Garder les slides de la bdd, puis ajouter les 3 prochains événements à venir
@@ -85,7 +85,7 @@ onMounted(async () => {
         titre: e.titre,
         texte: e.description ? (e.description.length > 120 ? e.description.substring(0, 120) + '...' : e.description) : '',
         imageUrl: e.imageUrl,
-        lien: e.lieu ? '/evenements' : null
+        lien: '/galerie'
       }));
 
     slides.value = [...slidesList, ...upcoming];
