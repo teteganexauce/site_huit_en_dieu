@@ -14,8 +14,8 @@
    </div>
    <div class="position-relative">
       <div class="bg-white" v-if="!isLoading && slides.length > 0">
-         <swiper :slides-per-view="1" :space-between="50" loop navigation :pagination="{ clickable: true }"
-            @swiper="onSwiper" @slideChange="onSlideChange" :modules="[Navigation, Pagination, A11y]">
+          <swiper :slides-per-view="1" :space-between="50" loop navigation :pagination="{ clickable: true }" :autoplay="{ delay: 6000, disableOnInteraction: false }"
+             @swiper="onSwiper" @slideChange="onSlideChange" :modules="[Navigation, Pagination, A11y, Autoplay]">
              <swiper-slide v-for="(item, index) in slides" :key="item.id || index">
                 <div class="swiper-item position-relative">
                    <img :src="item.imageUrl || defaultImg" :alt="item.titre">
@@ -45,7 +45,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Navigation, Pagination, A11y } from 'swiper/modules';
+import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 
 import 'swiper/css'
 import 'swiper/css/navigation';
@@ -83,7 +83,7 @@ onMounted(async () => {
       .map(e => ({
         id: 'event-' + e.id,
         titre: e.titre,
-        texte: e.description,
+        texte: e.description ? (e.description.length > 120 ? e.description.substring(0, 120) + '...' : e.description) : '',
         imageUrl: e.imageUrl,
         lien: e.lieu ? '/evenements' : null
       }));
@@ -105,9 +105,9 @@ onMounted(async () => {
 .swiper-item {
    /* --header-height est déjà géré par #main dans App.vue :
       plus besoin de soustraire 80px ni d'ajouter de margin-top ici */
-   height: calc(60vh - var(--header-height, 92px));
-   min-height: 360px;
-   max-height: 500px;
+   height: calc(85vh - var(--header-height, 92px));
+   min-height: 480px;
+   max-height: 650px;
    width: 100%;
    display: flex;
    justify-content: center;
