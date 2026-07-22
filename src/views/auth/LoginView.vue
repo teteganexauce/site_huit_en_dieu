@@ -81,6 +81,11 @@
           </button>
         </form>
 
+        <div class="register-link">
+          Vous n'avez pas de compte ?
+          <router-link :to="{ name: 'register' }">Créer un compte</router-link>
+        </div>
+
         <div class="login-footer">
           <span>{{ siteDisplayName }}</span> &bull; v2.0.1
         </div>
@@ -489,6 +494,27 @@ onMounted(() => {
 
 .error-message svg {
   flex-shrink: 0;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 20px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.register-link a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 2px;
+  transition: color 0.2s ease;
+}
+
+.register-link a:hover {
+  color: #60a5fa;
+  text-decoration: underline;
 }
 
 .login-footer {
