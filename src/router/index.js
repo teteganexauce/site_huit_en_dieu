@@ -36,6 +36,11 @@ import CertificatPage from '../views/CertificatPage.vue';
 
 import AccompagnementView from '../views/user/AccompagnementView.vue';
 
+// Forum
+import ForumIndex from '../views/Forum/ForumIndex.vue';
+import ForumTopic from '../views/Forum/ForumTopic.vue';
+import ForumCreateTopic from '../views/Forum/ForumCreateTopic.vue';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -74,6 +79,9 @@ const router = createRouter({
     { path: "/apprentissage/:inscriptionId", name: "coursPlayer", component: CoursPlayer, meta: { requiresAuth: true } },
     { path: "/apprentissage/:inscriptionId/:coursId", name: "coursPlayerCours", component: CoursPlayer, meta: { requiresAuth: true } },
     { path: "/inscriptions/:id/certificat", name: "certificat", component: CertificatPage, meta: { requiresAuth: true } },
+    { path: "/forum", name: "forum", component: ForumIndex },
+    { path: "/forum/creer", name: "forum-create", component: ForumCreateTopic, meta: { requiresAuth: true } },
+    { path: "/forum/:id", name: "forum-topic", component: ForumTopic },
   ],
 });
 

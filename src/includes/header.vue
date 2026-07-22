@@ -52,6 +52,10 @@
             <router-link to="/equipe-animation" class="site-nav__link">Équipe</router-link>
           </li>
 
+          <li class="site-nav__item">
+            <router-link to="/forum" class="site-nav__link">Forum</router-link>
+          </li>
+
           <li class="site-nav__item site-nav__item--dropdown">
             <a href="#" class="site-nav__link site-nav__link--toggle">
               <span>Espace de vente</span>
@@ -129,6 +133,7 @@
         </li>
 
         <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe</router-link></li>
+        <li><router-link to="/forum" @click="closeMobileNav">Forum</router-link></li>
 
         <li class="site-mobile-nav__dropdown">
           <a href="#" @click.prevent="toggleMobileDropdown">
