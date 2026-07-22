@@ -106,7 +106,7 @@ const publicService = {
   async getCatalogue(params = {}) {
     const response = await api.get('/catalogue', { params });
     return response.data;
-  }
+  },
 };
 
 export default publicService;

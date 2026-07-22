@@ -117,7 +117,7 @@ const formatDate = (dateString) => {
                               <ul>
                                  <li class="d-flex align-items-center">
                                     <i class="bi bi-person"></i> 
-                                    <a href="#">{{ pub.chercheur?.user?.prenom }} {{ pub.chercheur?.user?.nom }}</a>
+                                    <a href="#">{{ pub.chercheur?.nom || 'Auteur inconnu' }}</a>
                                  </li>
                                  <li class="d-flex align-items-center">
                                     <i class="bi bi-clock"></i> 
