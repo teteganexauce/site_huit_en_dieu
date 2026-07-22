@@ -29,14 +29,30 @@ export const useCatalogueStore = defineStore('catalogue', {
     async fetchCatalogue() {
       this.loading = true;
       try {
+        const f = this.filters;
         const params = {
           page: this.pagination.currentPage,
           per_page: this.pagination.perPage,
-          ...this.filters,
         };
-        Object.keys(params).forEach(key => {
-          if (!params[key] && params[key] !== false) delete params[key];
-        });
+
+        if (f.categorie) params.categorie_id = f.categorie;
+        if (f.type) params.type = f.type;
+        if (f.prix_min) params.prix_min = f.prix_min;
+        if (f.prix_max) params.prix_max = f.prix_max;
+        if (f.recherche) params.search = f.recherche;
+        if (f.nouveaute) params.estNouveaute = 1;
+        if (f.coup_de_coeur) params.estCoupDeCoeur = 1;
+        if (f.gratuit) params.estGratuit = 1;
+
+        if (f.tri) {
+          const sortMap = {
+            date: { sort_by: 'dateAjout', sort_order: 'desc' },
+            prix_asc: { sort_by: 'prix', sort_order: 'asc' },
+            prix_desc: { sort_by: 'prix', sort_order: 'desc' },
+            nom: { sort_by: 'nom', sort_order: 'asc' },
+          };
+          Object.assign(params, sortMap[f.tri] || sortMap.date);
+        }
         const response = await shopService.getCatalogue(params);
         const data = response.data || response;
         this.products = data.data || data;

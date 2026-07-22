@@ -21,6 +21,11 @@ const formationService = {
     return response.data;
   },
 
+  async getEvaluationById(evaluationId) {
+    const response = await api.get(`/evaluations/${evaluationId}`);
+    return response.data;
+  },
+
   async soumettreEvaluation(evaluationId, reponses) {
     const response = await api.post(`/evaluations/${evaluationId}/soumettre`, { reponses });
     return response.data;

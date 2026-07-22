@@ -19,13 +19,25 @@ import client6 from '../assets/img/clients/client-6.png'
 import client7 from '../assets/img/clients/client-7.png'
 import client8 from '../assets/img/clients/client-8.png'
 
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const options = { year: 'numeric', month: 'long', day: 'numeric' }
+  return new Date(dateString).toLocaleDateString('fr-FR', options)
+}
+
 const clientLogos = [client1, client2, client3, client4, client5, client6, client7, client8]
 
 const formationsPopulaires = ref([])
+const boutiqueProduits = ref([])
+const publicationsRecentes = ref([])
 const isLoadingFormations = ref(true)
 
 const temoignages = ref([])
 const partenaires = ref([])
+const publications = ref([])
+const boutiqueItems = ref([])
+const isLoadingBoutique = ref(true)
+const isLoadingPublications = ref(true)
 const isLoadingTemoignages = ref(true)
 const isLoadingPartenaires = ref(true)
 
@@ -44,6 +56,24 @@ const partenairesSlider = computed(() => {
 })
 
 onMounted(async () => {
+  try {
+    const pubData = await publicService.getPublications({ per_page: 3 });
+    publications.value = pubData.data || pubData;
+  } catch (error) {
+    console.error('Erreur chargement publications:', error);
+  } finally {
+    isLoadingPublications.value = false;
+  }
+
+  try {
+    const bData = await publicService.getCatalogue({ per_page: 4, sort_by: 'ventes' });
+    boutiqueItems.value = bData.data || bData;
+  } catch (error) {
+    console.error('Erreur chargement boutique:', error);
+  } finally {
+    isLoadingBoutique.value = false;
+  }
+
   try {
     const fData = await publicService.getFormations({ popular: true });
     formationsPopulaires.value = fData.data || fData;
@@ -70,7 +100,27 @@ onMounted(async () => {
   } finally {
     isLoadingPartenaires.value = false;
   }
+
+  try {
+    const pData = await publicService.getCatalogue({ sort_by: 'ventes', per_page: 4, has_image: 1 });
+    boutiqueProduits.value = pData.data || pData;
+  } catch (error) {
+    console.error('Erreur chargement boutique:', error);
+  }
+
+  try {
+    const pubData = await publicService.getPublications({ per_page: 3 });
+    publicationsRecentes.value = pubData.data || pubData;
+  } catch (error) {
+    console.error('Erreur chargement publications:', error);
+  }
 })
+
+const getImageUrl = (url) => {
+    if (!url) return faqImg
+    if (url.includes('placeholder')) return faqImg
+    return url.startsWith('http') ? url : `http://localhost:8000${url}`
+}
 </script>
 
 <template>
@@ -111,17 +161,16 @@ onMounted(async () => {
             <div class="col-md-6 d-flex align-items-center mb-4 mb-md-0">
                <div class="title">
                   <h1>Espace de vente d'article, de document et d'artéfact</h1>
-                  <p class="w-75 mt-4">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolores nulla quaerat
-                     labore debitis, harum quae impedit atque commodi sunt quasi cum adipisci sapiente? Consequuntur rem
-                     corrupti architecto, iusto quisquam quo.</p>
-                  <a href="" class="btn btn-warning rounded-1 mt-4">En savoir plus <i class="bi bi-arrow-right"></i></a>
+                  <p class="w-75 mt-4 text-muted">Découvrez notre boutique en ligne regroupant une sélection exclusive d'articles de recherche, d'e-books spécialisés, et d'artéfacts traditionnels. Parcourez notre collection pour approfondir vos connaissances et soutenir notre mission.</p>
+                    <router-link to="/boutique" class="btn btn-warning rounded-1 mt-4 text-white">Visiter la boutique <i class="bi bi-arrow-right"></i></router-link>
                </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
                <div class="row p-0">
-                  <div class="col-6 grid-img" v-for="n in 4">
-                     <img src="../assets/img/blog/blog-2.jpg" alt="">
-                  </div>
+                  <div class="col-6 grid-img" v-for="(item, index) in boutiqueItems.slice(0, 4)" :key="index">
+                       <img v-if="item.imageUrl && !item.imageUrl.includes('placeholder.jpg')" :src="item.imageUrl" :alt="item.nom || 'Article'" style="object-fit: cover; width: 100%; height: 100%;">
+                       <img v-else src="../assets/img/faq.jpg" alt="Article boutique" style="object-fit: cover; width: 100%; height: 100%;">
+                    </div>
                </div>
             </div>
          </div>
@@ -132,61 +181,55 @@ onMounted(async () => {
       <div class="container aos-init aos-animate">
          <div class="row g-5">
             <div class="col-lg-12">
-               <div class="row gy-4 posts-list">
+               <div class="section-title text-center mb-5">
+                   <h2>Nos dernières publications</h2>
+                   <p>Découvrez les travaux de recherche, thèses, livres et artéfacts récents.</p>
+                </div>
+                <div class="row gy-4 posts-list">
 
-                  <div class="col-lg-4" v-for="n in 3">
-                     <article class="d-flex flex-column">
+                                    <div class="col-lg-4" v-for="pub in publications.slice(0, 3)" :key="pub.id">
+                     <article class="d-flex flex-column h-100">
 
                         <div class="post-img">
-                           <img src="../assets/img/blog/blog-3.jpg" width="100m" class="img-fluid">
+                           <img v-if="pub.image_url" :src="pub.image_url" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                           <img v-else src="../assets/img/blog/blog-3.jpg" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
                         </div>
 
                         <h5 class="title mt-3">
-                           <router-link to="/publications/detail" class="pub-title fs-5">Possimus soluta ut id
-                              suscipit ea ut.
-                              In quo quia et soluta libero sit sint.</router-link>
+                           <a href="#" class="pub-title fs-5">{{ pub.titre }}</a>
                         </h5>
 
                         <div class="meta-top">
                            <ul>
                               <li class="d-flex align-items-center">
                                  <i class="bi bi-person"></i>
-                                 <a href="blog-details.html">John Doe</a>
+                                 <a href="#">{{ pub.chercheur?.nom || 'Auteur inconnu' }}</a>
                               </li>
                               <li class="d-flex align-items-center">
                                  <i class="bi bi-clock"></i>
-                                 <a href="blog-details.html"><time datetime="2022-01-01">1er janvier 2022</time></a>
+                                 <a href="#"><time>{{ formatDate(pub.datePublication || pub.created_at) }}</time></a>
                               </li>
                            </ul>
                         </div>
 
-                        <div class="content mb-3">
-                           <p>
-                              Aut iste neque ut illum qui perspiciatis similique recusandae non. Fugit autem
-                              dolorem labore omnis et. Eum temporibus fugiat voluptate enim tenetur sunt omnis.
+                        <div class="content mb-3 flex-grow-1">
+                           <p class="text-muted mb-1 line-clamp">
+                              {{ pub.resume || 'Aucun résumé disponible' }}
                            </p>
                         </div>
 
-                        <div class="read-more mt-auto d-flex justify-content-between">
-                           <li class="d-flex align-items-center small text-grey">
-                              <i class="bi bi-chat-dots"></i>&nbsp;
-                              <span href="blog-details.html">12 Comments</span>
-                           </li>
-                           <a href="blog-details.html" class="d-block">Read More</a>
+                        <div class="read-more mt-auto align-self-end" v-if="pub.fichierUrl || pub.lien_externe">
+                           <a v-if="pub.fichierUrl" :href="pub.fichierUrl" target="_blank">Consulter</a>
+                           <a v-else-if="pub.lien_externe" :href="pub.lien_externe" target="_blank">Lien externe</a>
                         </div>
-
                      </article>
                   </div><!-- End post list item -->
 
                </div><!-- End blog posts list -->
 
-               <div class="blog-pagination">
-                  <ul class="justify-content-center">
-                     <li><a href="#">1</a></li>
-                     <li class="active"><a href="#">2</a></li>
-                     <li><a href="#">3</a></li>
-                  </ul>
-               </div><!-- End blog pagination -->
+               <div class="text-center mt-5">
+                   <router-link to="/publications" class="btn btn-primary px-4 py-2">Voir toutes les publications</router-link>
+                 </div>
 
             </div>
 

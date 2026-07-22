@@ -10,7 +10,7 @@ import objets from "../views/objets.vue";
 import pubDetail from "../views/pub-detail.vue";
 import teamAnimation from "../views/teamAnimation.vue";
 import temoignage from "../views/temoignage.vue";
-import galerie from "../views/galerie.vue";
+import EvenementsGalerie from "../views/EvenementsGalerie.vue";
 import formationDetail from '../views/formationDetail.vue';
 import profileInscrit from "../views/profileInscrit.vue";
 import PageView from "../views/PageView.vue";
@@ -34,6 +34,8 @@ import MesCommandes from '../views/MesCommandes.vue';
 import CoursPlayer from '../views/CoursPlayer.vue';
 import CertificatPage from '../views/CertificatPage.vue';
 
+import AccompagnementView from '../views/user/AccompagnementView.vue';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -50,10 +52,11 @@ const router = createRouter({
     { path: "/objets", name: "objets", component: objets },
     { path: "/equipe-animation", name: "equipe", component: teamAnimation },
     { path: "/temoignages", name: "temoignage", component: temoignage },
-    { path: "/galerie", name: "galerie", component: galerie },
+    { path: "/galerie", name: "galerie", component: EvenementsGalerie },
     { path: "/page/:slug", name: "page", component: PageView },
     { path: "/rubriques-culture", name: "rubriquesCulture", component: RubriquesCulture },
     { path: "/partenaires", name: "partenaires", component: Partenaires },
+    { path: "/accompagnement", name: "accompagnement", component: AccompagnementView, meta: { requiresAuth: true } },
     { path: "/profile-inscrit", name: "profileInscrit", component: profileInscrit, meta: { requiresAuth: true } },
     { path: "/login", name: "login", component: LoginView, meta: { guestOnly: true } },
     { path: "/register", name: "register", component: RegisterView, meta: { guestOnly: true } },

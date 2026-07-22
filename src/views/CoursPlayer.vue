@@ -100,24 +100,25 @@
               <span class="cp-lesson-duration">{{ formaterDuree(dureesReelles[c.id] || c.dureeMinutes) }}</span>
             </button>
 
+          </div>
+
+          <div v-if="formationEvaluations.length > 0" class="cp-eval-section">
+            <div class="cp-eval-section-title">Évaluations</div>
             <button
-              v-if="mod.evaluation"
+              v-for="ev in formationEvaluations"
+              :key="ev.id"
               type="button"
               class="cp-lesson cp-lesson-eval"
-              :class="{
-                'is-active': mode === 'evaluation' && moduleEvaluationId === mod.evaluation.id,
-                'is-locked': !tousCoursModuleCompletes(mod),
-              }"
-              :disabled="!tousCoursModuleCompletes(mod)"
-              @click="ouvrirEvaluation(mod)"
+              :class="{ 'is-active': mode === 'evaluation' && moduleEvaluationId === ev.id }"
+              @click="ouvrirEvaluationById(ev.id)"
             >
               <span class="cp-lesson-icon">
-                <i v-if="evaluationResultats[mod.evaluation.id]?.reussite" class="bi bi-check-lg"></i>
-                <i v-else-if="evaluationResultats[mod.evaluation.id]" class="bi bi-x-lg"></i>
-                <i v-else-if="mode === 'evaluation' && moduleEvaluationId === mod.evaluation.id" class="bi bi-pencil-fill"></i>
+                <i v-if="ev.reussite" class="bi bi-check-lg"></i>
+                <i v-else-if="ev.nb_tentatives > 0" class="bi bi-x-lg"></i>
                 <i v-else class="bi bi-pencil"></i>
               </span>
-              <span class="cp-lesson-label">Évaluation · {{ mod.evaluation.titre }}</span>
+              <span class="cp-lesson-label">{{ ev.titre }}</span>
+              <span v-if="ev.nb_tentatives > 0" class="cp-lesson-duration">{{ ev.dernier_score }}%</span>
             </button>
           </div>
 
@@ -139,50 +140,82 @@
               <h4>{{ evaluationData.evaluation.titre }}</h4>
               <p v-if="evaluationData.evaluation.instructions">{{ evaluationData.evaluation.instructions }}</p>
               <span class="cp-eval-meta">
-                {{ evaluationData.evaluation.questions.length }} question(s) · {{ evaluationData.evaluation.total_points }} point(s)
+                {{ nbQuestions }} question(s) · {{ evaluationData.evaluation.total_points }} point(s) · Question {{ currentQuestionIndex + 1 }}/{{ nbQuestions }}
               </span>
             </div>
 
-            <div v-if="evaluationData.resultat" class="cp-result" :class="evaluationData.resultat.reussite ? 'is-success' : 'is-fail'">
+            <div v-if="quizTermine && scoreFinal" class="cp-result" :class="scoreFinal.reussite ? 'is-success' : 'is-fail'">
               <div class="cp-result-icon">
-                <i :class="evaluationData.resultat.reussite ? 'bi bi-check-lg' : 'bi bi-x-lg'"></i>
+                <i :class="scoreFinal.reussite ? 'bi bi-check-lg' : 'bi bi-x-lg'"></i>
               </div>
               <div>
-                <h5>{{ evaluationData.resultat.reussite ? 'Réussi !' : 'Non réussi' }}</h5>
-                <p>Score : {{ evaluationData.resultat.score }}% · Terminé le {{ formatDate(evaluationData.resultat.termine_le) }}</p>
+                <h5>{{ scoreFinal.reussite ? 'Réussi !' : 'Non réussi' }}</h5>
+                <p>Score : {{ scoreFinal.score }}% · {{ scoreFinal.points_obtenus }}/{{ scoreFinal.total_points }} point(s)</p>
+                <p v-if="scoreFinal.resultat?.termine_le">Terminé le {{ formatDate(scoreFinal.resultat.termine_le) }}</p>
               </div>
-              <button class="cp-btn cp-btn-ghost cp-ms-auto" @click="resetEvaluation">Recommencer</button>
+              <button class="cp-btn cp-btn-ghost cp-ms-auto" @click="recommencerEvaluation">Recommencer</button>
             </div>
 
             <div v-else>
-              <div v-for="(q, qi) in evaluationData.evaluation.questions" :key="q.id" class="cp-question">
-                <h6>{{ qi + 1 }}. {{ q.texte }}</h6>
+              <div class="cp-question">
+                <h6>{{ currentQuestionIndex + 1 }}. {{ questionCourante.texte }}</h6>
                 <label
-                  v-for="opt in q.options"
+                  v-for="opt in questionCourante.options"
                   :key="opt.value"
                   class="cp-option"
-                  :class="{ 'is-selected': evaluationReponses[q.id] === opt.value }"
+                  :class="{
+                    'is-selected': evaluationReponses[questionCourante.id] === opt.value,
+                    'is-correct': questionValidee && opt.value === questionCourante.bonne_reponse,
+                    'is-wrong': questionValidee && evaluationReponses[questionCourante.id] === opt.value && opt.value !== questionCourante.bonne_reponse,
+                  }"
                 >
                   <input
                     type="radio"
-                    :name="'q_' + q.id"
+                    :name="'q_' + questionCourante.id"
                     :value="opt.value"
-                    v-model="evaluationReponses[q.id]"
+                    v-model="evaluationReponses[questionCourante.id]"
+                    :disabled="questionValidee"
                   >
                   <span class="cp-option-dot"></span>
                   <span>{{ opt.label }}</span>
                 </label>
               </div>
 
-              <button
-                class="cp-btn cp-btn-success cp-btn-block"
-                @click="soumettreEvaluation"
-                :disabled="soumettant || Object.keys(evaluationReponses).length < evaluationData.evaluation.questions.length"
-              >
-                <span v-if="soumettant" class="cp-spinner cp-spinner-sm"></span>
-                <i v-else class="bi bi-send-check me-1"></i>
-                {{ soumettant ? 'Correction en cours…' : 'Soumettre mes réponses' }}
-              </button>
+              <div v-if="questionValidee" class="cp-feedback-bar">
+                <span v-if="reponseCorrecte" class="cp-feedback-correct">
+                  <i class="bi bi-check-circle-fill me-1"></i>Bonne réponse !
+                </span>
+                <span v-else class="cp-feedback-wrong">
+                  <i class="bi bi-x-circle-fill me-1"></i>Mauvaise réponse. La bonne réponse est : {{ libelleBonneReponse }}
+                </span>
+              </div>
+
+              <div class="cp-eval-actions">
+                <button
+                  v-if="!questionValidee"
+                  class="cp-btn cp-btn-primary"
+                  @click="validerQuestion"
+                  :disabled="!evaluationReponses[questionCourante.id]"
+                >
+                  Valider
+                </button>
+                <button
+                  v-if="questionValidee && currentQuestionIndex < nbQuestions - 1"
+                  class="cp-btn cp-btn-primary"
+                  @click="questionSuivante"
+                >
+                  Suivant <i class="bi bi-chevron-right ms-1"></i>
+                </button>
+                <button
+                  v-if="questionValidee && currentQuestionIndex === nbQuestions - 1"
+                  class="cp-btn cp-btn-success"
+                  @click="terminerEvaluation"
+                  :disabled="soumettant"
+                >
+                  <span v-if="soumettant" class="cp-spinner cp-spinner-sm"></span>
+                  <template v-else><i class="bi bi-send-check me-1"></i>Terminer</template>
+                </button>
+              </div>
             </div>
           </div>
         </template>
@@ -249,19 +282,39 @@
           <h4>Félicitations !</h4>
           <p>Vous avez terminé tous les cours de cette formation.</p>
           <p class="cp-completion-sub">Votre progression est de 100&nbsp;%. Vous pouvez télécharger votre certificat.</p>
-          <router-link :to="{ name: 'certificat', params: { id: inscriptionId } }" class="cp-btn cp-btn-warning cp-btn-lg">
+          <button class="cp-btn cp-btn-warning cp-btn-lg" @click="verifierCertificat">
             <i class="bi bi-award me-1"></i>Obtenir mon certificat
-          </router-link>
+          </button>
         </div>
       </main>
     </div>
   </div>
+
+  <!-- Modal certificat non disponible -->
+  <Transition name="cp-modal">
+    <div v-if="showCertificatModal" class="cp-modal-overlay" @click.self="showCertificatModal = false">
+      <div class="cp-modal-card">
+        <button class="cp-modal-close" @click="showCertificatModal = false">
+          <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="cp-modal-icon is-warning">
+          <i class="bi bi-shield-exclamation"></i>
+        </div>
+        <h4>{{ certificatError.title }}</h4>
+        <p>{{ certificatError.message }}</p>
+        <button class="cp-btn cp-btn-primary cp-btn-block" @click="showCertificatModal = false">
+          <i class="bi bi-arrow-left me-1"></i>Retour à la formation
+        </button>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import formationService from '../services/formationService'
+import api from '../services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -278,13 +331,30 @@ const suivant = ref(null)
 const coursCompletesIds = ref([])
 const completing = ref(false)
 const showCompletion = ref(false)
+const showCertificatModal = ref(false)
+const certificatError = ref({ title: '', message: '' })
 
 const mode = ref('cours')
 const evaluationData = ref(null)
 const evaluationReponses = ref({})
 const evaluationResultats = ref({})
 const moduleEvaluationId = ref(null)
+const formationEvaluations = ref([])
 const soumettant = ref(false)
+
+const currentQuestionIndex = ref(0)
+const questionValidee = ref(false)
+const reponseCorrecte = ref(false)
+const quizTermine = ref(false)
+const scoreFinal = ref(null)
+
+const nbQuestions = computed(() => evaluationData.value?.evaluation?.questions?.length || 0)
+const questionCourante = computed(() => evaluationData.value?.evaluation?.questions?.[currentQuestionIndex.value] || {})
+const libelleBonneReponse = computed(() => {
+  if (!questionCourante.value.options || !questionCourante.value.bonne_reponse) return ''
+  const opt = questionCourante.value.options.find(o => o.value === questionCourante.value.bonne_reponse)
+  return opt ? opt.label : ''
+})
 
 const videoEl = ref(null)
 const dureesReelles = ref({})
@@ -338,10 +408,6 @@ function estDebloque(coursId) {
   const index = tous.indexOf(coursId)
   if (index <= 0) return true
   return coursCompletesIds.value.includes(tous[index - 1])
-}
-
-function tousCoursModuleCompletes(mod) {
-  return mod.cours.every(c => coursCompletesIds.value.includes(c.id))
 }
 
 function mesCoursOrdonnes() {
@@ -446,25 +512,46 @@ async function chargerCours(coursId) {
   }
 }
 
-async function ouvrirEvaluation(mod) {
-  if (!tousCoursModuleCompletes(mod)) return
+async function ouvrirEvaluationById(evaluationId) {
   mode.value = 'evaluation'
   currentCours.value = null
-  moduleEvaluationId.value = mod.evaluation.id
+  moduleEvaluationId.value = evaluationId
   sidebarOuvert.value = false
+  currentQuestionIndex.value = 0
+  questionValidee.value = false
+  reponseCorrecte.value = false
+  quizTermine.value = false
+  scoreFinal.value = null
   try {
-    const res = await formationService.getEvaluation(mod.id)
+    const res = await formationService.getEvaluationById(evaluationId)
     evaluationData.value = res
     evaluationReponses.value = {}
     if (res.resultat) {
-      evaluationResultats.value[mod.evaluation.id] = res.resultat
+      evaluationResultats.value[evaluationId] = res.resultat
+      quizTermine.value = true
+      scoreFinal.value = res.resultat
     }
   } catch (e) {
     console.error('Erreur chargement évaluation:', e)
   }
 }
 
-async function soumettreEvaluation() {
+function validerQuestion() {
+  const q = questionCourante.value
+  if (!q || !evaluationReponses.value[q.id]) return
+  reponseCorrecte.value = evaluationReponses.value[q.id] === q.bonne_reponse
+  questionValidee.value = true
+}
+
+function questionSuivante() {
+  if (currentQuestionIndex.value < nbQuestions.value - 1) {
+    currentQuestionIndex.value++
+    questionValidee.value = false
+    reponseCorrecte.value = false
+  }
+}
+
+async function terminerEvaluation() {
   if (!evaluationData.value) return
   soumettant.value = true
   try {
@@ -473,16 +560,16 @@ async function soumettreEvaluation() {
       reponse,
     }))
     const res = await formationService.soumettreEvaluation(evaluationData.value.evaluation.id, reponses)
-    const modId = evaluationData.value.evaluation.module_id
-    const mod = modules.value.find(m => m.id === modId)
-    if (mod?.evaluation) {
-      evaluationResultats.value[mod.evaluation.id] = {
-        score: res.score,
-        reussite: res.reussite,
-        termine_le: new Date().toISOString(),
-      }
+    scoreFinal.value = res
+    quizTermine.value = true
+    evaluationResultats.value[evaluationData.value.evaluation.id] = {
+      score: res.score,
+      reussite: res.reussite,
+      termine_le: res.resultat?.termine_le || new Date().toISOString(),
     }
-    await ouvrirEvaluation(modules.value.find(m => m.id === modId))
+    const learningRes = await formationService.getApprentissage(inscriptionId.value)
+    formationEvaluations.value = learningRes.evaluations || []
+    if (formationData.value) formationData.value.progression = learningRes.progression
   } catch (e) {
     console.error('Erreur soumission évaluation:', e)
   } finally {
@@ -490,9 +577,36 @@ async function soumettreEvaluation() {
   }
 }
 
-function resetEvaluation() {
+function recommencerEvaluation() {
+  currentQuestionIndex.value = 0
+  questionValidee.value = false
+  reponseCorrecte.value = false
+  quizTermine.value = false
+  scoreFinal.value = null
   evaluationReponses.value = {}
   evaluationData.value = { ...evaluationData.value, resultat: null }
+}
+
+async function verifierCertificat() {
+  try {
+    const res = await api.get(`/inscriptions/${inscriptionId.value}/certificat/verifier`)
+    const data = res.data || res
+    if (!data.accessible) {
+      certificatError.value = {
+        title: 'Certificat non disponible',
+        message: data.message || 'Vous devez réussir au moins une évaluation avec le score requis.',
+      }
+      showCertificatModal.value = true
+    } else {
+      router.push({ name: 'certificat', params: { id: inscriptionId.value } })
+    }
+  } catch (e) {
+    certificatError.value = {
+      title: 'Erreur',
+      message: e.response?.data?.message || 'Impossible de vérifier le certificat.',
+    }
+    showCertificatModal.value = true
+  }
 }
 
 const accessError = ref(null)
@@ -504,6 +618,7 @@ async function chargerApprentissage() {
     const res = await formationService.getApprentissage(inscriptionId.value)
     formationData.value = { ...res.formation, progression: res.progression }
     modules.value = res.modules
+    formationEvaluations.value = res.evaluations || []
     coursCompletesIds.value = res.cours_completes_ids || []
 
     let coursTarget = coursInitialId.value
@@ -674,6 +789,20 @@ onMounted(chargerApprentissage)
 
 .cp-empty { text-align: center; padding: 40px 10px; color: var(--cp-muted); font-size: 0.85rem; }
 
+.cp-eval-section {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 2px solid var(--cp-border);
+}
+.cp-eval-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--cp-muted);
+  padding: 6px 10px 10px;
+}
+
 /* ---------- Zone principale ---------- */
 .cp-main { flex: 1; min-width: 0; }
 .cp-scroll-area { padding: 28px; max-width: 900px; margin: 0 auto; width: 100%; }
@@ -781,6 +910,21 @@ onMounted(chargerApprentissage)
 .cp-option.is-selected .cp-option-dot::after {
   content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--cp-primary);
 }
+.cp-option.is-correct { border-color: var(--cp-success); background: #E6F7EF; }
+.cp-option.is-correct .cp-option-dot { border-color: var(--cp-success); }
+.cp-option.is-correct .cp-option-dot::after { background: var(--cp-success); }
+.cp-option.is-wrong { border-color: var(--cp-danger); background: #FDEBEC; }
+.cp-option.is-wrong .cp-option-dot { border-color: var(--cp-danger); }
+.cp-option.is-wrong .cp-option-dot::after { background: var(--cp-danger); }
+
+.cp-feedback-bar {
+  padding: 12px 18px; border-radius: 10px; margin-bottom: 16px;
+  font-weight: 600; font-size: 0.9rem;
+}
+.cp-feedback-correct { color: var(--cp-success); background: #E6F7EF; display: block; }
+.cp-feedback-wrong { color: var(--cp-danger); background: #FDEBEC; display: block; }
+
+.cp-eval-actions { display: flex; gap: 10px; margin-bottom: 30px; }
 
 /* ---------- Fin de formation ---------- */
 .cp-completion {
@@ -801,6 +945,45 @@ onMounted(chargerApprentissage)
 .cp-completion h4 { font-weight: 800; margin-bottom: 6px; position: relative; }
 .cp-completion p { color: var(--cp-muted); margin: 0 0 2px; max-width: 420px; position: relative; }
 .cp-completion-sub { margin-bottom: 20px !important; }
+
+/* ---------- Modal certificat ---------- */
+.cp-modal-overlay {
+  position: fixed; inset: 0; z-index: 99999;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.cp-modal-card {
+  background: #fff; border-radius: 24px;
+  padding: 48px 40px 36px; max-width: 440px; width: 100%;
+  text-align: center; position: relative;
+  box-shadow: 0 25px 80px rgba(0,0,0,.3);
+}
+.cp-modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: none; background: #F4F6FB; color: #6B7280;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.9rem; transition: background .15s;
+}
+.cp-modal-close:hover { background: #E6E9F2; }
+.cp-modal-icon {
+  width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center; font-size: 2rem;
+}
+.cp-modal-icon.is-warning { background: #FFF3DA; color: #D48F0B; }
+.cp-modal-card h4 {
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-weight: 800; font-size: 1.25rem; margin-bottom: 10px; color: #14182B;
+}
+.cp-modal-card p {
+  font-size: 0.95rem; line-height: 1.5; color: #6B7280; margin-bottom: 26px;
+}
+.cp-modal-card .cp-btn-block { margin-bottom: 0; }
+
+.cp-modal-enter-active, .cp-modal-leave-active { transition: opacity .25s, transform .25s; }
+.cp-modal-enter-from, .cp-modal-leave-to { opacity: 0; transform: scale(.92); }
 
 /* ---------- États (erreur / introuvable) ---------- */
 .cp-state-screen { display: flex; align-items: center; justify-content: center; min-height: 70vh; padding: 20px; font-family: 'Inter', sans-serif; }
