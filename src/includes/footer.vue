@@ -36,13 +36,11 @@
       </div>
     </div>
     <div class="footer-legal text-center">
-      <div class="container d-flex flex-column flex-lg-row justify-content-center justify-content-lg-between align-items-center">
-        <div class="d-flex flex-column align-items-center align-items-lg-start">
-          <div class="copyright">
-            &copy; Copyright <strong><span>{{ siteStore.siteName }}</span></strong>. Tous droits réservés
-          </div>
+      <div class="container d-flex flex-column flex-lg-row justify-content-center align-items-center gap-3">
+        <div class="copyright">
+          &copy; Copyright <strong><span>{{ siteStore.siteName }}</span></strong>. Tous droits réservés
         </div>
-        <div class="social-links order-first order-lg-last mb-3 mb-lg-0">
+        <div class="social-links">
           <a v-if="siteStore.settings.FACEBOOK_URL" :href="siteStore.settings.FACEBOOK_URL" class="facebook"><i class="bi bi-facebook"></i></a>
           <a v-if="siteStore.settings.TWITTER_URL" :href="siteStore.settings.TWITTER_URL" class="twitter"><i class="bi bi-twitter"></i></a>
           <a v-if="siteStore.settings.INSTAGRAM_URL" :href="siteStore.settings.INSTAGRAM_URL" class="instagram"><i class="bi bi-instagram"></i></a>
