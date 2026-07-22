@@ -19,9 +19,13 @@ import client6 from '../assets/img/clients/client-6.png'
 import client7 from '../assets/img/clients/client-7.png'
 import client8 from '../assets/img/clients/client-8.png'
 
+import faqImg from '../assets/img/faq.jpg'
+
 const clientLogos = [client1, client2, client3, client4, client5, client6, client7, client8]
 
 const formationsPopulaires = ref([])
+const boutiqueProduits = ref([])
+const publicationsRecentes = ref([])
 const isLoadingFormations = ref(true)
 
 const temoignages = ref([])
@@ -70,7 +74,27 @@ onMounted(async () => {
   } finally {
     isLoadingPartenaires.value = false;
   }
+
+  try {
+    const pData = await publicService.getCatalogue({ sort_by: 'ventes', per_page: 4, has_image: 1 });
+    boutiqueProduits.value = pData.data || pData;
+  } catch (error) {
+    console.error('Erreur chargement boutique:', error);
+  }
+
+  try {
+    const pubData = await publicService.getPublications({ per_page: 3 });
+    publicationsRecentes.value = pubData.data || pubData;
+  } catch (error) {
+    console.error('Erreur chargement publications:', error);
+  }
 })
+
+const getImageUrl = (url) => {
+    if (!url) return faqImg
+    if (url.includes('placeholder')) return faqImg
+    return url.startsWith('http') ? url : `http://localhost:8000${url}`
+}
 </script>
 
 <template>
@@ -118,9 +142,14 @@ onMounted(async () => {
                </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
-               <div class="row p-0">
-                  <div class="col-6 grid-img" v-for="n in 4">
-                     <img src="../assets/img/blog/blog-2.jpg" alt="">
+               <div class="row p-0" v-if="boutiqueProduits.length > 0">
+                  <div class="col-6 grid-img" v-for="p in boutiqueProduits" :key="p.id">
+                     <img :src="getImageUrl(p.imageUrl)" :alt="p.nom">
+                  </div>
+               </div>
+               <div class="row p-0" v-else>
+                  <div class="col-6 grid-img" v-for="n in 4" :key="n">
+                     <img :src="faqImg" alt="Image par défaut">
                   </div>
                </div>
             </div>
@@ -134,45 +163,40 @@ onMounted(async () => {
             <div class="col-lg-12">
                <div class="row gy-4 posts-list">
 
-                  <div class="col-lg-4" v-for="n in 3">
+                  <div class="col-lg-4" v-for="pub in publicationsRecentes" :key="pub.id">
                      <article class="d-flex flex-column">
 
                         <div class="post-img">
-                           <img src="../assets/img/blog/blog-3.jpg" width="100m" class="img-fluid">
+                           <img :src="getImageUrl(pub.imageUrl)" width="100m" class="img-fluid">
                         </div>
 
                         <h5 class="title mt-3">
-                           <router-link to="/publications/detail" class="pub-title fs-5">Possimus soluta ut id
-                              suscipit ea ut.
-                              In quo quia et soluta libero sit sint.</router-link>
+                           <router-link :to="`/publications/${pub.id}`" class="pub-title fs-5">{{ pub.titre }}</router-link>
                         </h5>
 
                         <div class="meta-top">
                            <ul>
                               <li class="d-flex align-items-center">
                                  <i class="bi bi-person"></i>
-                                 <a href="blog-details.html">John Doe</a>
+                                 <span>{{ pub.chercheur?.user?.nom || 'Auteur' }}</span>
                               </li>
                               <li class="d-flex align-items-center">
                                  <i class="bi bi-clock"></i>
-                                 <a href="blog-details.html"><time datetime="2022-01-01">1er janvier 2022</time></a>
+                                 <span><time :datetime="pub.date_publication">{{ new Date(pub.date_publication).toLocaleDateString('fr-FR') }}</time></span>
                               </li>
                            </ul>
                         </div>
 
                         <div class="content mb-3">
                            <p>
-                              Aut iste neque ut illum qui perspiciatis similique recusandae non. Fugit autem
-                              dolorem labore omnis et. Eum temporibus fugiat voluptate enim tenetur sunt omnis.
+                              {{ pub.resume?.substring(0, 100) }}...
                            </p>
                         </div>
 
                         <div class="read-more mt-auto d-flex justify-content-between">
                            <li class="d-flex align-items-center small text-grey">
-                              <i class="bi bi-chat-dots"></i>&nbsp;
-                              <span href="blog-details.html">12 Comments</span>
                            </li>
-                           <a href="blog-details.html" class="d-block">Read More</a>
+                           <router-link :to="`/publications/${pub.id}`" class="d-block">Lire la suite</router-link>
                         </div>
 
                      </article>
