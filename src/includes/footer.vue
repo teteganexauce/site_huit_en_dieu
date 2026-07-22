@@ -8,9 +8,10 @@
               <h3 class="mb-0">{{ siteStore.siteName }}</h3>
               <h6 class="mb-4">{{ siteStore.siteSlogan }}</h6>
               <p>
-                <strong>Phone:</strong> {{ siteStore.settings.TELEPHONE || '+1 5589 55488 55' }}<br>
-                <strong>Email:</strong> {{ siteStore.settings.CONTACT_EMAIL || 'info@example.com' }}<br>
-                <strong>Adresse:</strong> {{ siteStore.settings.ADRESSE || '' }}<br>
+                <strong>Téléphone :</strong> {{ siteStore.settings.TELEPHONE || '+1 5589 55488 55' }}<br>
+                <strong>Email :</strong> {{ siteStore.settings.CONTACT_EMAIL || 'info@example.com' }}<br>
+                <strong>Adresse :</strong> {{ siteStore.settings.ADRESSE || '' }}<br>
+                <span v-if="siteStore.settings.HORAIRE"><strong>Horaires :</strong> {{ siteStore.settings.HORAIRE }}<br></span>
               </p>
             </div>
           </div>
