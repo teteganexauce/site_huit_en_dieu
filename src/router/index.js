@@ -10,7 +10,7 @@ import objets from "../views/objets.vue";
 import pubDetail from "../views/pub-detail.vue";
 import teamAnimation from "../views/teamAnimation.vue";
 import temoignage from "../views/temoignage.vue";
-import galerie from "../views/galerie.vue";
+import EvenementsGalerie from "../views/EvenementsGalerie.vue";
 import formationDetail from '../views/formationDetail.vue';
 import profileInscrit from "../views/profileInscrit.vue";
 import PageView from "../views/PageView.vue";
@@ -52,7 +52,7 @@ const router = createRouter({
     { path: "/objets", name: "objets", component: objets },
     { path: "/equipe-animation", name: "equipe", component: teamAnimation },
     { path: "/temoignages", name: "temoignage", component: temoignage },
-    { path: "/galerie", name: "galerie", component: galerie },
+    { path: "/galerie", name: "galerie", component: EvenementsGalerie },
     { path: "/page/:slug", name: "page", component: PageView },
     { path: "/rubriques-culture", name: "rubriquesCulture", component: RubriquesCulture },
     { path: "/partenaires", name: "partenaires", component: Partenaires },

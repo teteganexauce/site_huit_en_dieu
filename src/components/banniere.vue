@@ -105,7 +105,9 @@ onMounted(async () => {
 .swiper-item {
    /* --header-height est déjà géré par #main dans App.vue :
       plus besoin de soustraire 80px ni d'ajouter de margin-top ici */
-   height: calc(100vh - var(--header-height, 92px));
+   height: calc(60vh - var(--header-height, 92px));
+   min-height: 360px;
+   max-height: 500px;
    width: 100%;
    display: flex;
    justify-content: center;

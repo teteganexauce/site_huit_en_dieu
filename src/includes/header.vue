@@ -36,7 +36,7 @@
                 <li>
                   <router-link to="/temoignages">Témoignages</router-link>
                   <router-link to="/publications">Publications</router-link>
-                  <router-link to="/galerie">Galerie d'images & vidéos</router-link>
+                  <router-link to="/galerie">Évènements</router-link>
                   <router-link to="/partenaires">Nos partenaires</router-link>
                 </li>
                 <li>
@@ -119,7 +119,7 @@
             <li><a href="#">Orientation et choix de vie</a></li>
             <li><router-link to="/temoignages" @click="closeMobileNav">Témoignages</router-link></li>
             <li><router-link to="/publications" @click="closeMobileNav">Publications</router-link></li>
-            <li><router-link to="/galerie" @click="closeMobileNav">Galerie d'images & vidéos</router-link></li>
+            <li><router-link to="/galerie" @click="closeMobileNav">Évènements</router-link></li>
             <li><router-link to="/partenaires" @click="closeMobileNav">Nos partenaires</router-link></li>
             <li><router-link to="/formations" @click="closeMobileNav">Nos formations</router-link></li>
             <li><router-link to="/rubriques-culture" @click="closeMobileNav">Rubriques culturelles</router-link></li>
