@@ -267,9 +267,10 @@ onUnmounted(() => {
 
       <div class="row g-5">
         <div class="col-lg-8">
-          <div v-if="selectedEvent.imageUrl" class="rounded-4 overflow-hidden shadow-sm mb-4 position-relative" style="max-height:420px">
-            <img v-if="!playVideo" :src="getImageUrl(selectedEvent)" :alt="selectedEvent.titre" class="w-100 h-100" style="object-fit:cover">
-            <video v-else :src="firstVideo?.url" class="w-100 h-100" style="object-fit:cover" controls autoplay muted playsinline></video>
+          <div v-if="selectedEvent.imageUrl || firstVideo" class="rounded-4 overflow-hidden shadow-sm mb-4 position-relative" style="max-height:420px;background:#000">
+            <img v-if="!playVideo && selectedEvent.imageUrl" :src="getImageUrl(selectedEvent)" :alt="selectedEvent.titre" class="w-100 h-100" style="object-fit:cover">
+            <iframe v-if="playVideo && firstVideo && isExternalUrl(firstVideo.url)" :src="firstVideo.url.includes('youtube') ? firstVideo.url.replace('watch?v=', 'embed/').split('&')[0] : firstVideo.url" class="w-100 h-100" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+            <video v-if="playVideo && firstVideo && !isExternalUrl(firstVideo.url)" :src="firstVideo.url" class="w-100 h-100" style="object-fit:cover" controls autoplay muted playsinline></video>
           </div>
 
           <div class="d-flex flex-wrap gap-3 mb-3">
