@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted } from 'vue';
-import { RouterView } from 'vue-router'
+import { computed, onMounted } from 'vue';
+import { useRoute, RouterView } from 'vue-router'
 import HeaderComponent from './includes/header.vue'
 import FooterComponent from './includes/footer.vue'
 import { useAuthStore } from './stores/auth';
@@ -8,6 +8,9 @@ import { useCartStore } from './stores/cart';
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+const route = useRoute();
+
+const isAuthPage = computed(() => route.name === 'login' || route.name === 'register' || route.name === 'forgotPassword' || route.name === 'resetPassword');
 
 onMounted(() => {
   if (authStore.isAuthenticated) {
@@ -19,15 +22,15 @@ onMounted(() => {
 
 <template>
 
-   <HeaderComponent />
+   <HeaderComponent v-if="!isAuthPage" />
 
-   <main id="main">
+   <main id="main" :class="{ 'main--auth': isAuthPage }">
 
       <RouterView /> 
 
    </main>
 
-   <FooterComponent />
+   <FooterComponent v-if="!isAuthPage" />
 
 </template>
 
@@ -45,6 +48,10 @@ onMounted(() => {
 /* Offset du header fixed */
 #main {
    padding-top: var(--header-height);
+}
+
+#main.main--auth {
+   padding-top: 0;
 }
 
 @media (max-width: 991px) {
