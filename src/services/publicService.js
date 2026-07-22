@@ -31,6 +31,11 @@ const publicService = {
     return response.data;
   },
 
+  async getEventSimilaires(id) {
+    const response = await api.get(`/evenements/${id}/similaires`);
+    return response.data;
+  },
+
   async getGallery(params = {}) {
     const response = await api.get('/galerie', { params });
     return response.data;
