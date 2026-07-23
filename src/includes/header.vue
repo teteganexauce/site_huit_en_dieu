@@ -44,16 +44,13 @@
                   <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
                   <router-link to="/accompagnement">Demande d'accompagnement</router-link>
                   <router-link to="/services">Nos services</router-link>
+                  <router-link to="/forum">Forum</router-link>
                 </li>
               </ul>
           </li>
 
           <li class="site-nav__item">
             <router-link to="/equipe-animation" class="site-nav__link">Équipe</router-link>
-          </li>
-
-          <li class="site-nav__item">
-            <router-link to="/forum" class="site-nav__link">Forum</router-link>
           </li>
 
           <li class="site-nav__item site-nav__item--dropdown">
@@ -129,11 +126,11 @@
             <li><router-link to="/rubriques-culture" @click="closeMobileNav">Rubriques culturelles</router-link></li>
             <li><router-link to="/accompagnement" @click="closeMobileNav">Demande d'accompagnement</router-link></li>
             <li><router-link to="/services" @click="closeMobileNav">Nos services</router-link></li>
+            <li><router-link to="/forum" @click="closeMobileNav">Forum</router-link></li>
           </ul>
         </li>
 
         <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe</router-link></li>
-        <li><router-link to="/forum" @click="closeMobileNav">Forum</router-link></li>
 
         <li class="site-mobile-nav__dropdown">
           <a href="#" @click.prevent="toggleMobileDropdown">

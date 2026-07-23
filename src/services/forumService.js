@@ -57,6 +57,21 @@ const forumService = {
   async marquerSolution(id) {
     const response = await api.put(`/forum/reponses/${id}/solution`);
     return response.data;
+  },
+
+  async fermerSujet(id) {
+    const response = await api.put(`/forum/sujets/${id}/fermer`);
+    return response.data;
+  },
+
+  async epinglerSujet(id) {
+    const response = await api.put(`/forum/sujets/${id}/epingler`);
+    return response.data;
+  },
+
+  async banUser(userId) {
+    const response = await api.post(`/forum/users/${userId}/ban`);
+    return response.data;
   }
 };
 

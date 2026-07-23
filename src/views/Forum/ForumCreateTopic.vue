@@ -1,77 +1,65 @@
 <template>
-  <main id="main">
-    <div class="page-title" data-aos="fade">
-      <div class="heading">
-        <div class="container">
-          <div class="row d-flex justify-content-center text-center">
-            <div class="col-lg-8">
-              <h1>Créer un nouveau sujet</h1>
-              <p class="mb-0">Partagez votre question, idée ou problème avec la communauté.</p>
-            </div>
+  <BreadcombsComponent title="Nouvelle Discussion" />
+  <main id="main" class="bg-white min-vh-100 pb-5">
+
+    <section class="section pt-4 position-relative z-2">
+      <div class="container" style="max-width: 850px;">
+        
+        <!-- Form Card -->
+        <div class="card border shadow-sm rounded-4 overflow-hidden">
+          
+          <div class="card-body p-4 p-md-5">
+            <form @submit.prevent="submitTopic">
+              
+              <div class="mb-4 pb-2">
+                <label for="titre" class="form-label fw-bold text-dark fs-5">Titre du sujet <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control form-control-lg bg-light border-0 px-4 py-3 rounded-3" 
+                  id="titre" 
+                  v-model="form.titre" 
+                  placeholder="Soyez clair et précis (ex: Problème avec la méthode X)" 
+                  required 
+                  minlength="5"
+                  maxlength="255"
+                  style="box-shadow: none;"
+                >
+                <div class="form-text mt-2 text-muted small"><i class="bi bi-info-circle me-1"></i> Un bon titre attire plus de réponses.</div>
+              </div>
+
+              <div class="mb-4">
+                <label for="contenu" class="form-label fw-bold text-dark fs-5">Détails de votre demande <span class="text-danger">*</span></label>
+                <textarea 
+                  class="form-control bg-light border-0 px-4 py-3 rounded-3" 
+                  id="contenu" 
+                  v-model="form.contenu" 
+                  style="height: 250px; resize: vertical; box-shadow: none;" 
+                  placeholder="Décrivez votre question ou votre idée avec le plus de détails possible..." 
+                  required
+                  minlength="10"
+                ></textarea>
+              </div>
+
+              <!-- Messages d'erreur -->
+              <div v-if="errorMessage" class="alert alert-danger d-flex align-items-center p-3 mb-4 rounded-3 border-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                <div>{{ errorMessage }}</div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center border-top pt-4 mt-5">
+                <router-link to="/forum" class="btn btn-light rounded-pill px-4 text-secondary fw-semibold border">
+                  Annuler
+                </router-link>
+                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm" :disabled="loading || !form.titre || !form.contenu">
+                  <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  <i v-else class="bi bi-send-fill me-2"></i> Publier le sujet
+                </button>
+              </div>
+              
+            </form>
           </div>
         </div>
-      </div>
-      <nav class="breadcrumbs">
-        <div class="container">
-          <ol>
-            <li><router-link to="/">Accueil</router-link></li>
-            <li><router-link to="/forum">Forum</router-link></li>
-            <li class="current">Nouveau Sujet</li>
-          </ol>
-        </div>
-      </nav>
-    </div>
 
-    <section class="section">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
-              <form @submit.prevent="submitTopic">
-                <div class="mb-4">
-                  <label for="titre" class="form-label fw-bold">Titre du sujet <span class="text-danger">*</span></label>
-                  <input 
-                    type="text" 
-                    class="form-control form-control-lg" 
-                    id="titre" 
-                    v-model="form.titre" 
-                    placeholder="Ex: Comment améliorer ses méthodes de recherche ?" 
-                    required 
-                    minlength="5"
-                    maxlength="255"
-                  >
-                  <div class="form-text">Soyez clair et précis pour que les autres comprennent votre sujet d'un coup d'œil.</div>
-                </div>
-
-                <div class="mb-4">
-                  <label for="contenu" class="form-label fw-bold">Contenu <span class="text-danger">*</span></label>
-                  <textarea 
-                    class="form-control" 
-                    id="contenu" 
-                    v-model="form.contenu" 
-                    rows="8" 
-                    placeholder="Détaillez votre question ou votre idée ici..." 
-                    required
-                    minlength="10"
-                  ></textarea>
-                </div>
-
-                <!-- Messages d'erreur ou succès -->
-                <div v-if="errorMessage" class="alert alert-danger" role="alert">
-                  {{ errorMessage }}
-                </div>
-
-                <div class="d-flex justify-content-end gap-3 mt-4">
-                  <router-link to="/forum" class="btn btn-light btn-lg rounded-pill">Annuler</router-link>
-                  <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4" :disabled="loading">
-                    <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Publier le sujet
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   </main>
@@ -80,9 +68,13 @@
 <script>
 import forumService from '@/services/forumService';
 import { useRouter } from 'vue-router';
+import BreadcombsComponent from '@/includes/breadcombs.vue';
 
 export default {
   name: 'ForumCreateTopic',
+  components: {
+    BreadcombsComponent
+  },
   data() {
     return {
       form: {
@@ -104,13 +96,11 @@ export default {
       
       try {
         const response = await forumService.createSujet(this.form);
-        // On suppose que l'API renvoie le nouveau sujet dans response.data ou response
         const newId = response.data?.id || response.id;
         
         if (newId) {
           this.router.push(`/forum/${newId}`);
         } else {
-          // Si on n'a pas l'ID, on retourne à l'index
           this.router.push('/forum');
         }
       } catch (error) {
@@ -118,7 +108,7 @@ export default {
         if (error.response && error.response.data && error.response.data.message) {
           this.errorMessage = error.response.data.message;
         } else {
-          this.errorMessage = "Une erreur s'est produite lors de la publication. Veuillez réessayer.";
+          this.errorMessage = "Une erreur s'est produite lors de la publication. Veuillez réessayer plus tard.";
         }
       } finally {
         this.loading = false;
@@ -130,7 +120,8 @@ export default {
 
 <style scoped>
 .form-control:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 0.25rem rgba(var(--color-primary-rgb), 0.25);
+  background-color: #fff !important;
+  border: 1px solid var(--color-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(var(--color-primary-rgb), 0.1) !important;
 }
 </style>
