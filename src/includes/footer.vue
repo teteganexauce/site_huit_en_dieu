@@ -53,8 +53,19 @@
   </footer>
 </template>
 <script setup>
+import { ref } from 'vue'
 import { useSiteStore } from '../stores/site'
 
 const siteStore = useSiteStore()
+const email = ref('')
+const loading = ref(false)
+
+const subscribe = async () => {
+  if (!email.value) return
+  loading.value = true
+  // TODO: implémenter l'abonnement newsletter
+  loading.value = false
+  email.value = ''
+}
 </script>
 <style></style>

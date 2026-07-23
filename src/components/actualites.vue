@@ -65,8 +65,7 @@ onMounted(() => {
         :space-between="50"
         navigation
         :pagination="{ clickable: true }"
-        @swiper="onSwiper"
-        @slideChange="onSlideChange">
+       >
         <swiper-slide
           v-for="(itemCtx, index) in pubs"
           :key="index"

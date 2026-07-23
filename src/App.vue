@@ -5,9 +5,11 @@ import HeaderComponent from './includes/header.vue'
 import FooterComponent from './includes/footer.vue'
 import { useAuthStore } from './stores/auth';
 import { useCartStore } from './stores/cart';
+import { useContentStore } from './stores/content';
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
+const contentStore = useContentStore();
 const route = useRoute();
 
 const isAuthPage = computed(() => route.name === 'login' || route.name === 'register' || route.name === 'forgotPassword' || route.name === 'resetPassword');
