@@ -13,6 +13,7 @@ const route = useRoute();
 const isAuthPage = computed(() => route.name === 'login' || route.name === 'register' || route.name === 'forgotPassword' || route.name === 'resetPassword');
 
 onMounted(() => {
+  contentStore.fetchAll()
   if (authStore.isAuthenticated) {
     authStore.fetchProfile();
     cartStore.fetchCart();
@@ -22,15 +23,18 @@ onMounted(() => {
 
 <template>
 
+
    <HeaderComponent v-if="!isAuthPage" />
 
    <main id="main" :class="{ 'main--auth': isAuthPage }">
 
-      <RouterView /> 
 
+      <RouterView /> 
    </main>
 
+
    <FooterComponent v-if="!isAuthPage" />
+
 
 </template>
 
@@ -65,7 +69,6 @@ onMounted(() => {
       --header-height: 64px;
    }
 }
-
 .text-ps-primary{
    color: var(--color-primary) !important;
 }
@@ -75,7 +78,6 @@ onMounted(() => {
 .bg-ps-light {
    background-color: rgba(238, 238, 238, 0.233);
 }
-
 .text-grey {
    color: rgb(131, 131, 131);
 }

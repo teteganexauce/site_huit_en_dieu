@@ -36,8 +36,8 @@
           <div class="col-lg-4 col-md-6 footer-newsletter">
             <h4>Notre Newsletter</h4>
             <p>Abonnez vous à notre Newsletter</p>
-            <form action="" method="post">
-              <input type="email" name="email" placeholder="Adresse Email"><input type="submit" value="Souscrire">
+            <form @submit.prevent="subscribe" method="post">
+              <input type="email" v-model="email" name="email" placeholder="Adresse Email" required><input type="submit" value="Souscrire" :disabled="loading">
             </form>
           </div>
         </div>

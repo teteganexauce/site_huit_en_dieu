@@ -1,24 +1,23 @@
 <script setup>
-import {ref} from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useContentStore } from '../stores/content'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 
+const contentStore = useContentStore()
+
 const services = ref([
-   {
-      title: "Accompagnement spirituel"
-   },
-   {
-      title: "Formation initiale"
-   },
-   {
-      title: "Formation spécialisée"
-   },
-   {
-      title: "Demandez un accompagnement"
-   },
-   {
-      title: "Les formations gratuites"
-   },
+   { nom: "Accompagnement spirituel", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
+   { nom: "Formation initiale", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
+   { nom: "Formation spécialisée", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
+   { nom: "Demandez un accompagnement", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
+   { nom: "Les formations gratuites", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
 ])
+
+const items = computed(() => contentStore.rubriques.length > 0 ? contentStore.rubriques : services.value)
+
+onMounted(() => {
+   contentStore.fetchRubriquesCulture()
+})
 </script>
 
 <template>
@@ -28,13 +27,13 @@ const services = ref([
 
          <div class="row gy-4">
 
-            <div v-for="(item, index) in services" :key="index" class="col-lg-3 col-md-4 d-flex aos-init aos-animate" data-aos="zoom-out">
-               <div class="border service-item position-relative w-100 px-4">
-                  <div class="icon p-0 bg-ps-primary d-flex justify-content-center align-items-center rounded-circle"><i class="bi bi-star text-white icon p-0 m-0"></i></div>
-                  <h4 class="mb-2"><a href="" class="stretched-link">{{item.title}}</a></h4>
-                  <p class="">Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi</p>
-               </div>
-            </div><!-- End Service Item -->
+             <div v-for="(item, index) in items" :key="index" class="col-lg-3 col-md-4 d-flex aos-init aos-animate" data-aos="zoom-out">
+                <div class="border service-item position-relative w-100 px-4">
+                   <div class="icon p-0 bg-ps-primary d-flex justify-content-center align-items-center rounded-circle"><i class="bi bi-star text-white icon p-0 m-0"></i></div>
+                   <h4 class="mb-2"><a href="" class="stretched-link">{{item.nom}}</a></h4>
+                   <p class="">{{item.description}}</p>
+                </div>
+             </div><!-- End Service Item -->
          </div>
       </div>
    </section>
