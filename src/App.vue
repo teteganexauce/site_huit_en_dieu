@@ -28,10 +28,8 @@ onMounted(() => {
 
    <main id="main" :class="{ 'main--auth': isAuthPage }">
 
-
       <RouterView /> 
    </main>
-
 
    <FooterComponent v-if="!isAuthPage" />
 
