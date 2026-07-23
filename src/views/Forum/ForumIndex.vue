@@ -90,10 +90,6 @@
                         <div class="fs-5 fw-bold" :class="topic.reponses_count > 0 ? 'text-primary' : 'text-muted'">{{ topic.reponses_count || 0 }}</div>
                         <div class="text-uppercase text-secondary fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Réponses</div>
                       </div>
-                      <div class="stat-box text-center d-none d-md-block">
-                        <div class="fs-5 fw-bold text-dark">{{ topic.nombreVues || 0 }}</div>
-                        <div class="text-uppercase text-secondary fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Vues</div>
-                      </div>
                     </div>
 
                   </div>

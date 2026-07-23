@@ -32,34 +32,63 @@
           
           <!-- Message Original (Sujet) -->
           <div class="card border shadow-sm rounded-4 mb-4 overflow-hidden">
-            <div class="card-header bg-white border-bottom-0 p-3 p-md-4 pb-0 d-flex flex-column gap-2">
-              <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fw-semibold small"><i class="bi bi-question-circle-fill me-1"></i> Question initiale</span>
-                <span v-if="topic.estEpingle" class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 fw-semibold small"><i class="bi bi-pin-angle-fill me-1"></i> Épinglé</span>
-                <span v-if="topic.estFerme" class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 fw-semibold small"><i class="bi bi-lock-fill me-1"></i> Fermé</span>
+            <div class="card-header bg-white border-bottom-0 p-3 p-md-4 pb-0 d-flex flex-column gap-3">
+              <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fw-semibold small"><i class="bi bi-question-circle-fill me-1"></i> Question initiale</span>
+                  <span v-if="topic.estEpingle" class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 fw-semibold small"><i class="bi bi-pin-angle-fill me-1"></i> Épinglé</span>
+                  <span v-if="topic.estFerme" class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 fw-semibold small"><i class="bi bi-lock-fill me-1"></i> Fermé</span>
+                </div>
+                
+                <button v-if="hasSolutions" @click="showSolutionsInCard = !showSolutionsInCard" class="btn btn-sm btn-success bg-success-subtle text-success border border-success border-opacity-25 rounded-pill fw-bold shadow-sm px-3 flex-shrink-0">
+                  <i class="bi" :class="showSolutionsInCard ? 'bi-arrow-return-left' : 'bi-check-circle-fill'"></i> 
+                  {{ showSolutionsInCard ? 'Voir la question' : 'Voir les solutions (' + solutionsCount + ')' }}
+                </button>
               </div>
               <h1 class="fw-bold text-dark mb-0 topic-title lh-sm">{{ topic.titre }}</h1>
             </div>
             
             <div class="card-body p-3 p-md-4 pt-3 pb-2">
-              <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                  <img :src="topic.auteur?.photo_profil_url || defaultAvatar" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar">
-                  <div>
-                    <div class="fw-bold text-dark">{{ topic.auteur?.name || 'Utilisateur inconnu' }}</div>
-                    <div class="text-muted small">{{ formatDate(topic.dateCreation) }}</div>
+              
+              <!-- Affichage du sujet par défaut -->
+              <div v-if="!showSolutionsInCard">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                  <div class="d-flex align-items-center gap-2">
+                    <img :src="topic.auteur?.photo_profil_url || defaultAvatar" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar">
+                    <div>
+                      <div class="fw-bold text-dark">{{ topic.auteur?.name || 'Utilisateur inconnu' }}</div>
+                      <div class="text-muted small">{{ formatDate(topic.dateCreation) }}</div>
+                    </div>
+                  </div>
+                  <div class="text-secondary d-none d-sm-block">
+                    <span class="badge bg-light text-dark border px-2 py-1 me-2"><i class="bi bi-chat-text text-muted me-1"></i> {{ topic.reponses_count || reponses.length }} réponse(s)</span>
                   </div>
                 </div>
-                <div class="text-secondary d-none d-sm-block">
-                  <span class="badge bg-light text-dark border px-2 py-1 me-2"><i class="bi bi-chat-text text-muted me-1"></i> {{ topic.reponses_count || reponses.length }} réponse(s)</span>
+
+                <div class="topic-content text-dark mb-3" style="white-space: pre-line; line-height: 1.6; font-size: 1.05rem; word-break: break-word;">
+                  {{ topic.contenu }}
                 </div>
               </div>
 
-              <div class="topic-content text-dark mb-3" style="white-space: pre-line; line-height: 1.6; font-size: 1.05rem; word-break: break-word;">
-                {{ topic.contenu }}
+              <!-- Affichage de la/les solution(s) -->
+              <div v-else class="solutions-container mt-2">
+                <div v-for="(sol, index) in approvedSolutions" :key="sol.id" class="mb-4">
+                  <div class="d-flex align-items-center gap-2 mb-3">
+                    <img :src="sol.auteur?.photo_profil_url || defaultAvatar" class="rounded-circle shadow-sm" style="width: 32px; height: 32px; object-fit: cover;" alt="Avatar">
+                    <span class="fw-bold text-dark small">{{ sol.auteur?.name || 'Utilisateur inconnu' }}</span>
+                    <span class="text-muted small" style="font-size: 0.8rem;">• {{ formatDate(sol.dateCreation) }}</span>
+                  </div>
+                  <div class="p-3 p-md-4 bg-success-subtle border border-success border-opacity-25 rounded-3 text-dark shadow-sm" style="white-space: pre-line; line-height: 1.6; font-size: 1.05rem; word-break: break-word;">
+                    {{ sol.contenu }}
+                  </div>
+                  <hr v-if="index < approvedSolutions.length - 1" class="my-4 text-success border-success opacity-25">
+                </div>
               </div>
+
             </div>
           </div>
+
+
 
           <!-- Section Réponses -->
           <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
@@ -291,6 +320,7 @@ export default {
     return {
       defaultAvatar,
       topic: null,
+      showSolutionsInCard: false,
       reponses: [],
       loadingTopic: true,
       loadingReponses: false,
@@ -322,6 +352,15 @@ export default {
     isAuthor() {
       if (!this.topic || !this.currentUser) return false;
       return this.topic.auteur?.id === this.currentUser.id;
+    },
+    hasSolutions() {
+      return this.reponses.some(r => r.estSolution);
+    },
+    solutionsCount() {
+      return this.reponses.filter(r => r.estSolution).length;
+    },
+    approvedSolutions() {
+      return this.reponses.filter(r => r.estSolution);
     }
   },
   async mounted() {
