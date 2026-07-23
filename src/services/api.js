@@ -54,7 +54,10 @@ api.interceptors.response.use(
         });
         
         // Redirection vers le login si on est pas déjà dessus
-        if (router.currentRoute.value.name !== 'login') {
+        const currentRoute = router.currentRoute.value;
+        if (currentRoute.name !== 'login' && currentRoute.name !== 'home') {
+          router.push({ name: 'login', query: { redirect: currentRoute.fullPath } });
+        } else {
           router.push({ name: 'login' });
         }
         break;
