@@ -44,21 +44,18 @@
             <div class="card-body p-3 p-md-4 pt-3 pb-2">
               <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <div class="d-flex align-items-center gap-2">
-                  <div class="avatar text-white fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
-                       :style="`width: 40px; height: 40px; font-size: 0.9rem; background-color: ${getAvatarColor(topic.auteur?.name || 'U')}`">
-                    {{ getInitials(topic.auteur?.name || 'U') }}
-                  </div>
+                  <img :src="topic.auteur?.photo_profil_url || defaultAvatar" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar">
                   <div>
                     <div class="fw-bold text-dark">{{ topic.auteur?.name || 'Utilisateur inconnu' }}</div>
                     <div class="text-muted small">{{ formatDate(topic.dateCreation) }}</div>
                   </div>
                 </div>
                 <div class="text-secondary d-none d-sm-block">
-                  <span class="badge bg-light text-dark border px-2 py-1 me-2"><i class="bi bi-eye text-muted"></i> {{ topic.nombreVues || 0 }} vues</span>
+                  <span class="badge bg-light text-dark border px-2 py-1 me-2"><i class="bi bi-chat-text text-muted me-1"></i> {{ topic.reponses_count || reponses.length }} réponse(s)</span>
                 </div>
               </div>
 
-              <div class="topic-content text-dark mb-3" style="white-space: pre-line; line-height: 1.6; font-size: 1.05rem;">
+              <div class="topic-content text-dark mb-3" style="white-space: pre-line; line-height: 1.6; font-size: 1.05rem; word-break: break-word;">
                 {{ topic.contenu }}
               </div>
             </div>
@@ -80,29 +77,28 @@
             <div 
               v-for="reponse in reponses" 
               :key="reponse.id" 
-              class="card border shadow-sm rounded-4 mb-4 position-relative"
-              :class="{'solution-card': reponse.estSolution}"
+              class="card border-0 shadow-sm rounded-4 mb-4 position-relative"
+              :class="{'border-start border-success border-5': reponse.estSolution}"
             >
-              <!-- Ribbon for Solution -->
-              <div v-if="reponse.estSolution" class="solution-ribbon text-white bg-success fw-bold small px-3 py-1 shadow-sm rounded-bottom-4">
-                <i class="bi bi-check-circle-fill me-1"></i> Solution approuvée
-              </div>
+              <div class="card-body p-3 p-md-4">
+                <!-- Top Status Bar for Solution -->
+                <div v-if="reponse.estSolution" class="d-flex flex-wrap align-items-center mb-3 pb-2 border-bottom">
+                  <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-bold border border-success border-opacity-25">
+                    <i class="bi bi-check-circle-fill me-1"></i> Solution approuvée
+                  </span>
+                </div>
 
-              <div class="card-body p-3 p-md-4" :class="{'pt-4': reponse.estSolution}">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar text-white fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
-                         :style="`width: 36px; height: 36px; font-size: 0.8rem; background-color: ${getAvatarColor(reponse.auteur?.name || 'U')}`">
-                      {{ getInitials(reponse.auteur?.name || 'U') }}
-                    </div>
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start mb-3 gap-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <img :src="reponse.auteur?.photo_profil_url || defaultAvatar" class="rounded-circle shadow-sm flex-shrink-0" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar">
                     <div>
-                      <div class="fw-bold text-dark">{{ reponse.auteur?.name || 'Utilisateur inconnu' }}</div>
-                      <div class="text-muted small" style="font-size: 0.8rem;">{{ formatDate(reponse.dateCreation) }}</div>
+                      <div class="fw-bold text-dark text-break">{{ reponse.auteur?.name || 'Utilisateur inconnu' }}</div>
+                      <div class="text-muted small" style="font-size: 0.85rem;">{{ formatDate(reponse.dateCreation) }}</div>
                     </div>
                   </div>
                   
                   <!-- Actions Réponse -->
-                  <div class="dropdown" style="position: relative;" @click.stop v-if="hasDropdown(reponse)">
+                  <div class="dropdown align-self-end align-self-sm-start mt-2 mt-sm-0" style="position: relative;" @click.stop v-if="hasDropdown(reponse)">
                     <button class="btn btn-sm btn-light rounded-circle btn-icon border-0" type="button" @click="toggleDropdown(reponse.id)">
                       <i class="bi bi-three-dots-vertical text-secondary"></i>
                     </button>
@@ -140,7 +136,7 @@
                   </div>
                 </div>
                 <!-- Contenu Normal -->
-                <div v-else class="response-content text-dark" style="white-space: pre-line; line-height: 1.5; font-size: 1rem;">
+                <div v-else class="response-content text-dark mt-2" style="white-space: pre-line; line-height: 1.6; font-size: 1.05rem; word-break: break-word;">
                   {{ reponse.contenu }}
                 </div>
               </div>
@@ -284,6 +280,7 @@ import forumService from '@/services/forumService';
 import authService from '@/services/authService';
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import BreadcombsComponent from '@/includes/breadcombs.vue';
+import defaultAvatar from '@/assets/img/portfolio/app-1.jpg';
 
 export default {
   name: 'ForumTopic',
@@ -292,6 +289,7 @@ export default {
   },
   data() {
     return {
+      defaultAvatar,
       topic: null,
       reponses: [],
       loadingTopic: true,
@@ -523,16 +521,7 @@ export default {
 .topic-title {
   font-size: 1.7rem;
   letter-spacing: -0.5px;
-}
-.solution-card {
-  border: 2px solid #10b981 !important;
-}
-.solution-ribbon {
-  position: absolute;
-  top: 0;
-  left: 20px;
-  background-color: #10b981 !important;
-  z-index: 10;
+  word-break: break-word;
 }
 .btn-icon {
   width: 36px;
@@ -553,5 +542,6 @@ export default {
 /* Bootstrap 5.3 Utility Fallbacks */
 .bg-primary-subtle { background-color: #e0e7ff !important; }
 .bg-danger-subtle { background-color: #fee2e2 !important; }
+.bg-success-subtle { background-color: #d1fae5 !important; }
 .bg-secondary-subtle { background-color: #f1f5f9 !important; }
 </style>
