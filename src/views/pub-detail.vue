@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import BookComponent from '../components/book.vue'
+import { useContentStore } from '../stores/content'
 
+const contentStore = useContentStore()
 
 const categories = ref([
    {
@@ -15,6 +16,10 @@ const categories = ref([
       title: "Réflexion sur les travaux de recherches"
    },
 ])
+
+onMounted(() => {
+   // TODO: Charger le détail de la publication via contentStore ou publicationService
+})
 
 
 
