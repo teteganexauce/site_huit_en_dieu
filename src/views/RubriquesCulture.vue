@@ -78,7 +78,7 @@ onMounted(async () => {
 
 <style scoped>
 .rubriques-section {
-  background: #f8f9fa;
+  background: #ffffff;
   min-height: 60vh;
 }
 

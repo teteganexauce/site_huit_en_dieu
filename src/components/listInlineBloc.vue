@@ -187,8 +187,8 @@ const getImageUrl = (url) => {
                 </div>
                 <div class="row gy-4 posts-list">
 
-                                    <div class="col-lg-4" v-for="pub in publications.slice(0, 3)" :key="pub.id">
-                     <article class="d-flex flex-column h-100">
+                   <div class="col-lg-4" v-for="pub in publications.slice(0, 3)" :key="pub.id">
+                      <article class="d-flex flex-column h-100">
 
                         <div class="post-img">
                            <img v-if="pub.image_url" :src="pub.image_url" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">

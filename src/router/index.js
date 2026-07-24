@@ -36,6 +36,11 @@ import CertificatPage from '../views/CertificatPage.vue';
 
 import AccompagnementView from '../views/user/AccompagnementView.vue';
 
+// Forum
+import ForumIndex from '../views/Forum/ForumIndex.vue';
+import ForumTopic from '../views/Forum/ForumTopic.vue';
+import ForumCreateTopic from '../views/Forum/ForumCreateTopic.vue';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -74,13 +79,24 @@ const router = createRouter({
     { path: "/apprentissage/:inscriptionId", name: "coursPlayer", component: CoursPlayer, meta: { requiresAuth: true } },
     { path: "/apprentissage/:inscriptionId/:coursId", name: "coursPlayerCours", component: CoursPlayer, meta: { requiresAuth: true } },
     { path: "/inscriptions/:id/certificat", name: "certificat", component: CertificatPage, meta: { requiresAuth: true } },
+    { path: "/forum", name: "forum", component: ForumIndex },
+    { path: "/forum/creer", name: "forum-create", component: ForumCreateTopic, meta: { requiresAdmin: true } },
+    { path: "/forum/:id", name: "forum-topic", component: ForumTopic },
   ],
 });
 
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('token');
+  let isAdmin = false;
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    isAdmin = user?.role === 'admin' || user?.role?.value === 'admin';
+  } catch(e) {}
+
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'login' });
+  } else if (to.meta.requiresAdmin && (!isAuthenticated || !isAdmin)) {
+    next({ name: 'home' }); // Redirect non-admins to home or forum index
   } else if (to.meta.guestOnly && isAuthenticated) {
     next({ name: 'profileInscrit' });
   } else {

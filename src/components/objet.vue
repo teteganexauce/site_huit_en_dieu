@@ -1,20 +1,18 @@
 <template>
    <div class="mb-4 book" data-aos="zoom-in" data-aos-delay="300">
-      <router-link to="/e-book/detail" class="shadow">
+      <router-link :to="`/boutique/${props.product.id}`" class="shadow">
          <div class="book-image">
-            <img src="../assets/img/faq.jpg" alt="">
+            <img :src="props.product.imageUrl || defaultImg" alt="">
          </div>
          <div class="book-content mb-2 pb-3">
             <div class="book-title d-flex align-items-center justify-content-between py-2 px-3">
-               <h6 class="m-0 text-secondary"><b>La pensée positive </b></h6>
+               <h6 class="m-0 text-secondary"><b>{{ props.product.nom }} </b></h6>
                <div class="book-icon px-1 d-flex justify-content-center align-items-center rounded-circle">
-                  <small>12 000 fcfa</small>
+                  <small>{{ formattedPrice }}</small>
                </div>
             </div>
             <div class="px-3 book-paragraph">
-               <small>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Exercitationem earum
-                  veritatis suscipit provident, totam, doloribus fugit aspernatur doloremque alias soluta
-                  vitae omnis repudiandae impedit quos dolorem laudantium architecto sit odio.</small>
+               <small>{{ props.product.description }}</small>
             </div>
          </div>
          <!--div class="book-footer d-flex justify-content-between px-3 py-2 border-top text-grey">
@@ -37,8 +35,20 @@
       </router-link>
    </div>
 </template>
-<script>
+<script setup>
+import { defineProps, computed } from 'vue'
+import defaultImg from '../assets/img/faq.jpg'
 
+const props = defineProps({
+   product: { type: Object, required: true }
+})
+
+const prix = computed(() => props.product.prixPromotion || props.product.prix)
+
+const formattedPrice = computed(() => {
+   const p = parseFloat(prix.value)
+   return p.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' }).replace('XOF', '').trim() + ' FCFA'
+})
 </script>
 <style scoped>
 .book-image {

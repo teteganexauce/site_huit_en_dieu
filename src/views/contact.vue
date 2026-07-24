@@ -1,7 +1,33 @@
 <script setup>
 import { ref } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
+import api from '../services/api'
 
+const form = ref({
+  nom: '',
+  email: '',
+  sujet: '',
+  message: ''
+})
+
+const loading = ref(false)
+const success = ref(false)
+const error = ref('')
+
+async function handleSubmit() {
+  loading.value = true
+  success.value = false
+  error.value = ''
+  try {
+    await api.post('/contact', form.value)
+    success.value = true
+    form.value = { nom: '', email: '', sujet: '', message: '' }
+  } catch (e) {
+    error.value = e.response?.data?.message || "Une erreur s'est produite."
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 
@@ -55,30 +81,30 @@ import BreadcombsComponent from '../includes/breadcombs.vue'
 
              </div>
 
-             <div class="col-lg-8">
-               <form action="forms/contact.php" method="post" role="form" class="php-email-form">
-                 <div class="row">
-                   <div class="col-md-6 form-group">
-                     <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required="">
-                   </div>
-                   <div class="col-md-6 form-group mt-3 mt-md-0">
-                     <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required="">
-                   </div>
-                 </div>
-                 <div class="form-group mt-3">
-                   <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" required="">
-                 </div>
-                 <div class="form-group mt-3">
-                   <textarea class="form-control" name="message" placeholder="Message" required=""></textarea>
-                 </div>
-                 <div class="my-3">
-                   <div class="loading">Loading</div>
-                   <div class="error-message"></div>
-                   <div class="sent-message">Your message has been sent. Thank you!</div>
-                 </div>
-                 <div class="text-center"><button type="submit">Send Message</button></div>
-               </form>
-             </div><!-- End Contact Form -->
+              <div class="col-lg-8">
+                <form @submit.prevent="handleSubmit" method="post" role="form" class="php-email-form">
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <input type="text" v-model="form.nom" class="form-control" id="name" placeholder="Your Name" required="">
+                    </div>
+                    <div class="col-md-6 form-group mt-3 mt-md-0">
+                      <input type="email" v-model="form.email" class="form-control" name="email" id="email" placeholder="Your Email" required="">
+                    </div>
+                  </div>
+                  <div class="form-group mt-3">
+                    <input type="text" v-model="form.sujet" class="form-control" name="subject" id="subject" placeholder="Subject" required="">
+                  </div>
+                  <div class="form-group mt-3">
+                    <textarea v-model="form.message" class="form-control" name="message" placeholder="Message" required=""></textarea>
+                  </div>
+                  <div class="my-3">
+                    <div v-if="loading" class="loading">Loading</div>
+                    <div v-if="error" class="error-message">{{ error }}</div>
+                    <div v-if="success" class="sent-message">Votre message a été envoyé. Merci !</div>
+                  </div>
+                  <div class="text-center"><button type="submit" :disabled="loading">Send Message</button></div>
+                </form>
+              </div><!-- End Contact Form -->
 
            </div>
 

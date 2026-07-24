@@ -8,7 +8,7 @@
           <img v-if="siteStore.siteLogo" :src="siteStore.siteLogo" alt="Logo" class="logo-img">
           <div v-else class="logo-icon">✝</div>
           <h1 class="logo-title">{{ siteDisplayName }}</h1>
-          <div class="logo-subtitle">Espace d'administration</div>
+          <div class="logo-subtitle">Espace membre</div>
         </div>
 
         <div v-if="globalError" class="error-message">
@@ -93,7 +93,7 @@
         </div>
 
         <div class="login-footer">
-          <span>{{ siteDisplayName }}</span> &bull; v2.0.1
+          <span>{{ siteDisplayName }}</span>
         </div>
       </div>
     </div>
@@ -102,11 +102,12 @@
 
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useSiteStore } from '../../stores/site'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const siteStore = useSiteStore()
 
@@ -150,7 +151,8 @@ const handleLogin = async () => {
       localStorage.removeItem('remembered_email')
     }
     await authStore.login(credentials)
-    router.push({ name: 'profileInscrit' })
+    const redirectPath = route.query.redirect || { name: 'profileInscrit' }
+    router.push(redirectPath)
   } catch (error) {
     if (error.response && error.response.status === 422) {
       errors.value = error.response.data.errors || {}

@@ -114,8 +114,7 @@ const breakpoint = {
 
          <div class="mb-5">
             <swiper :modules="[Navigation, Pagination, A11y]" :breakpoints="breakpoint" :loop=" true "
-               :space-between=" 50 " navigation :pagination=" { clickable: true } " @swiper=" onSwiper "
-               @slideChange=" onSlideChange ">
+               :space-between=" 50 " navigation :pagination=" { clickable: true } ">
                <swiper-slide v-for="n in 10">
                   <BookComponent />
                </swiper-slide>

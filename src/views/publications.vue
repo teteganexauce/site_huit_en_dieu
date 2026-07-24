@@ -81,11 +81,11 @@ const formatDate = (dateString) => {
                   <div class="w-100">
                      <input class="form-control rounded-1 shadow-none" type="text" placeholder="Faites une recherche">
                   </div>
-                  <div class="d-flex">
-                     <button class="btn btn-primary mx-1 rounded-1" type="submit">Rechercher</button>
-                  </div>
-               </form>
-            </div>
+                    <div class="d-flex">
+                       <button class="btn btn-primary mx-1 rounded-1" type="submit">Rechercher</button>
+                    </div>
+                 </form>
+              </div>
 
             <section id="blog" class="blog mt-4 pt-4 mb-5">
                <div class="container">

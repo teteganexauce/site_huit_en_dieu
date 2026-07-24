@@ -352,7 +352,7 @@ onMounted(async () => {
 
 const handleLogout = async () => {
   await authStore.logout()
-  router.push({ name: 'login' })
+  router.push({ name: 'home' })
 }
 
 const handleFileChange = (e) => {

@@ -1,14 +1,8 @@
 <template>
-  <main id="main" class="section-bg">
-    <!-- Hero Section simplifiée -->
-    <div class="breadcrumbs d-flex align-items-center section-bg" style="min-height: 200px; padding-top: 40px;">
-      <div class="container position-relative d-flex flex-column align-items-center text-center" data-aos="fade">
-        <h2 class="fw-bold text-dark mb-2">Demande d'Accompagnement</h2>
-        <p class="text-muted w-75">Un guide spirituel, académique ou de recherche personnalisé, conçu pour vous aider à atteindre vos objectifs.</p>
-      </div>
-    </div>
+  <BreadcombsComponent title="Demande d'Accompagnement" />
+  <main id="main" class="bg-white">
 
-    <section class="accompagnement-section py-5 section-bg">
+    <section class="accompagnement-section pt-3 pb-5 bg-white">
       <div class="container" data-aos="fade-up">
         
         <div class="row g-0 rounded-4 shadow-lg overflow-hidden bg-white">
@@ -124,9 +118,13 @@
 import { ref, onMounted } from 'vue';
 import accompagnementService from '@/services/accompagnementService';
 import { useAuthStore } from '@/stores/auth';
+import BreadcombsComponent from '@/includes/breadcombs.vue';
 
 export default {
   name: 'AccompagnementView',
+  components: {
+    BreadcombsComponent
+  },
   setup() {
     const authStore = useAuthStore();
     
@@ -186,9 +184,6 @@ export default {
 
 <style scoped>
 .accompagnement-section {
-  padding: 60px 0;
-}
-.section-bg {
-  background-color: #f5f6f7;
+  padding-bottom: 60px;
 }
 </style>

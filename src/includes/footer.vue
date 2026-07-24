@@ -36,8 +36,8 @@
           <div class="col-lg-4 col-md-6 footer-newsletter">
             <h4>Notre Newsletter</h4>
             <p>Abonnez vous à notre Newsletter</p>
-            <form action="" method="post">
-              <input type="email" name="email" placeholder="Adresse Email"><input type="submit" value="Souscrire">
+            <form @submit.prevent="subscribe" method="post">
+              <input type="email" v-model="email" name="email" placeholder="Adresse Email" required><input type="submit" value="Souscrire" :disabled="loading">
             </form>
           </div>
         </div>
@@ -53,8 +53,19 @@
   </footer>
 </template>
 <script setup>
+import { ref } from 'vue'
 import { useSiteStore } from '../stores/site'
 
 const siteStore = useSiteStore()
+const email = ref('')
+const loading = ref(false)
+
+const subscribe = async () => {
+  if (!email.value) return
+  loading.value = true
+  // TODO: implémenter l'abonnement newsletter
+  loading.value = false
+  email.value = ''
+}
 </script>
 <style></style>
