@@ -5,6 +5,7 @@ export const useContentStore = defineStore('content', {
   state: () => ({
     slides: [],
     evenements: [],
+    pensees: [],
     temoignages: [],
     partenaires: [],
     equipe: [],
@@ -28,7 +29,16 @@ export const useContentStore = defineStore('content', {
         const response = await contentService.getEvenements();
         this.evenements = response.data || response;
       } catch (error) {
-        console.error('Erreur chargement evenements:', error);
+        console.error('Erreur chargement événements:', error);
+      }
+    },
+
+    async fetchPensees() {
+      try {
+        const response = await contentService.getPensees();
+        this.pensees = response.data || response;
+      } catch (error) {
+        console.error('Erreur chargement pensées:', error);
       }
     },
 

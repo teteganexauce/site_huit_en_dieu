@@ -21,6 +21,16 @@ const contentService = {
     return response.data;
   },
 
+  async getPensees() {
+    const response = await api.get('/pensees/active');
+    return response.data;
+  },
+
+  async getAllPensees() {
+    const response = await api.get('/pensees/all');
+    return response.data;
+  },
+
   async getPartenaires() {
     const response = await api.get('/partenaires');
     return response.data;
