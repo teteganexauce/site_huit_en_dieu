@@ -13,6 +13,7 @@ const form = ref({
 const loading = ref(false)
 const success = ref(false)
 const error = ref('')
+const showModal = ref(false)
 
 async function handleSubmit() {
   loading.value = true
@@ -22,11 +23,16 @@ async function handleSubmit() {
     await api.post('/contact', form.value)
     success.value = true
     form.value = { nom: '', email: '', sujet: '', message: '' }
+    showModal.value = true
   } catch (e) {
     error.value = e.response?.data?.message || "Une erreur s'est produite."
   } finally {
     loading.value = false
   }
+}
+
+function closeModal() {
+  showModal.value = false
 }
 </script>
 
@@ -59,7 +65,7 @@ async function handleSubmit() {
                      <h4>Location:</h4>
                      <p>A108 Adam Street, New York, NY 535022</p>
                    </div>
-                 </div><!-- End Info Item -->
+                 </div>
 
                  <div class="info-item d-flex">
                    <i class="bi bi-envelope flex-shrink-0"></i>
@@ -67,7 +73,7 @@ async function handleSubmit() {
                      <h4>Email:</h4>
                      <p>info@example.com</p>
                    </div>
-                 </div><!-- End Info Item -->
+                 </div>
 
                  <div class="info-item d-flex">
                    <i class="bi bi-phone flex-shrink-0"></i>
@@ -75,7 +81,7 @@ async function handleSubmit() {
                      <h4>Call:</h4>
                      <p>+1 5589 55488 55</p>
                    </div>
-                 </div><!-- End Info Item -->
+                 </div>
 
                </div>
 
@@ -100,32 +106,75 @@ async function handleSubmit() {
                   <div class="my-3">
                     <div v-if="loading" class="loading">Loading</div>
                     <div v-if="error" class="error-message">{{ error }}</div>
-                    <div v-if="success" class="sent-message">Votre message a été envoyé. Merci !</div>
                   </div>
                   <div class="text-center"><button type="submit" :disabled="loading">Send Message</button></div>
                 </form>
-              </div><!-- End Contact Form -->
+              </div>
 
            </div>
 
          </div>
 
-         <!--div class="map">
-           <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12097.433213460943!2d-74.0062269!3d40.7101282!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0xb89d1fe6bc499443!2sDowntown+Conference+Center!5e0!3m2!1smk!2sbg!4v1539943755621" frameborder="0" allowfullscreen=""></iframe>
-         </div-->
        </section>
    </div>
+
+  <Teleport to="body">
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Message envoyé !</h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <div class="success-icon mb-3">
+              <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="mb-2">Merci pour votre message !</h4>
+            <p class="text-muted mb-1">Nous avons bien reçu votre demande et nous vous répondrons dans les plus brefs délais.</p>
+            <p class="text-muted">Un accusé de réception vous a été envoyé par email.</p>
+          </div>
+          <div class="modal-footer justify-content-center border-0 pt-0">
+            <button type="button" class="btn btn-primary px-4" @click="closeModal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
 
-
-/* .bg-ps-light {
-   background-color: rgba(238, 238, 238, 0.233);
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
-.text-grey {
-   color: rgb(131, 131, 131);
-} */
+.modal-dialog {
+  width: 100%;
+  max-width: 480px;
+  margin: 1rem;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.success-icon {
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
 
 </style>
