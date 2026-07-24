@@ -3,7 +3,7 @@
       <div class="container-fluid p-0 aos-init aos-animate" data-aos="fade-up">
          <div class="row g-0">
             <div class="col-lg-6 video-play position-relative d-flex align-items-center justify-content-center overflow-hidden" :class="{ 'video-empty': !videoUrl }">
-               <video v-if="videoUrl" ref="videoRef" :src="videoUrl" class="w-100" style="object-fit: cover; max-height: 600px;" :controls="isPlaying" playsinline @click="togglePlay"></video>
+               <video v-if="videoUrl" ref="videoRef" :src="videoUrl" class="w-100" style="object-fit: cover; max-height: 500px;" :controls="isPlaying" playsinline @click="togglePlay"></video>
                <div v-if="videoUrl && !isPlaying" class="play-overlay" @click="togglePlay">
                   <div class="play-btn-pulse"></div>
                   <div class="play-btn-pulse delay-1"></div>
@@ -63,7 +63,7 @@ const togglePlay = () => {
    background-color: #0d6dfd98 !important;
 }
 .video-play {
-   min-height: 600px;
+   min-height: 500px;
 }
 .video-play.video-empty {
    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
