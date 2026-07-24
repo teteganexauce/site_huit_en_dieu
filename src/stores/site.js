@@ -22,6 +22,12 @@ export const useSiteStore = defineStore('site', {
       const storageBase = base.replace('/api/v1', '/storage')
       return `${storageBase}/${state.settings.SITE_LOGO}`
     },
+    siteVideo: (state) => {
+      if (!state.settings.HERO_VIDEO) return null
+      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'
+      const storageBase = base.replace('/api/v1', '/storage')
+      return `${storageBase}/${state.settings.HERO_VIDEO}`
+    },
   },
   actions: {
     async fetchSettings() {
