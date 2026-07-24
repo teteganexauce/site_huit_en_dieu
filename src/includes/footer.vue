@@ -29,7 +29,7 @@
               <li><i class="bi bi-chevron-right"></i> <router-link to="/temoignages">Témoignages</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/formations">Formations</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/e-book">E-books</router-link></li>
-              <li><i class="bi bi-chevron-right"></i> <router-link to="/objets">Objets en vente</router-link></li>
+              <li><i class="bi bi-chevron-right"></i> <router-link to="/boutique">Boutique</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/rubriques-culture">Rubriques Culturelles</router-link></li>
             </ul>
           </div>
@@ -39,6 +39,7 @@
             <form @submit.prevent="subscribe" method="post">
               <input type="email" v-model="email" name="email" placeholder="Adresse Email" required><input type="submit" value="Souscrire" :disabled="loading">
             </form>
+            <div v-if="message" class="mt-2 small" :class="error ? 'text-danger' : 'text-success'">{{ message }}</div>
           </div>
         </div>
       </div>
@@ -55,17 +56,29 @@
 <script setup>
 import { ref } from 'vue'
 import { useSiteStore } from '../stores/site'
+import api from '../services/api'
 
 const siteStore = useSiteStore()
 const email = ref('')
 const loading = ref(false)
+const message = ref('')
+const error = ref(false)
 
 const subscribe = async () => {
   if (!email.value) return
   loading.value = true
-  // TODO: implémenter l'abonnement newsletter
-  loading.value = false
-  email.value = ''
+  message.value = ''
+  error.value = false
+  try {
+    const res = await api.post('/newsletter/subscribe', { email: email.value })
+    message.value = res.data.message
+    email.value = ''
+  } catch (err) {
+    error.value = true
+    message.value = err.response?.data?.message || 'Une erreur est survenue. Réessayez plus tard.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 <style></style>
