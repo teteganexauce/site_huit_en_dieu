@@ -39,7 +39,7 @@
             <form @submit.prevent="subscribe" method="post">
               <input type="email" v-model="email" name="email" placeholder="Adresse Email" required><input type="submit" value="Souscrire" :disabled="loading">
             </form>
-            <div v-if="message" class="mt-2 small" :class="error ? 'text-danger' : 'text-success'">{{ message }}</div>
+            <div v-if="message" class="mt-2 small newsletter-msg" :class="error ? 'newsletter-msg-error' : 'newsletter-msg-success'">{{ message }}</div>
           </div>
         </div>
       </div>
@@ -81,4 +81,17 @@ const subscribe = async () => {
   }
 }
 </script>
-<style></style>
+<style>
+.newsletter-msg {
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 500;
+}
+.newsletter-msg-success {
+  background: #198754;
+}
+.newsletter-msg-error {
+  background: #dc3545;
+}
+</style>
