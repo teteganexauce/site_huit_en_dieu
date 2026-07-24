@@ -40,9 +40,17 @@ import AccompagnementView from '../views/user/AccompagnementView.vue';
 import ForumIndex from '../views/Forum/ForumIndex.vue';
 import ForumTopic from '../views/Forum/ForumTopic.vue';
 import ForumCreateTopic from '../views/Forum/ForumCreateTopic.vue';
+import PenseesView from '../views/PenseesView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0, behavior: 'smooth' };
+    }
+  },
   routes: [
     { path: "/", name: "home", component: accueil },
     { path: "/e-book", name: "ebook", component: ebook },
@@ -82,6 +90,7 @@ const router = createRouter({
     { path: "/forum", name: "forum", component: ForumIndex },
     { path: "/forum/creer", name: "forum-create", component: ForumCreateTopic, meta: { requiresAdmin: true } },
     { path: "/forum/:id", name: "forum-topic", component: ForumTopic },
+    { path: '/pensees', name: 'pensees', component: PenseesView },
   ],
 });
 

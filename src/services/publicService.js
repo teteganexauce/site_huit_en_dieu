@@ -6,6 +6,11 @@ const publicService = {
     return response.data;
   },
 
+  async getHomeData() {
+    const response = await api.get('/home');
+    return response.data;
+  },
+
   async getTeam() {
     const response = await api.get('/equipe');
     return response.data;

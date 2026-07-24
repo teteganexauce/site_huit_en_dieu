@@ -1,22 +1,18 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import BanniereComponent from '../components/banniere.vue'
 import ActualiteComponent from '../components/actualites.vue'
 import BlocImageTextComponent from '../components/blocImageText.vue'
 import ListInlineBlocComponnent from '@/components/listInlineBloc.vue'
-import donService from '../services/donService'
+import { useContentStore } from '@/stores/content'
 
-const compteurAffiche = ref(0)
-const totalDonateurs = ref(0)
+const contentStore = useContentStore()
+
+const totalDons = computed(() => contentStore.homeData?.dons?.total || 0)
+const totalDonateurs = computed(() => contentStore.homeData?.dons?.donateurs || 0)
 
 onMounted(async () => {
-  try {
-    const res = await donService.getTotal()
-    totalDonateurs.value = res.donateurs || 0
-    animerCompteur()
-  } catch (e) {
-    console.error('Erreur chargement dons:', e)
-  }
+  await contentStore.fetchHomeData()
 })
 
 function animerCompteur() {
@@ -40,10 +36,20 @@ function animerCompteur() {
 </script>
 
 <template>
-   <BanniereComponent />
-   <ActualiteComponent />
-   <BlocImageTextComponent />
-   <ListInlineBlocComponnent />
+   <!-- Global page loader -->
+   <div v-if="!contentStore.homeData" class="vh-100 w-100 d-flex flex-column justify-content-center align-items-center bg-white position-fixed top-0 start-0" style="z-index: 9999;">
+     <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+       <span class="visually-hidden">Chargement...</span>
+     </div>
+     <h5 class="text-primary fw-bold" style="animation: pulse 1.5s infinite;">Chargement de Huit en Dieu...</h5>
+   </div>
+
+   <!-- Page content (visually hidden until everything is ready) -->
+   <div v-else class="overflow-hidden">
+     <BanniereComponent />
+     <ActualiteComponent />
+     <BlocImageTextComponent />
+     <ListInlineBlocComponnent />
 
    <section class="py-5 bg-white border-top border-bottom">
      <div class="container text-center text-dark">
@@ -62,4 +68,13 @@ function animerCompteur() {
        </router-link>
      </div>
    </section>
+  </div>
 </template>
+
+<style>
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+</style>

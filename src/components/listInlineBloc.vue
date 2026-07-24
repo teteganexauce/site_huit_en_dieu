@@ -8,7 +8,9 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 
-import publicService from '../services/publicService'
+import { useContentStore } from '@/stores/content';
+
+const contentStore = useContentStore();
 import defaultImg from '../assets/img/blog/blog-2.jpg'
 import client1 from '../assets/img/clients/client-1.png'
 import client2 from '../assets/img/clients/client-2.png'
@@ -56,63 +58,20 @@ const partenairesSlider = computed(() => {
 })
 
 onMounted(async () => {
-  try {
-    const pubData = await publicService.getPublications({ per_page: 3 });
-    publications.value = pubData.data || pubData;
-  } catch (error) {
-    console.error('Erreur chargement publications:', error);
-  } finally {
+  if (contentStore.homeData) {
+    publications.value = contentStore.homeData.publications || [];
+    boutiqueItems.value = contentStore.homeData.boutique || [];
+    formationsPopulaires.value = contentStore.homeData.formations || [];
+    temoignages.value = contentStore.homeData.temoignages || [];
+    partenaires.value = contentStore.homeData.partenaires || [];
+    boutiqueProduits.value = contentStore.homeData.boutique_images || [];
+    publicationsRecentes.value = contentStore.homeData.publications || [];
+    
     isLoadingPublications.value = false;
-  }
-
-  try {
-    const bData = await publicService.getCatalogue({ per_page: 4, sort_by: 'ventes' });
-    boutiqueItems.value = bData.data || bData;
-  } catch (error) {
-    console.error('Erreur chargement boutique:', error);
-  } finally {
     isLoadingBoutique.value = false;
-  }
-
-  try {
-    const fData = await publicService.getFormations({ popular: true });
-    formationsPopulaires.value = fData.data || fData;
-  } catch (error) {
-    console.error('Erreur chargement formations populaires:', error);
-  } finally {
     isLoadingFormations.value = false;
-  }
-
-  try {
-    const tData = await publicService.getTestimonials();
-    temoignages.value = tData.data || tData;
-  } catch (error) {
-    console.error('Erreur chargement temoignages:', error);
-  } finally {
     isLoadingTemoignages.value = false;
-  }
-
-  try {
-    const pData = await publicService.getPartners();
-    partenaires.value = pData.data || pData;
-  } catch (error) {
-    console.error('Erreur chargement partenaires:', error);
-  } finally {
     isLoadingPartenaires.value = false;
-  }
-
-  try {
-    const pData = await publicService.getCatalogue({ sort_by: 'ventes', per_page: 4, has_image: 1 });
-    boutiqueProduits.value = pData.data || pData;
-  } catch (error) {
-    console.error('Erreur chargement boutique:', error);
-  }
-
-  try {
-    const pubData = await publicService.getPublications({ per_page: 3 });
-    publicationsRecentes.value = pubData.data || pubData;
-  } catch (error) {
-    console.error('Erreur chargement publications:', error);
   }
 })
 

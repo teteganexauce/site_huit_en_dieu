@@ -49,10 +49,6 @@
               </ul>
           </li>
 
-          <li class="site-nav__item">
-            <router-link to="/equipe-animation" class="site-nav__link">Équipe</router-link>
-          </li>
-
           <li class="site-nav__item site-nav__item--dropdown">
             <a href="#" class="site-nav__link site-nav__link--toggle">
               <span>Espace de vente</span>
@@ -64,6 +60,11 @@
               <li><router-link to="/boutique?type=objet_sacre" class="site-nav__link">Objets en vente</router-link></li>
             </ul>
           </li>
+
+          <li class="site-nav__item">
+            <router-link to="/equipe-animation" class="site-nav__link">À propos</router-link>
+          </li>
+
           <li class="site-nav__item">
             <router-link to="/contact" class="site-nav__link">Contact</router-link>
           </li>
@@ -130,8 +131,6 @@
           </ul>
         </li>
 
-        <li><router-link to="/equipe-animation" @click="closeMobileNav">Équipe</router-link></li>
-
         <li class="site-mobile-nav__dropdown">
           <a href="#" @click.prevent="toggleMobileDropdown">
             <span>Espace de vente</span>
@@ -143,6 +142,8 @@
             <li><router-link to="/boutique?type=objet_sacre" @click="closeMobileNav">Objets en vente</router-link></li>
           </ul>
         </li>
+
+        <li><router-link to="/equipe-animation" @click="closeMobileNav">À propos</router-link></li>
 
         <li><router-link to="/contact" @click="closeMobileNav">Contact</router-link></li>
       </ul>

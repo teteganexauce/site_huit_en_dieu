@@ -1,19 +1,32 @@
 import { defineStore } from 'pinia';
 import contentService from '../services/contentService';
+import publicService from '../services/publicService';
 
 export const useContentStore = defineStore('content', {
   state: () => ({
     slides: [],
     evenements: [],
+    pensees: [],
     temoignages: [],
     partenaires: [],
     equipe: [],
     galerie: [],
     rubriques: [],
     settings: {},
+    homeData: null,
     loading: false,
   }),
   actions: {
+    async fetchHomeData() {
+      try {
+        const response = await publicService.getHomeData();
+        this.homeData = response;
+        this.pensees = response.pensees || [];
+      } catch (error) {
+        console.error('Erreur chargement donnees accueil:', error);
+      }
+    },
+
     async fetchSlides() {
       try {
         const response = await contentService.getSlides();
@@ -28,7 +41,16 @@ export const useContentStore = defineStore('content', {
         const response = await contentService.getEvenements();
         this.evenements = response.data || response;
       } catch (error) {
-        console.error('Erreur chargement evenements:', error);
+        console.error('Erreur chargement événements:', error);
+      }
+    },
+
+    async fetchPensees() {
+      try {
+        const response = await contentService.getPensees();
+        this.pensees = response.data || response;
+      } catch (error) {
+        console.error('Erreur chargement pensées:', error);
       }
     },
 
