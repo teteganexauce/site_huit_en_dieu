@@ -25,7 +25,7 @@ async function handleSubmit() {
     form.value = { nom: '', email: '', sujet: '', message: '' }
     showModal.value = true
   } catch (e) {
-    error.value = e.response?.data?.message || "Une erreur s'est produite."
+    error.value = e.response?.data?.message || "Une erreur s'est produite. Veuillez réessayer."
   } finally {
     loading.value = false
   }
@@ -38,92 +38,157 @@ function closeModal() {
 
 
 <template>
-   <BreadcombsComponent title="Notre Contact" />
-   <div>
-      <section id="contact" class="contact">
-         <div class="container">
+  <BreadcombsComponent title="Notre Contact" />
 
-           <div class="section-header">
-             <h2>Contactez Nous</h2>
-           </div>
+  <section id="contact" class="contact-page">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Contact</span>
+        <h2>Contactez-nous</h2>
+        <p>Une question, un projet, une demande d'information ? Notre équipe vous répond rapidement.</p>
+      </div>
 
-         </div>
+      <div class="row gy-4 gx-lg-4">
 
-         <div class="container mb-5">
+        <!-- Colonne infos -->
+        <div class="col-lg-4">
+          <div class="info-card">
+            <h3>Nos coordonnées</h3>
+            <p class="text-muted">Nous sommes disponibles aux horaires indiqués ci-dessous, ou par email à tout moment.</p>
 
-           <div class="row gy-5 gx-lg-5">
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-geo-alt"></i>
+              </div>
+              <div>
+                <h4>Adresse</h4>
+                <p>Bénin, Abomey, Bohicon</p>
+              </div>
+            </div>
 
-             <div class="col-lg-4">
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-envelope"></i>
+              </div>
+              <div>
+                <h4>Email</h4>
+                <p>nubutoinstitut@gmail.com</p>
+              </div>
+            </div>
 
-               <div class="info">
-                 <h3>Get in touch</h3>
-                 <p>Et id eius voluptates atque nihil voluptatem enim in tempore minima sit ad mollitia commodi minus.</p>
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-telephone"></i>
+              </div>
+              <div>
+                <h4>Téléphone</h4>
+                <p>+229 0161422692 / 0143301462</p>
+              </div>
+            </div>
 
-                 <div class="info-item d-flex">
-                   <i class="bi bi-geo-alt flex-shrink-0"></i>
-                   <div>
-                     <h4>Location:</h4>
-                     <p>A108 Adam Street, New York, NY 535022</p>
-                   </div>
-                 </div>
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-clock"></i>
+              </div>
+              <div>
+                <h4>Horaires</h4>
+                <p>Lun - Vend : 08h à 18h<br>Samedi : 09h à 16h</p>
+              </div>
+            </div>
 
-                 <div class="info-item d-flex">
-                   <i class="bi bi-envelope flex-shrink-0"></i>
-                   <div>
-                     <h4>Email:</h4>
-                     <p>info@example.com</p>
-                   </div>
-                 </div>
+            <div class="social-links">
+              <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+              <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+              <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+              <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+              <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+            </div>
+          </div>
+        </div>
 
-                 <div class="info-item d-flex">
-                   <i class="bi bi-phone flex-shrink-0"></i>
-                   <div>
-                     <h4>Call:</h4>
-                     <p>+1 5589 55488 55</p>
-                   </div>
-                 </div>
-
-               </div>
-
-             </div>
-
-              <div class="col-lg-8">
-                <form @submit.prevent="handleSubmit" method="post" role="form" class="php-email-form">
-                  <div class="row">
-                    <div class="col-md-6 form-group">
-                      <input type="text" v-model="form.nom" class="form-control" id="name" placeholder="Your Name" required="">
-                    </div>
-                    <div class="col-md-6 form-group mt-3 mt-md-0">
-                      <input type="email" v-model="form.email" class="form-control" name="email" id="email" placeholder="Your Email" required="">
-                    </div>
+        <!-- Colonne formulaire -->
+        <div class="col-lg-8">
+          <div class="form-card">
+            <form @submit.prevent="handleSubmit" class="contact-form">
+              <div class="row gy-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nom complet</label>
+                  <div class="input-with-icon">
+                    <i class="bi bi-person"></i>
+                    <input
+                      type="text"
+                      v-model="form.nom"
+                      class="form-control"
+                      placeholder="Ex : Jean Dupont"
+                      required
+                    >
                   </div>
-                  <div class="form-group mt-3">
-                    <input type="text" v-model="form.sujet" class="form-control" name="subject" id="subject" placeholder="Subject" required="">
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Adresse email</label>
+                  <div class="input-with-icon">
+                    <i class="bi bi-envelope"></i>
+                    <input
+                      type="email"
+                      v-model="form.email"
+                      class="form-control"
+                      placeholder="Ex : jean.dupont@email.com"
+                      required
+                    >
                   </div>
-                  <div class="form-group mt-3">
-                    <textarea v-model="form.message" class="form-control" name="message" placeholder="Message" required=""></textarea>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Sujet</label>
+                  <div class="input-with-icon">
+                    <i class="bi bi-chat-square-text"></i>
+                    <input
+                      type="text"
+                      v-model="form.sujet"
+                      class="form-control"
+                      placeholder="Objet de votre message"
+                      required
+                    >
                   </div>
-                  <div class="my-3">
-                    <div v-if="loading" class="loading">Loading</div>
-                    <div v-if="error" class="error-message">{{ error }}</div>
-                  </div>
-                  <div class="text-center"><button type="submit" :disabled="loading">Send Message</button></div>
-                </form>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Message</label>
+                  <textarea
+                    v-model="form.message"
+                    class="form-control"
+                    rows="6"
+                    placeholder="Décrivez votre demande en quelques lignes..."
+                    required
+                  ></textarea>
+                </div>
               </div>
 
-           </div>
+              <div v-if="error" class="alert-error mt-3">
+                <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+              </div>
 
-         </div>
+              <div class="mt-4">
+                <button type="submit" class="btn-submit" :disabled="loading">
+                  <span v-if="loading" class="spinner"></span>
+                  <span v-else><i class="bi bi-send me-2"></i>Envoyer le message</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
 
-       </section>
-   </div>
+      </div>
+    </div>
+  </section>
 
   <Teleport to="body">
     <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Message envoyé !</h5>
+            <h5 class="modal-title">Message envoyé</h5>
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body text-center py-4">
@@ -145,6 +210,228 @@ function closeModal() {
 
 <style scoped>
 
+.contact-page {
+  padding: 80px 0;
+  background: #fff;
+}
+
+.section-header {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 50px;
+}
+
+.section-tag {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #2c3e91;
+  margin-bottom: 8px;
+}
+
+.section-header h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.section-header p {
+  color: #6c7280;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* --- Colonne info --- */
+.info-card {
+  background: #f8f9fc;
+  border: 1px solid #edeef3;
+  border-radius: 14px;
+  padding: 32px 28px;
+  height: 100%;
+}
+
+.info-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.info-card > p.text-muted {
+  font-size: 0.9rem;
+  margin-bottom: 28px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.info-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e4e6f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2c3e91;
+  font-size: 1.05rem;
+}
+
+.info-item h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 2px;
+}
+
+.info-item p {
+  font-size: 0.9rem;
+  color: #6c7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.social-links {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.social-links a {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e4e6f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2c3e91;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.social-links a:hover {
+  background: #2c3e91;
+  color: #fff;
+  border-color: #2c3e91;
+}
+
+/* --- Formulaire --- */
+.form-card {
+  background: #fff;
+  border: 1px solid #edeef3;
+  border-radius: 14px;
+  padding: 36px;
+  box-shadow: 0 4px 24px rgba(20, 20, 50, 0.04);
+  height: 100%;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa0b4;
+  font-size: 0.95rem;
+}
+
+.input-with-icon .form-control {
+  padding-left: 40px;
+}
+
+.form-control {
+  border: 1px solid #e4e6f0;
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 0.92rem;
+  color: #1a1a2e;
+  background: #fbfbfd;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2c3e91;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(44, 62, 145, 0.08);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.alert-error {
+  display: flex;
+  align-items: center;
+  background: #fdecec;
+  color: #c0392b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+}
+
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
+  background: #2c3e91;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 13px 28px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #23306f;
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Modal --- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -175,6 +462,12 @@ function closeModal() {
   0% { transform: scale(0); opacity: 0; }
   60% { transform: scale(1.15); }
   100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 767px) {
+  .form-card, .info-card {
+    padding: 24px 20px;
+  }
 }
 
 </style>
