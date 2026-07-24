@@ -52,11 +52,12 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 
-import publicService from '../services/publicService';
 import defaultImg from '../assets/img/blog/blog-1.jpg';
+import { useContentStore } from '@/stores/content';
 
 const slides = ref([])
 const isLoading = ref(true)
+const contentStore = useContentStore()
 
 const onSwiper = (swiper) => {
   // swiper instance available here if needed
@@ -68,12 +69,13 @@ const onSlideChange = () => {
 
 onMounted(async () => {
   try {
-    const [slideData, eventData] = await Promise.all([
-      publicService.getSlides(),
-      publicService.getEvents()
-    ]);
-    const slidesList = (slideData.data || slideData || []).map(s => ({ ...s, lien: null }));
-    const eventsList = eventData.data || eventData || [];
+    let slidesList = [];
+    let eventsList = [];
+
+    if (contentStore.homeData) {
+      slidesList = contentStore.homeData.slides || [];
+      eventsList = contentStore.homeData.evenements || [];
+    }
 
     // Garder les slides de la bdd, puis ajouter les 3 prochains événements à venir
     const now = new Date();
@@ -88,7 +90,7 @@ onMounted(async () => {
         lien: '/galerie'
       }));
 
-    slides.value = [...slidesList, ...upcoming];
+    slides.value = [...slidesList.map(s => ({ ...s, lien: null })), ...upcoming];
   } catch (error) {
     console.error('Erreur chargement slides:', error);
   } finally {

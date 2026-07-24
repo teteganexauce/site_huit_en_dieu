@@ -18,10 +18,6 @@ const pensees = computed(() => contentStore.pensees);
 const hoveredId = ref(null);
 const swiperInstance = ref(null);
 
-onMounted(() => {
-  contentStore.fetchPensees();
-});
-
 const onSwiperReady = (swiper) => {
   swiperInstance.value = swiper;
 };

@@ -16,7 +16,7 @@
                    <li><i class="bi bi-check-circle"></i> Renseigne l’homme sur l'art d'approcher Dieu à partir des dispositions de la vie contemplative active</li>
                    <li><i class="bi bi-check-circle"></i> Ecole de référence au Bénin,dans la sous-région et le monde entier pour tout chercheur qui veut acquérir des connaissances approfondies et scientifques dans le domaine des religions, spiritualité et des cultures</li>
                  </ul>
-                 <a href="#" class="read-more align-self-start"><span>Lire plus</span><i class="bi bi-arrow-right"></i></a>
+                 <router-link to="/equipe-animation" class="read-more align-self-start"><span>Lire plus</span><i class="bi bi-arrow-right"></i></router-link>
                </div>
              </div>
            </div>

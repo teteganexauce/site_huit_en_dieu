@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import contentService from '../services/contentService';
+import publicService from '../services/publicService';
 
 export const useContentStore = defineStore('content', {
   state: () => ({
@@ -12,9 +13,20 @@ export const useContentStore = defineStore('content', {
     galerie: [],
     rubriques: [],
     settings: {},
+    homeData: null,
     loading: false,
   }),
   actions: {
+    async fetchHomeData() {
+      try {
+        const response = await publicService.getHomeData();
+        this.homeData = response;
+        this.pensees = response.pensees || [];
+      } catch (error) {
+        console.error('Erreur chargement donnees accueil:', error);
+      }
+    },
+
     async fetchSlides() {
       try {
         const response = await contentService.getSlides();
