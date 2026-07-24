@@ -10,25 +10,32 @@ const contentStore = useContentStore()
 
 const totalDons = computed(() => contentStore.homeData?.dons?.total || 0)
 const totalDonateurs = computed(() => contentStore.homeData?.dons?.donateurs || 0)
+const compteurAffiche = ref(0)
+const compteurDonsAffiche = ref(0)
 
 onMounted(async () => {
   await contentStore.fetchHomeData()
+  animerCompteurs()
 })
 
-function animerCompteur() {
+function animerCompteurs() {
+  animerUnCompteur(totalDonateurs.value, compteurAffiche)
+  animerUnCompteur(totalDons.value, compteurDonsAffiche)
+}
+
+function animerUnCompteur(valeurFinale, cible) {
   const duree = 2000
   const debut = performance.now()
-  const valeurFinale = totalDonateurs.value
 
   function step(timestamp) {
     const ecoule = timestamp - debut
     const progression = Math.min(ecoule / duree, 1)
     const ease = 1 - Math.pow(1 - progression, 3)
-    compteurAffiche.value = Math.floor(ease * valeurFinale)
+    cible.value = Math.floor(ease * valeurFinale)
     if (progression < 1) {
       requestAnimationFrame(step)
     } else {
-      compteurAffiche.value = valeurFinale
+      cible.value = valeurFinale
     }
   }
   requestAnimationFrame(step)
@@ -55,14 +62,20 @@ function animerCompteur() {
      <div class="container text-center text-dark">
        <h3 class="fw-bold mb-2">Soutenez notre mission</h3>
        <p class="text-muted mb-4">Ensemble, faisons la différence. Chaque don compte.</p>
-       <div class="row justify-content-center g-3 mb-4">
-         <div class="col-md-3">
-           <div class="bg-light shadow-sm border rounded-3 p-3">
-             <div class="fs-2 fw-bold">{{ compteurAffiche }}</div>
-             <small class="text-muted">Donateurs</small>
-           </div>
-         </div>
-       </div>
+        <div class="row justify-content-center g-3 mb-4">
+          <div class="col-md-3">
+            <div class="bg-light shadow-sm border rounded-3 p-3">
+              <div class="fs-2 fw-bold">{{ compteurAffiche }}</div>
+              <small class="text-muted">Donateurs</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="bg-light shadow-sm border rounded-3 p-3">
+              <div class="fs-2 fw-bold">{{ compteurDonsAffiche.toLocaleString() }} FCFA</div>
+              <small class="text-muted">Collectés</small>
+            </div>
+          </div>
+        </div>
        <router-link to="/dons" class="btn btn-primary btn-lg px-5">
          <i class="bi bi-heart-fill me-2"></i>Faire un don
        </router-link>
