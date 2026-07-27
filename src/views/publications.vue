@@ -24,6 +24,9 @@ const toggleReadMore = (id) => {
 }
 const publications = ref([])
 const isLoading = ref(true)
+const searchQuery = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 9
 
 onMounted(async () => {
   try {
@@ -37,8 +40,45 @@ onMounted(async () => {
 })
 
 const filteredPublications = computed(() => {
-  if (activeTab.value === 'tous') return publications.value
-  return publications.value.filter(pub => pub.type === activeTab.value)
+  let filtered = publications.value
+
+  if (activeTab.value !== 'tous') {
+    filtered = filtered.filter(pub => pub.type === activeTab.value)
+  }
+
+  if (searchQuery.value.trim() !== '') {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(pub => 
+      pub.titre?.toLowerCase().includes(query) || 
+      pub.resume?.toLowerCase().includes(query) ||
+      pub.chercheur?.nom?.toLowerCase().includes(query)
+    )
+  }
+
+  return filtered
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredPublications.value.length / itemsPerPage)
+})
+
+const paginatedPublications = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredPublications.value.slice(start, end)
+})
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+// Reset page to 1 when filters change
+import { watch } from 'vue'
+watch([activeTab, searchQuery], () => {
+  currentPage.value = 1
 })
 
 const formatDate = (dateString) => {
@@ -79,7 +119,7 @@ const formatDate = (dateString) => {
             <div class="collapse mt-4" id="collapseSearch">
                <form action="" class="d-flex" @submit.prevent>
                   <div class="w-100">
-                     <input class="form-control rounded-1 shadow-none" type="text" placeholder="Faites une recherche">
+                     <input v-model="searchQuery" class="form-control rounded-1 shadow-none" type="text" placeholder="Faites une recherche par titre, auteur ou mot-clé...">
                   </div>
                     <div class="d-flex">
                        <button class="btn btn-primary mx-1 rounded-1" type="submit">Rechercher</button>
@@ -102,15 +142,17 @@ const formatDate = (dateString) => {
                   </div>
 
                   <div v-else class="row g-4 posts-list">
-                     <div class="col-lg-4 col-md-6" v-for="pub in filteredPublications" :key="pub.id">
+                     <div class="col-lg-4 col-md-6" v-for="pub in paginatedPublications" :key="pub.id">
                         <article class="d-flex flex-column h-100">
                            <div class="post-img">
-                              <img v-if="pub.image_url" :src="pub.image_url" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
-                              <img v-else src="../assets/img/blog/blog-3.jpg" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                              <router-link :to="{ name: 'pub-detail', params: { id: pub.id } }">
+                                 <img v-if="pub.image_url" :src="pub.image_url" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                                 <img v-else src="../assets/img/blog/blog-3.jpg" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                              </router-link>
                            </div>
                            
                            <h5 class="title mt-3">
-                              <a href="#" class="pub-title fs-5">{{ pub.titre }}</a>
+                              <router-link :to="{ name: 'pub-detail', params: { id: pub.id } }" class="pub-title fs-5">{{ pub.titre }}</router-link>
                            </h5>
                            
                            <div class="meta-top">
@@ -131,12 +173,12 @@ const formatDate = (dateString) => {
                            </div>
                            
                                                                                  <div class="content mb-3 flex-grow-1">
-                              <p :class="{'line-clamp': !expandedPublications.includes(pub.id)}" class="text-muted mb-1">
+                              <p class="text-muted mb-1 line-clamp">
                                  {{ pub.resume || 'Aucun résumé disponible pour cette publication.' }}
                               </p>
-                              <button class="btn btn-link p-0 text-decoration-none small text-primary" @click="toggleReadMore(pub.id)" v-if="pub.resume && pub.resume.length > 150">
-                                 {{ expandedPublications.includes(pub.id) ? 'Lire moins' : 'Lire plus' }}
-                              </button>
+                              <router-link :to="{ name: 'pub-detail', params: { id: pub.id } }" class="btn btn-link p-0 text-decoration-none small text-primary">
+                                 Voir les détails
+                              </router-link>
                            </div>
                            
                            <div class="read-more mt-auto align-self-end" v-if="pub.fichierUrl || pub.lien_externe">
@@ -149,6 +191,29 @@ const formatDate = (dateString) => {
                            </div>
                         </article>
                      </div>
+                  </div>
+                  
+                  <!-- Pagination UI -->
+                  <div class="d-flex justify-content-center mt-5" v-if="totalPages > 1">
+                     <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-lg">
+                           <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                              <a class="page-link" href="#" aria-label="Précédent" @click.prevent="goToPage(currentPage - 1)">
+                                 <span aria-hidden="true">&laquo;</span>
+                              </a>
+                           </li>
+                           
+                           <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page }">
+                              <a class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
+                           </li>
+                           
+                           <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                              <a class="page-link" href="#" aria-label="Suivant" @click.prevent="goToPage(currentPage + 1)">
+                                 <span aria-hidden="true">&raquo;</span>
+                              </a>
+                           </li>
+                        </ul>
+                     </nav>
                   </div>
                </div>
             </section>

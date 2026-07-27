@@ -8,80 +8,73 @@ const api = axios.create({
     'Accept': 'application/json',
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Pour gérer les cookies Sanctum (si sessions/cookies)
+  withCredentials: true,
 });
 
 // Interceptor de requête
 api.interceptors.request.use(
   (config) => {
-    // Récupérer le token depuis le localStorage
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
+// Routes publiques qui ne doivent PAS déclencher une redirection 401
+const PUBLIC_ROUTES = ['home', 'publications', 'publications-category', 'pub-detail', 'catalogue', 'product-detail', 'formations', 'formationDetail', 'forum', 'forum-topic', 'partenaires', 'galerie', 'temoignage', 'equipe', 'services', 'contact', 'donate', 'pensees', 'rubriquesCulture'];
 
 // Interceptor de réponse
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Erreur réseau (API hors ligne)
+    // Erreur réseau (API hors ligne ou CORS)
     if (!error.response) {
-      console.error("Erreur réseau: Impossible de contacter le serveur API.");
-      alert("Une erreur de réseau est survenue. L'API est injoignable.");
+      console.error("Erreur réseau: Impossible de contacter le serveur API.", error.message);
       return Promise.reject(error);
     }
 
     const { status, data } = error.response;
 
     switch (status) {
-      case 401:
-        // Unauthorized : token invalide ou expiré
-        console.warn('Erreur 401 - Non autorisé. Déconnexion...');
+      case 401: {
+        // Non autorisé : nettoyer le localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        
-        // Dynamiquement importer le store pour éviter les dépendances circulaires
+
         import('../stores/auth').then(({ useAuthStore }) => {
-           const authStore = useAuthStore();
-           authStore.token = null;
-           authStore.user = null;
+          const authStore = useAuthStore();
+          authStore.token = null;
+          authStore.user = null;
         });
-        
-        // Redirection vers le login si on est pas déjà dessus
+
+        // Ne rediriger vers login que si on est sur une route protégée
         const currentRoute = router.currentRoute.value;
-        if (currentRoute.name !== 'login' && currentRoute.name !== 'home') {
+        const isPublic = PUBLIC_ROUTES.includes(currentRoute.name);
+        const isAlreadyOnLogin = currentRoute.name === 'login';
+
+        if (!isPublic && !isAlreadyOnLogin) {
           router.push({ name: 'login', query: { redirect: currentRoute.fullPath } });
-        } else {
-          router.push({ name: 'login' });
         }
         break;
+      }
 
       case 403:
-        // Forbidden : accès refusé
-        console.warn('Erreur 403 - Accès refusé.');
-        alert("Vous n'avez pas l'autorisation d'accéder à cette ressource.");
+        console.warn('Erreur 403 - Accès refusé.', data?.message || '');
         break;
 
       case 422:
-        // Unprocessable Entity : Erreurs de validation
-        // Les composants front-end capteront cette erreur pour afficher les messages
-        console.warn('Erreur 422 - Erreur de validation des données.', data.errors);
+        console.warn('Erreur 422 - Erreur de validation.', data?.errors || data);
         break;
 
       case 500:
-        // Internal Server Error
-        console.error('Erreur 500 - Erreur serveur côté API.', data.message || '');
-        alert("Une erreur critique s'est produite sur le serveur.");
+        console.error('Erreur 500 - Erreur serveur.', data?.message || '');
         break;
-        
+
       default:
-        console.error(`Erreur ${status}`, data);
+        console.error(`Erreur HTTP ${status}`, data);
     }
 
     return Promise.reject(error);

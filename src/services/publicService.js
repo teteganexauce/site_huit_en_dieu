@@ -113,6 +113,11 @@ const publicService = {
     return response.data;
   },
 
+  async getPublication(id) {
+    const response = await api.get(`/publications/${id}`);
+    return response.data;
+  },
+
   async getCatalogue(params = {}) {
     const response = await api.get('/catalogue', { params });
     return response.data;

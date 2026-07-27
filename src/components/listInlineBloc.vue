@@ -150,12 +150,14 @@ const getImageUrl = (url) => {
                       <article class="d-flex flex-column h-100">
 
                         <div class="post-img">
-                           <img v-if="pub.image_url" :src="pub.image_url" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
-                           <img v-else src="../assets/img/blog/blog-3.jpg" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                           <router-link :to="{ name: 'pub-detail', params: { id: pub.id } }">
+                              <img v-if="pub.image_url" :src="pub.image_url" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                              <img v-else src="../assets/img/blog/blog-3.jpg" class="img-fluid" style="object-fit: cover; height: 150px; width: 100%;">
+                           </router-link>
                         </div>
 
                         <h5 class="title mt-3">
-                           <a href="#" class="pub-title fs-5">{{ pub.titre }}</a>
+                           <router-link :to="{ name: 'pub-detail', params: { id: pub.id } }" class="pub-title fs-5">{{ pub.titre }}</router-link>
                         </h5>
 
                         <div class="meta-top">
@@ -177,9 +179,8 @@ const getImageUrl = (url) => {
                            </p>
                         </div>
 
-                        <div class="read-more mt-auto align-self-end" v-if="pub.fichierUrl || pub.lien_externe">
-                           <a v-if="pub.fichierUrl" :href="pub.fichierUrl" target="_blank">Consulter</a>
-                           <a v-else-if="pub.lien_externe" :href="pub.lien_externe" target="_blank">Lien externe</a>
+                        <div class="read-more mt-auto align-self-end">
+                           <router-link :to="{ name: 'pub-detail', params: { id: pub.id } }">Consulter les détails</router-link>
                         </div>
                      </article>
                   </div><!-- End post list item -->

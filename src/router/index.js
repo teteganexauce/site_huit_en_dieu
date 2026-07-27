@@ -60,7 +60,7 @@ const router = createRouter({
     { path: "/formations/:id", name: "formationDetail", component: formationDetail },
     { path: "/publications", name: "publications", component: publications },
     { path: "/publications/:key", name: "publications-category", component: publications },
-    { path: "/publications/detail", name: "pub-detail", component: pubDetail },
+    { path: "/publications/detail/:id", name: "pub-detail", component: pubDetail },
     { path: "/contact", name: "contact", component: contact },
     { path: "/objets", name: "objets", component: objets },
     { path: "/equipe-animation", name: "equipe", component: teamAnimation },

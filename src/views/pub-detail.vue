@@ -1,427 +1,592 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import BreadcombsComponent from '../includes/breadcombs.vue'
-import { useContentStore } from '../stores/content'
+import publicService from '../services/publicService'
 
-const contentStore = useContentStore()
+const route = useRoute()
+const publication = ref(null)
+const isLoading = ref(true)
 
-const categories = ref([
-   {
-      title: "Travaux de recherches"
-   },
-   {
-      title: "Pensées quotidienne"
-   },
-   {
-      title: "Réflexion sur les travaux de recherches"
-   },
-])
-
-onMounted(() => {
-   // TODO: Charger le détail de la publication via contentStore ou publicationService
+onMounted(async () => {
+   try {
+      const response = await publicService.getPublication(route.params.id)
+      publication.value = response.data || response
+   } catch (error) {
+      console.error("Erreur lors de la récupération de la publication", error)
+   } finally {
+      isLoading.value = false
+   }
 })
 
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
 
+const getMotsCles = (motsClesRaw) => {
+   if (!motsClesRaw) return []
+   try {
+      if (typeof motsClesRaw === 'string') return JSON.parse(motsClesRaw)
+      return motsClesRaw
+   } catch (e) {
+      return []
+   }
+}
 
+const getFichierUrl = (url) => {
+   if (!url) return null
+   if (url.startsWith('http')) return url
+   const baseUrl = import.meta.env.VITE_API_BASE_URL
+      ? import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')
+      : 'http://localhost:8000'
+   return `${baseUrl}/storage/${url}`
+}
+
+const getTypeLabel = (type) => {
+   const labels = {
+      article: 'Article scientifique',
+      livre: 'Livre',
+      these: 'Thèse / Mémoire',
+      video: 'Vidéo',
+      audio: 'Audio'
+   }
+   return labels[type] || type
+}
+
+const getTypeIcon = (type) => {
+   const icons = {
+      article: 'bi-journal-text',
+      livre: 'bi-book',
+      these: 'bi-mortarboard',
+      video: 'bi-camera-video',
+      audio: 'bi-music-note-beamed'
+   }
+   return icons[type] || 'bi-file-text'
+}
 </script>
 
-
 <template>
-   <BreadcombsComponent title="Nos Publications" />
-   <div>
-      <div class="">
-         <!-- Tabs -->
-         <!--div class="bg-ps-primary">
-            <ul class="nav nav-pills mb-3 sub-menu container" role="tablist">
+   <BreadcombsComponent :title="publication?.titre || 'Détail de la Publication'" />
 
-               <li class="py-0" v-for="(item, index) in formations" :key="index">
-                  <a class="nav-link px-3 mx-0 my-0 text-white" :class="{ 'active': index == 0 }" data-bs-toggle="pill"
-                     :href="`#tab${index + 1}`" aria-selected="{{ (index==0) ? 'false':'' }}" role="tab" tabindex="-1">
-                     {{ item.title }}
-                  </a>
-               </li>
+   <div class="pub-detail-page">
 
-            </ul>
-         </div-->
+      <!-- Loading State -->
+      <div v-if="isLoading" class="loading-overlay">
+         <div class="spinner-container">
+            <div class="spinner-border text-primary" role="status">
+               <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-3 text-muted">Chargement de la publication...</p>
+         </div>
+      </div>
 
-         <!-- Tab Content -->
+      <!-- Not Found State -->
+      <div v-else-if="!publication" class="not-found-section">
+         <div class="container text-center py-5">
+            <div class="not-found-icon mb-4">
+               <i class="bi bi-file-earmark-x"></i>
+            </div>
+            <h3 class="fw-bold">Publication introuvable</h3>
+            <p class="text-muted mb-4">Cette publication n'existe pas ou a été retirée.</p>
+            <router-link to="/publications" class="btn btn-primary px-4 py-2">
+               <i class="bi bi-arrow-left me-2"></i> Retour aux publications
+            </router-link>
+         </div>
+      </div>
 
-         <section id="blog" class="blog">
-            <div class="container aos-init aos-animate" data-aos="fade-up">
+      <!-- Main Content -->
+      <div v-else>
 
-               <div class="row g-5">
+         <!-- Hero Banner -->
+         <div class="pub-hero" :style="publication.image_url ? `background-image: url('${publication.image_url}')` : ''">
+            <div class="pub-hero-overlay"></div>
+            <div class="container pub-hero-content">
+               <div class="type-badge mb-3">
+                  <i :class="`bi ${getTypeIcon(publication.type)} me-2`"></i>
+                  {{ getTypeLabel(publication.type) }}
+               </div>
+               <h1 class="pub-hero-title">{{ publication.titre }}</h1>
+               <div class="pub-hero-meta">
+                  <span class="meta-item">
+                     <i class="bi bi-person-circle me-2"></i>
+                     {{ publication.chercheur?.nom || 'Auteur inconnu' }}
+                  </span>
+                  <span class="meta-divider">|</span>
+                  <span class="meta-item">
+                     <i class="bi bi-calendar3 me-2"></i>
+                     {{ formatDate(publication.datePublication || publication.created_at) }}
+                  </span>
+               </div>
+            </div>
+         </div>
 
-                  <div class="col-lg-8">
+         <div class="container pub-layout">
+            <div class="row g-4">
 
-                     <article class="blog-details">
+               <!-- Main Article Column -->
+               <div class="col-lg-8">
+                  <div class="pub-card">
 
-                        <div class="post-img">
-                           <img src="../assets/img/blog/blog-1.jpg" alt="" class="img-fluid">
+                     <!-- Abstract -->
+                     <div class="pub-abstract" v-if="publication.resume">
+                        <div class="abstract-label">
+                           <i class="bi bi-blockquote-left me-2"></i>Résumé
                         </div>
+                        <p class="abstract-text">{{ publication.resume }}</p>
+                     </div>
 
-                        <h2 class="title">Dolorum optio tempore voluptas dignissimos cumque fuga qui quibusdam quia</h2>
+                     <!-- Divider -->
+                     <hr class="pub-divider" />
 
-                        <div class="meta-top">
-                           <ul>
-                              <li class="d-flex align-items-center"><i class="bi bi-person"></i> <a
-                                    href="blog-details.html">John Doe</a></li>
-                              <li class="d-flex align-items-center"><i class="bi bi-clock"></i> <a
-                                    href="blog-details.html"><time datetime="2020-01-01">Jan 1, 2022</time></a></li>
-                              <li class="d-flex align-items-center"><i class="bi bi-chat-dots"></i> <a
-                                    href="blog-details.html">12 Comments</a></li>
-                           </ul>
-                        </div><!-- End meta top -->
-
-                        <div class="content">
-                           <p>
-                              Similique neque nam consequuntur ad non maxime aliquam quas. Quibusdam animi praesentium.
-                              Aliquam et laboriosam eius aut nostrum quidem aliquid dicta.
-                              Et eveniet enim. Qui velit est ea dolorem doloremque deleniti aperiam unde soluta. Est cum et
-                              quod quos aut ut et sit sunt. Voluptate porro consequatur assumenda perferendis dolore.
-                           </p>
-
-                           <p>
-                              Sit repellat hic cupiditate hic ut nemo. Quis nihil sunt non reiciendis. Sequi in accusamus
-                              harum vel aspernatur. Excepturi numquam nihil cumque odio. Et voluptate cupiditate.
-                           </p>
-
-                           <blockquote>
-                              <p>
-                                 Et vero doloremque tempore voluptatem ratione vel aut. Deleniti sunt animi aut. Aut eos
-                                 aliquam doloribus minus autem quos.
-                              </p>
-                           </blockquote>
-
-                           <p>
-                              Sed quo laboriosam qui architecto. Occaecati repellendus omnis dicta inventore tempore
-                              provident voluptas mollitia aliquid. Id repellendus quia. Asperiores nihil magni dicta est
-                              suscipit perspiciatis. Voluptate ex rerum assumenda dolores nihil quaerat.
-                              Dolor porro tempora et quibusdam voluptas. Beatae aut at ad qui tempore corrupti velit
-                              quisquam rerum. Omnis dolorum exercitationem harum qui qui blanditiis neque.
-                              Iusto autem itaque. Repudiandae hic quae aspernatur ea neque qui. Architecto voluptatem
-                              magni. Vel magnam quod et tempora deleniti error rerum nihil tempora.
-                           </p>
-
-                           <h3>Et quae iure vel ut odit alias.</h3>
-                           <p>
-                              Officiis animi maxime nulla quo et harum eum quis a. Sit hic in qui quos fugit ut rerum
-                              atque. Optio provident dolores atque voluptatem rem excepturi molestiae qui. Voluptatem
-                              laborum omnis ullam quibusdam perspiciatis nulla nostrum. Voluptatum est libero eum nesciunt
-                              aliquid qui.
-                              Quia et suscipit non sequi. Maxime sed odit. Beatae nesciunt nesciunt accusamus quia aut
-                              ratione aspernatur dolor. Sint harum eveniet dicta exercitationem minima. Exercitationem
-                              omnis asperiores natus aperiam dolor consequatur id ex sed. Quibusdam rerum dolores sint
-                              consequatur quidem ea.
-                              Beatae minima sunt libero soluta sapiente in rem assumenda. Et qui odit voluptatem. Cum
-                              quibusdam voluptatem voluptatem accusamus mollitia aut atque aut.
-                           </p>
-                           <img src="../assets/img/blog/blog-inside-post.jpg" class="img-fluid" alt="">
-
-                           <h3>Ut repellat blanditiis est dolore sunt dolorum quae.</h3>
-                           <p>
-                              Rerum ea est assumenda pariatur quasi et quam. Facilis nam porro amet nostrum. In assumenda
-                              quia quae a id praesentium. Quos deleniti libero sed occaecati aut porro autem. Consectetur
-                              sed excepturi sint non placeat quia repellat incidunt labore. Autem facilis hic dolorum
-                              dolores vel.
-                              Consectetur quasi id et optio praesentium aut asperiores eaque aut. Explicabo omnis quibusdam
-                              esse. Ex libero illum iusto totam et ut aut blanditiis. Veritatis numquam ut illum ut a quam
-                              vitae.
-                           </p>
-                           <p>
-                              Alias quia non aliquid. Eos et ea velit. Voluptatem maxime enim omnis ipsa voluptas incidunt.
-                              Nulla sit eaque mollitia nisi asperiores est veniam.
-                           </p>
-
-                        </div><!-- End post content -->
-
-                        <div class="meta-bottom">
-                           <i class="bi bi-folder"></i>
-                           <ul class="cats">
-                              <li><a href="#">Business</a></li>
-                           </ul>
-
-                           <i class="bi bi-tags"></i>
-                           <ul class="tags">
-                              <li><a href="#">Creative</a></li>
-                              <li><a href="#">Tips</a></li>
-                              <li><a href="#">Marketing</a></li>
-                           </ul>
-                        </div><!-- End meta bottom -->
-
-                     </article><!-- End blog post -->
-
-                     <div class="post-author d-flex align-items-center">
-                        <img src="../assets/img/blog/blog-author.jpg" class="rounded-circle flex-shrink-0" alt="">
-                        <div>
-                           <h4>Jane Smith</h4>
-                           <div class="social-links">
-                              <a href="https://twitters.com/#"><i class="bi bi-twitter"></i></a>
-                              <a href="https://facebook.com/#"><i class="bi bi-facebook"></i></a>
-                              <a href="https://instagram.com/#"><i class="biu bi-instagram"></i></a>
-                           </div>
-                           <p>
-                              Itaque quidem optio quia voluptatibus dolorem dolor. Modi eum sed possimus accusantium. Quas
-                              repellat voluptatem officia numquam sint aspernatur voluptas. Esse et accusantium ut unde
-                              voluptas.
-                           </p>
+                     <!-- Full Content -->
+                     <div class="pub-content">
+                        <h3 class="section-title">
+                           <span class="title-bar"></span>
+                           Contenu complet
+                        </h3>
+                        <div class="content-body">
+                           {{ publication.contenu || publication.resume || 'Contenu non disponible.' }}
                         </div>
-                     </div><!-- End post author -->
+                     </div>
 
-                     <div class="comments">
-
-                        <h4 class="comments-count">8 Comments</h4>
-
-                        <div id="comment-1" class="comment">
-                           <div class="d-flex">
-                              <div class="comment-img"><img src="../assets/img/blog/comments-1.jpg" alt=""></div>
-                              <div>
-                                 <h5><a href="">Georgia Reader</a> <a href="#" class="reply"><i
-                                          class="bi bi-reply-fill"></i> Reply</a></h5>
-                                 <time datetime="2020-01-01">01 Jan,2022</time>
-                                 <p>
-                                    Et rerum totam nisi. Molestiae vel quam dolorum vel voluptatem et et. Est ad aut
-                                    sapiente quis molestiae est qui cum soluta.
-                                    Vero aut rerum vel. Rerum quos laboriosam placeat ex qui. Sint qui facilis et.
-                                 </p>
-                              </div>
-                           </div>
-                        </div><!-- End comment #1 -->
-
-                        <div id="comment-2" class="comment">
-                           <div class="d-flex">
-                              <div class="comment-img"><img src="../assets/img/blog/comments-2.jpg" alt=""></div>
-                              <div>
-                                 <h5><a href="">Aron Alvarado</a> <a href="#" class="reply"><i
-                                          class="bi bi-reply-fill"></i> Reply</a></h5>
-                                 <time datetime="2020-01-01">01 Jan,2022</time>
-                                 <p>
-                                    Ipsam tempora sequi voluptatem quis sapiente non. Autem itaque eveniet saepe. Officiis
-                                    illo ut beatae.
-                                 </p>
-                              </div>
-                           </div>
-
-                           <div id="comment-reply-1" class="comment comment-reply">
-                              <div class="d-flex">
-                                 <div class="comment-img"><img src="../assets/img/blog/comments-3.jpg" alt=""></div>
-                                 <div>
-                                    <h5><a href="">Lynda Small</a> <a href="#" class="reply"><i
-                                             class="bi bi-reply-fill"></i> Reply</a></h5>
-                                    <time datetime="2020-01-01">01 Jan,2022</time>
-                                    <p>
-                                       Enim ipsa eum fugiat fuga repellat. Commodi quo quo dicta. Est ullam aspernatur ut
-                                       vitae quia mollitia id non. Qui ad quas nostrum rerum sed necessitatibus aut est.
-                                       Eum officiis sed repellat maxime vero nisi natus. Amet nesciunt nesciunt qui illum
-                                       omnis est et dolor recusandae.
-
-                                       Recusandae sit ad aut impedit et. Ipsa labore dolor impedit et natus in porro aut.
-                                       Magnam qui cum. Illo similique occaecati nihil modi eligendi. Pariatur distinctio
-                                       labore omnis incidunt et illum. Expedita et dignissimos distinctio laborum minima
-                                       fugiat.
-
-                                       Libero corporis qui. Nam illo odio beatae enim ducimus. Harum reiciendis error
-                                       dolorum non autem quisquam vero rerum neque.
-                                    </p>
-                                 </div>
-                              </div>
-
-                              <div id="comment-reply-2" class="comment comment-reply">
-                                 <div class="d-flex">
-                                    <div class="comment-img"><img src="../assets/img/blog/comments-4.jpg" alt=""></div>
-                                    <div>
-                                       <h5><a href="">Sianna Ramsay</a> <a href="#" class="reply"><i
-                                                class="bi bi-reply-fill"></i> Reply</a></h5>
-                                       <time datetime="2020-01-01">01 Jan,2022</time>
-                                       <p>
-                                          Et dignissimos impedit nulla et quo distinctio ex nemo. Omnis quia dolores
-                                          cupiditate et. Ut unde qui eligendi sapiente omnis ullam. Placeat porro est
-                                          commodi est officiis voluptas repellat quisquam possimus. Perferendis id
-                                          consectetur necessitatibus.
-                                       </p>
-                                    </div>
-                                 </div>
-
-                              </div><!-- End comment reply #2-->
-
-                           </div><!-- End comment reply #1-->
-
-                        </div><!-- End comment #2-->
-
-                        <div id="comment-3" class="comment">
-                           <div class="d-flex">
-                              <div class="comment-img"><img src="../assets/img/blog/comments-5.jpg" alt=""></div>
-                              <div>
-                                 <h5><a href="">Nolan Davidson</a> <a href="#" class="reply"><i
-                                          class="bi bi-reply-fill"></i> Reply</a></h5>
-                                 <time datetime="2020-01-01">01 Jan,2022</time>
-                                 <p>
-                                    Distinctio nesciunt rerum reprehenderit sed. Iste omnis eius repellendus quia nihil ut
-                                    accusantium tempore. Nesciunt expedita id dolor exercitationem aspernatur aut quam ut.
-                                    Voluptatem est accusamus iste at.
-                                    Non aut et et esse qui sit modi neque. Exercitationem et eos aspernatur. Ea est
-                                    consequuntur officia beatae ea aut eos soluta. Non qui dolorum voluptatibus et optio
-                                    veniam. Quam officia sit nostrum dolorem.
-                                 </p>
-                              </div>
-                           </div>
-
-                        </div><!-- End comment #3 -->
-
-                        <div id="comment-4" class="comment">
-                           <div class="d-flex">
-                              <div class="comment-img"><img src="../assets/img/blog/comments-6.jpg" alt=""></div>
-                              <div>
-                                 <h5><a href="">Kay Duggan</a> <a href="#" class="reply"><i class="bi bi-reply-fill"></i>
-                                       Reply</a></h5>
-                                 <time datetime="2020-01-01">01 Jan,2022</time>
-                                 <p>
-                                    Dolorem atque aut. Omnis doloremque blanditiis quia eum porro quis ut velit tempore.
-                                    Cumque sed quia ut maxime. Est ad aut cum. Ut exercitationem non in fugiat.
-                                 </p>
-                              </div>
-                           </div>
-
-                        </div><!-- End comment #4 -->
-
-                        <div class="reply-form">
-
-                           <h4>Leave a Reply</h4>
-                           <p>Your email address will not be published. Required fields are marked * </p>
-                           <form action="">
-                              <div class="row">
-                                 <div class="col-md-6 form-group">
-                                    <input name="name" type="text" class="form-control" placeholder="Your Name*">
-                                 </div>
-                                 <div class="col-md-6 form-group">
-                                    <input name="email" type="text" class="form-control" placeholder="Your Email*">
-                                 </div>
-                              </div>
-                              <div class="row">
-                                 <div class="col form-group">
-                                    <input name="website" type="text" class="form-control" placeholder="Your Website">
-                                 </div>
-                              </div>
-                              <div class="row">
-                                 <div class="col form-group">
-                                    <textarea name="comment" class="form-control" placeholder="Your Comment*"></textarea>
-                                 </div>
-                              </div>
-                              <button type="submit" class="btn btn-primary">Post Comment</button>
-
-                           </form>
-
+                     <!-- Keywords -->
+                     <div class="pub-keywords" v-if="getMotsCles(publication.motsCles).length > 0">
+                        <hr class="pub-divider" />
+                        <h5 class="keywords-title">
+                           <i class="bi bi-tags-fill me-2 text-primary"></i> Mots-clés
+                        </h5>
+                        <div class="keywords-list">
+                           <span
+                              v-for="(tag, index) in getMotsCles(publication.motsCles)"
+                              :key="index"
+                              class="keyword-tag"
+                           >
+                              {{ tag }}
+                           </span>
                         </div>
-
-                     </div><!-- End blog comments -->
+                     </div>
 
                   </div>
 
-                  <div class="col-lg-4">
-
-                     <div class="sidebar">
-
-                        <div class="sidebar-item search-form d-none">
-                           <h3 class="sidebar-title">Search</h3>
-                           <form action="" class="mt-3">
-                              <input type="text">
-                              <button type="submit"><i class="bi bi-search"></i></button>
-                           </form>
-                        </div><!-- End sidebar search formn-->
-
-
-
-                        <div class="sidebar-item recent-posts m-0">
-                           <h3 class="sidebar-title">Autres postes de l'auteur</h3>
-
-                           <div class="mt-3">
-
-                              <div class="post-item mt-3">
-                                 <img src="../assets/img/blog/blog-recent-1.jpg" alt="" class="flex-shrink-0">
-                                 <div>
-                                    <h4><a href="blog-post.html">Nihil blanditiis at in nihil autem</a></h4>
-                                    <time datetime="2020-01-01">Jan 1, 2020</time>
-                                 </div>
-                              </div><!-- End recent post item-->
-
-                              <div class="post-item">
-                                 <img src="../assets/img/blog/blog-recent-2.jpg" alt="" class="flex-shrink-0">
-                                 <div>
-                                    <h4><a href="blog-post.html">Quidem autem et impedit</a></h4>
-                                    <time datetime="2020-01-01">Jan 1, 2020</time>
-                                 </div>
-                              </div><!-- End recent post item-->
-
-                              <div class="post-item">
-                                 <img src="../assets/img/blog/blog-recent-3.jpg" alt="" class="flex-shrink-0">
-                                 <div>
-                                    <h4><a href="blog-post.html">Id quia et et ut maxime similique occaecati ut</a></h4>
-                                    <time datetime="2020-01-01">Jan 1, 2020</time>
-                                 </div>
-                              </div><!-- End recent post item-->
-
-                              <div class="post-item">
-                                 <img src="../assets/img/blog/blog-recent-4.jpg" alt="" class="flex-shrink-0">
-                                 <div>
-                                    <h4><a href="blog-post.html">Laborum corporis quo dara net para</a></h4>
-                                    <time datetime="2020-01-01">Jan 1, 2020</time>
-                                 </div>
-                              </div><!-- End recent post item-->
-
-                              <div class="post-item">
-                                 <img src="../assets/img/blog/blog-recent-5.jpg" alt="" class="flex-shrink-0">
-                                 <div>
-                                    <h4><a href="blog-post.html">Et dolores corrupti quae illo quod dolor</a></h4>
-                                    <time datetime="2020-01-01">Jan 1, 2020</time>
-                                 </div>
-                              </div><!-- End recent post item-->
-
-                           </div>
-
-                        </div><!-- End sidebar recent posts-->
-
-                        <div class="sidebar-item tags">
-                           <h3 class="sidebar-title">Categories</h3>
-                           <ul class="mt-3">
-                              <li v-for="(item, index) in categories" :key="index">
-                                 <router-link :to="`/publications/${index}`">{{ item.title }}</router-link>
-
-                              </li>
-                           </ul>
-                        </div><!-- End sidebar tags-->
-
-                     </div><!-- End Blog Sidebar -->
-
+                  <!-- Back link -->
+                  <div class="mt-4 mb-5">
+                     <router-link to="/publications" class="back-link">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Retour à toutes les publications
+                     </router-link>
                   </div>
                </div>
 
+               <!-- Sidebar -->
+               <div class="col-lg-4">
+
+                  <!-- Document Download Card -->
+                  <div class="sidebar-card download-card" v-if="publication.fichierUrl || publication.lien_externe">
+                     <div class="download-icon">
+                        <i v-if="publication.fichierUrl" class="bi bi-file-earmark-pdf-fill"></i>
+                        <i v-else class="bi bi-link-45deg"></i>
+                     </div>
+                     <h5 class="download-title">Document associé</h5>
+                     <p class="download-desc">Accédez à la version complète de ce document.</p>
+                     <a
+                        v-if="publication.fichierUrl"
+                        :href="getFichierUrl(publication.fichierUrl)"
+                        target="_blank"
+                        class="btn btn-download w-100"
+                     >
+                        <i class="bi bi-download me-2"></i> Télécharger le PDF
+                     </a>
+                     <a
+                        v-else-if="publication.lien_externe"
+                        :href="publication.lien_externe"
+                        target="_blank"
+                        class="btn btn-download w-100"
+                     >
+                        <i class="bi bi-box-arrow-up-right me-2"></i> Voir le lien externe
+                     </a>
+                  </div>
+
+                  <!-- Author Card -->
+                  <div class="sidebar-card author-card" v-if="publication.chercheur">
+                     <div class="author-avatar">
+                        <i class="bi bi-person-fill"></i>
+                     </div>
+                     <h5 class="author-name">{{ publication.chercheur.nom }}</h5>
+                     <p class="author-role text-muted small">Chercheur</p>
+                     <div v-if="publication.chercheur.specialite" class="author-speciality">
+                        <i class="bi bi-award-fill me-2 text-primary"></i>
+                        {{ publication.chercheur.specialite }}
+                     </div>
+                     <div v-if="publication.chercheur.institution" class="author-institution">
+                        <i class="bi bi-building me-2 text-muted"></i>
+                        {{ publication.chercheur.institution }}
+                     </div>
+                  </div>
+
+                  <!-- Publication Info Card -->
+                  <div class="sidebar-card info-card">
+                     <h5 class="info-card-title">Informations</h5>
+                     <ul class="info-list">
+                        <li>
+                           <span class="info-label"><i class="bi bi-calendar3"></i> Date de publication</span>
+                           <span class="info-value">{{ formatDate(publication.datePublication || publication.created_at) }}</span>
+                        </li>
+                        <li>
+                           <span class="info-label"><i :class="`bi ${getTypeIcon(publication.type)}`"></i> Type</span>
+                           <span class="info-value text-capitalize">{{ getTypeLabel(publication.type) }}</span>
+                        </li>
+                        <li v-if="publication.dateSoumission">
+                           <span class="info-label"><i class="bi bi-send"></i> Soumis le</span>
+                           <span class="info-value">{{ formatDate(publication.dateSoumission) }}</span>
+                        </li>
+                     </ul>
+                  </div>
+
+               </div>
             </div>
-         </section>
-
-
+         </div>
       </div>
    </div>
 </template>
 
 <style scoped>
-.sub-menu .nav-link {
-   border-bottom: 3px solid transparent;
-   color: grey;
-   margin-right: 20px;
+/* ============================================
+   Global Page
+   ============================================ */
+.pub-detail-page {
+   background: #f5f7fa;
+   min-height: 80vh;
 }
 
-.sub-menu .nav-link:hover {
-   background-color: #485664;
-   border-radius: 0px;
-   color: var(--color-primary);
+/* ============================================
+   Loading & Not Found
+   ============================================ */
+.loading-overlay {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   min-height: 50vh;
+}
+.spinner-container {
+   text-align: center;
+}
+.not-found-section {
+   min-height: 50vh;
+   display: flex;
+   align-items: center;
+}
+.not-found-icon {
+   font-size: 5rem;
+   color: #dee2e6;
+}
+.not-found-icon i {
+   font-size: 5rem;
 }
 
-.sub-menu .nav-link.active {
-   background-color: #485664;
-   border-radius: 0px;
-   color: white;
+/* ============================================
+   Hero Banner
+   ============================================ */
+.pub-hero {
+   position: relative;
+   min-height: 420px;
+   background: linear-gradient(135deg, #1a2a3a 0%, #0ea2bd 100%);
+   background-size: cover;
+   background-position: center;
+   display: flex;
+   align-items: flex-end;
+   padding-bottom: 3rem;
+}
+.pub-hero-overlay {
+   position: absolute;
+   inset: 0;
+   background: linear-gradient(to bottom, rgba(10, 20, 40, 0.35) 0%, rgba(10, 20, 40, 0.82) 100%);
+}
+.pub-hero-content {
+   position: relative;
+   z-index: 2;
+   color: #fff;
+}
+.type-badge {
+   display: inline-flex;
+   align-items: center;
+   background: rgba(14, 162, 189, 0.85);
+   color: #fff;
+   font-size: 0.82rem;
+   font-weight: 600;
+   letter-spacing: 0.08em;
+   text-transform: uppercase;
+   padding: 5px 14px;
+   border-radius: 50px;
+   backdrop-filter: blur(4px);
+}
+.pub-hero-title {
+   font-size: clamp(1.6rem, 4vw, 2.8rem);
+   font-weight: 800;
+   line-height: 1.2;
+   text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+   max-width: 820px;
+   margin-bottom: 1rem;
+}
+.pub-hero-meta {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 0.5rem 1rem;
+   align-items: center;
+   font-size: 0.95rem;
+   color: rgba(255,255,255,0.85);
+}
+.meta-item { display: flex; align-items: center; }
+.meta-divider { opacity: 0.4; font-size: 1.2rem; }
+
+/* ============================================
+   Layout
+   ============================================ */
+.pub-layout {
+   padding-top: 2.5rem;
+   padding-bottom: 3rem;
 }
 
-/* .bg-ps-light {
-   background-color: rgba(238, 238, 238, 0.233);
-} */
+/* ============================================
+   Main Card
+   ============================================ */
+.pub-card {
+   background: #fff;
+   border-radius: 16px;
+   padding: 2.5rem;
+   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+}
+
+/* Abstract */
+.pub-abstract {
+   background: linear-gradient(135deg, #eaf7fb 0%, #f0fbff 100%);
+   border-left: 4px solid #0ea2bd;
+   border-radius: 0 12px 12px 0;
+   padding: 1.5rem 1.8rem;
+}
+.abstract-label {
+   font-size: 0.8rem;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+   color: #0ea2bd;
+   margin-bottom: 0.6rem;
+}
+.abstract-text {
+   font-size: 1.05rem;
+   color: #444;
+   line-height: 1.8;
+   margin: 0;
+   font-style: italic;
+}
+
+/* Divider */
+.pub-divider {
+   border: none;
+   border-top: 1px solid #e9ecef;
+   margin: 2rem 0;
+}
+
+/* Content */
+.section-title {
+   display: flex;
+   align-items: center;
+   gap: 0.7rem;
+   font-size: 1.2rem;
+   font-weight: 700;
+   color: #1a2a3a;
+   margin-bottom: 1.2rem;
+}
+.title-bar {
+   display: inline-block;
+   width: 4px;
+   height: 22px;
+   background: linear-gradient(to bottom, #0ea2bd, #0189a1);
+   border-radius: 4px;
+   flex-shrink: 0;
+}
+.content-body {
+   font-size: 1.05rem;
+   color: #3a3a3a;
+   line-height: 1.95;
+   white-space: pre-wrap;
+}
+
+/* Keywords */
+.keywords-title {
+   font-size: 0.95rem;
+   font-weight: 700;
+   color: #343a40;
+   margin-bottom: 0.8rem;
+}
+.keywords-list {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 0.5rem;
+}
+.keyword-tag {
+   display: inline-block;
+   background: #e8f5f8;
+   color: #0ea2bd;
+   border: 1px solid #b8e5ef;
+   font-size: 0.82rem;
+   font-weight: 600;
+   padding: 4px 14px;
+   border-radius: 50px;
+   letter-spacing: 0.04em;
+   transition: all 0.2s;
+}
+.keyword-tag:hover {
+   background: #0ea2bd;
+   color: #fff;
+}
+
+/* Back Link */
+.back-link {
+   display: inline-flex;
+   align-items: center;
+   color: #0ea2bd;
+   font-weight: 600;
+   text-decoration: none;
+   transition: all 0.2s;
+   font-size: 0.95rem;
+}
+.back-link:hover {
+   color: #0189a1;
+   transform: translateX(-4px);
+}
+
+/* ============================================
+   Sidebar Cards
+   ============================================ */
+.sidebar-card {
+   background: #fff;
+   border-radius: 16px;
+   padding: 1.8rem;
+   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+   margin-bottom: 1.5rem;
+}
+
+/* Download Card */
+.download-card {
+   text-align: center;
+   border-top: 4px solid #0ea2bd;
+}
+.download-icon {
+   width: 64px;
+   height: 64px;
+   background: linear-gradient(135deg, #0ea2bd, #0189a1);
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   margin: 0 auto 1rem;
+   font-size: 1.7rem;
+   color: #fff;
+}
+.download-title {
+   font-weight: 700;
+   color: #1a2a3a;
+   margin-bottom: 0.3rem;
+}
+.download-desc {
+   font-size: 0.87rem;
+   color: #6c757d;
+   margin-bottom: 1.2rem;
+}
+.btn-download {
+   background: linear-gradient(135deg, #0ea2bd 0%, #0189a1 100%);
+   color: #fff;
+   font-weight: 700;
+   border: none;
+   border-radius: 10px;
+   padding: 0.65rem 1.2rem;
+   font-size: 0.95rem;
+   transition: all 0.25s;
+   box-shadow: 0 4px 15px rgba(14, 162, 189, 0.3);
+}
+.btn-download:hover {
+   background: linear-gradient(135deg, #0189a1 0%, #0ea2bd 100%);
+   color: #fff;
+   transform: translateY(-2px);
+   box-shadow: 0 6px 20px rgba(14, 162, 189, 0.45);
+}
+
+/* Author Card */
+.author-card { text-align: center; }
+.author-avatar {
+   width: 72px;
+   height: 72px;
+   background: linear-gradient(135deg, #f0f4f8, #dce8ee);
+   border: 3px solid #0ea2bd;
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   margin: 0 auto 0.8rem;
+   font-size: 2rem;
+   color: #0ea2bd;
+}
+.author-name {
+   font-size: 1.1rem;
+   font-weight: 700;
+   color: #1a2a3a;
+   margin-bottom: 0.1rem;
+}
+.author-role { margin-bottom: 0.8rem; }
+.author-speciality, .author-institution {
+   font-size: 0.87rem;
+   color: #444;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   margin-bottom: 0.4rem;
+}
+
+/* Info Card */
+.info-card-title {
+   font-weight: 700;
+   color: #1a2a3a;
+   margin-bottom: 1rem;
+   font-size: 1rem;
+   padding-bottom: 0.6rem;
+   border-bottom: 2px solid #e9ecef;
+}
+.info-list {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+}
+.info-list li {
+   display: flex;
+   flex-direction: column;
+   gap: 2px;
+   padding: 0.65rem 0;
+   border-bottom: 1px solid #f0f0f0;
+}
+.info-list li:last-child { border-bottom: none; }
+.info-label {
+   font-size: 0.78rem;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: 0.07em;
+   color: #adb5bd;
+   display: flex;
+   align-items: center;
+   gap: 0.4rem;
+}
+.info-value {
+   font-size: 0.9rem;
+   color: #343a40;
+   font-weight: 600;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 768px) {
+   .pub-hero { min-height: 300px; padding-bottom: 2rem; }
+   .pub-card { padding: 1.5rem; }
+   .sidebar-card { padding: 1.4rem; }
+}
 </style>
