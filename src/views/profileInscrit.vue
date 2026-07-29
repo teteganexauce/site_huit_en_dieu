@@ -96,6 +96,18 @@ const stats = computed(() => ({
   articles: articlesChercheur.value.length
 }))
 
+const studentStats = computed(() => {
+  const confirmees = inscriptions.value.filter(i => i.statut === 'confirmee')
+  return {
+    formationsSuivies: confirmees.length,
+    coursCompletes: confirmees.reduce((sum, i) => sum + (Number(i.cours_completes_count) || 0), 0),
+    progressionMoyenne: confirmees.length
+      ? confirmees.reduce((sum, i) => sum + (Number(i.progression) || 0), 0) / confirmees.length
+      : 0,
+    certificatsObtenus: confirmees.filter(i => i.dateCertificat).length
+  }
+})
+
 async function loadOrders() {
   isLoadingOrders.value = true
   try {
@@ -460,8 +472,8 @@ const formatDemandeDate = (dateString) => {
             <h5 class="mt-3 mb-1 fw-bold">{{ authStore.user?.prenom || '' }} {{ authStore.user?.nom || '' }}</h5>
             <p class="text-muted small mb-2 text-capitalize">{{ authStore.user?.role || 'Utilisateur' }}</p>
             <p class="text-muted small mb-3"><i class="bi bi-envelope me-1"></i>{{ authStore.user?.email }}</p>
-            <hr>
-            <div class="row text-center g-0">
+            <!-- <hr> -->
+            <!-- <div class="row text-center g-0">
               <div class="col-3">
                 <h6 class="fw-bold text-primary mb-0">{{ stats.livres }}</h6>
                 <small class="text-muted">Livres</small>
@@ -478,7 +490,29 @@ const formatDemandeDate = (dateString) => {
                 <h6 class="fw-bold text-primary mb-0">{{ stats.dons }}</h6>
                 <small class="text-muted">Dons</small>
               </div>
-            </div>
+            </div> -->
+            <template v-if="authStore.user?.role === 'etudiant' && studentStats.formationsSuivies > 0">
+              <hr>
+              <div class="text-start small">
+                <div class="fw-bold text-muted mb-2">Profil Étudiant</div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Formations suivies</span>
+                  <span class="fw-bold">{{ studentStats.formationsSuivies }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Cours complétés</span>
+                  <span class="fw-bold">{{ studentStats.coursCompletes }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Progression moyenne</span>
+                  <span class="fw-bold">{{ Math.round(studentStats.progressionMoyenne * 100) / 100 }}%</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">Certificats obtenus</span>
+                  <span class="fw-bold text-success">{{ studentStats.certificatsObtenus }}</span>
+                </div>
+              </div>
+            </template>
             <div class="row text-center g-0 mt-3 border-top pt-3">
               <div class="col-12">
                 <h6 class="fw-bold text-primary mb-0">{{ stats.accompagnements }}</h6>
@@ -521,7 +555,7 @@ const formatDemandeDate = (dateString) => {
               </li>
               <li class="nav-item" role="presentation">
                 <button class="nav-link" :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'">
-                  <i class="bi bi-receipt me-1"></i>Commandes
+                  <i class="bi bi-receipt me-1"></i>Commandes <span v-if="orders.length" class="badge bg-warning ms-1">{{ orders.length }}</span>
                 </button>
               </li>
               <li class="nav-item" role="presentation">
@@ -531,7 +565,7 @@ const formatDemandeDate = (dateString) => {
               </li>
               <li class="nav-item" role="presentation">
                 <button class="nav-link" :class="{ active: activeTab === 'accompagnements' }" @click="activeTab = 'accompagnements'">
-                  <i class="bi bi-person-lines-fill me-1"></i>Accompagnements
+                  <i class="bi bi-person-lines-fill me-1"></i>Accompagnements <span v-if="accompagnements.length" class="badge bg-info ms-1">{{ accompagnements.length }}</span>
                 </button>
               </li>
               <li class="nav-item" role="presentation" v-if="authStore.user?.role === 'chercheur'">
@@ -551,35 +585,79 @@ const formatDemandeDate = (dateString) => {
             <!-- Dashboard -->
             <div v-if="activeTab === 'dashboard'">
               <div class="row g-3">
-                <div class="col-md-4">
-                  <div class="bg-primary bg-opacity-10 rounded-3 p-3 text-center">
-                    <i class="bi bi-book text-primary fs-1"></i>
-                    <h3 class="fw-bold text-primary mt-2">{{ stats.livres }}</h3>
-                    <p class="text-muted mb-0">Livres achetés</p>
+                <div class="col-sm-6 col-md-3">
+                  <div class="stat-card stat-card-primary" @click="activeTab = 'books'" role="button">
+                    <div class="stat-icon">
+                      <i class="bi bi-book"></i>
+                    </div>
+                    <h3 class="stat-value">{{ stats.livres }}</h3>
+                    <p class="stat-label">Livres achetés</p>
                   </div>
                 </div>
-                <div class="col-md-4">
-                  <div class="bg-success bg-opacity-10 rounded-3 p-3 text-center">
-                    <i class="bi bi-mortarboard text-success fs-1"></i>
-                    <h3 class="fw-bold text-success mt-2">{{ stats.formations }}</h3>
-                    <p class="text-muted mb-0">Formations inscrites</p>
+                <div class="col-sm-6 col-md-3">
+                  <div class="stat-card stat-card-success" @click="activeTab = 'formations'" role="button">
+                    <div class="stat-icon">
+                      <i class="bi bi-mortarboard"></i>
+                    </div>
+                    <h3 class="stat-value">{{ stats.formations }}</h3>
+                    <p class="stat-label">Formations inscrites</p>
                   </div>
                 </div>
-                <div class="col-md-3">
-                  <div class="bg-warning bg-opacity-10 rounded-3 p-3 text-center">
-                    <i class="bi bi-receipt text-warning fs-1"></i>
-                    <h3 class="fw-bold text-warning mt-2">{{ stats.commandes }}</h3>
-                    <p class="text-muted mb-0">Commandes</p>
+                <div class="col-sm-6 col-md-3">
+                  <div class="stat-card stat-card-warning" @click="activeTab = 'orders'" role="button">
+                    <div class="stat-icon">
+                      <i class="bi bi-receipt"></i>
+                    </div>
+                    <h3 class="stat-value">{{ stats.commandes }}</h3>
+                    <p class="stat-label">Commandes</p>
                   </div>
                 </div>
-                <div class="col-md-3">
-                  <div class="bg-danger bg-opacity-10 rounded-3 p-3 text-center">
-                    <i class="bi bi-heart text-danger fs-1"></i>
-                    <h3 class="fw-bold text-danger mt-2">{{ stats.totalDons.toLocaleString('fr-FR') }} FCFA</h3>
-                    <p class="text-muted mb-0">Dons ({{ stats.dons }})</p>
+                <div class="col-sm-6 col-md-3">
+                  <div class="stat-card stat-card-danger" @click="activeTab = 'dons'" role="button">
+                    <div class="stat-icon">
+                      <i class="bi bi-heart"></i>
+                    </div>
+                    <h3 class="stat-value">{{ stats.totalDons.toLocaleString('fr-FR') }} FCFA</h3>
+                    <p class="stat-label">Dons ({{ stats.dons }})</p>
                   </div>
                 </div>
               </div>
+
+              <!-- <template v-if="authStore.user?.role === 'etudiant' && studentStats.formationsSuivies > 0">
+                <div class="row g-3 mt-2">
+                  <div class="col-12">
+                    <div class="border rounded-3 p-3">
+                      <h6 class="fw-bold text-muted mb-3"><i class="bi bi-mortarboard me-1"></i>Profil Étudiant</h6>
+                      <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                          <div class="text-center p-2 bg-info bg-opacity-10 rounded-3">
+                            <div class="h4 fw-bold text-info mb-0">{{ studentStats.formationsSuivies }}</div>
+                            <small class="text-muted">Formations suivies</small>
+                          </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                          <div class="text-center p-2 bg-primary bg-opacity-10 rounded-3">
+                            <div class="h4 fw-bold text-gray-700 mb-0">{{ studentStats.coursCompletes }}</div>
+                            <small class="text-muted">Cours complétés</small>
+                          </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                          <div class="text-center p-2 bg-warning bg-opacity-10 rounded-3">
+                            <div class="h4 fw-bold text-warning mb-0">{{ Math.round(studentStats.progressionMoyenne * 100) / 100 }}%</div>
+                            <small class="text-muted">Progression moyenne</small>
+                          </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                          <div class="text-center p-2 bg-success bg-opacity-10 rounded-3">
+                            <div class="h4 fw-bold text-success mb-0">{{ studentStats.certificatsObtenus }}</div>
+                            <small class="text-muted">Certificats obtenus</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template> -->
               <div class="row mt-4">
                 <div class="col-12">
                   <div class="border rounded-3 p-3">
@@ -672,7 +750,9 @@ const formatDemandeDate = (dateString) => {
                       </div>
                       <div class="mt-auto">
                         <div class="d-flex justify-content-between small mb-1">
-                          <span class="text-muted">Progression</span>
+                          <span class="text-muted">
+                            Cours complétés: {{ ins.cours_completes_count || 0 }}/{{ ins.formation?.total_cours || '?' }}
+                          </span>
                           <span class="fw-bold">{{ Math.round(ins.progression || 0) }}%</span>
                         </div>
                         <div class="progress" style="height: 6px;">
@@ -1204,4 +1284,91 @@ const formatDemandeDate = (dateString) => {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+
+.stat-card {
+  position: relative;
+  padding: 1.5rem 1rem;
+  border-radius: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+  isolation: isolate;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  opacity: 0.08;
+  z-index: -1;
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.stat-card:active {
+  transform: translateY(-1px);
+}
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 0.75rem;
+  font-size: 1.25rem;
+  transition: transform 0.25s ease;
+}
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
+}
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+.stat-label {
+  font-size: 0.8rem;
+  margin-bottom: 0;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.stat-card-primary {
+  background: linear-gradient(135deg, #e8f0fe 0%, #d2e3fc 100%);
+  color: #1a73e8;
+}
+.stat-card-primary::before { background: #1a73e8; }
+.stat-card-primary .stat-icon { background: rgba(26, 115, 232, 0.12); color: #1a73e8; }
+.stat-card-primary .stat-value { color: #1a73e8; }
+.stat-card-primary .stat-label { color: #1a73e8; }
+
+.stat-card-success {
+  background: linear-gradient(135deg, #e6f4ea 0%, #ceead6 100%);
+  color: #137333;
+}
+.stat-card-success::before { background: #137333; }
+.stat-card-success .stat-icon { background: rgba(19, 115, 51, 0.12); color: #137333; }
+.stat-card-success .stat-value { color: #137333; }
+.stat-card-success .stat-label { color: #137333; }
+
+.stat-card-warning {
+  background: linear-gradient(135deg, #fef7e0 0%, #fcefcc 100%);
+  color: #e37400;
+}
+.stat-card-warning::before { background: #e37400; }
+.stat-card-warning .stat-icon { background: rgba(227, 116, 0, 0.12); color: #e37400; }
+.stat-card-warning .stat-value { color: #e37400; }
+.stat-card-warning .stat-label { color: #e37400; }
+
+.stat-card-danger {
+  background: linear-gradient(135deg, #fce8e6 0%, #f8d7d9 100%);
+  color: #c5221f;
+}
+.stat-card-danger::before { background: #c5221f; }
+.stat-card-danger .stat-icon { background: rgba(197, 34, 31, 0.12); color: #c5221f; }
+.stat-card-danger .stat-value { color: #c5221f; }
+.stat-card-danger .stat-label { color: #c5221f; }
 </style>

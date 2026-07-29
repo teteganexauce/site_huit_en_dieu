@@ -67,7 +67,9 @@ onMounted(loadFormations)
             </div>
             <div class="mt-auto">
               <div class="d-flex justify-content-between small mb-1">
-                <span class="text-muted">Progression</span>
+                <span class="text-muted">
+                  Cours complétés: {{ ins.cours_completes_count || 0 }}/{{ ins.formation?.total_cours || '?' }}
+                </span>
                 <span class="fw-bold">{{ Math.round(ins.progression || 0) }}%</span>
               </div>
               <div class="progress" style="height: 6px;">
