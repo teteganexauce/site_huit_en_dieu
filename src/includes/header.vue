@@ -26,27 +26,36 @@
               <span>Centre de formation / École</span>
               <i class="bi bi-chevron-down site-nav__indicator"></i>
             </a>
-                          <ul class="site-dropdown site-dropdown--mega">
-                <li>
-                  <a href="#">À la découverte du centre / école</a>
-                  <a href="#">Les réalités du centre / école</a>
-                  <a href="#">Hors des murs du centre</a>
-                  <a href="#">Orientation et choix de vie</a>
-                </li>
-                <li>
-                  <router-link to="/temoignages">Témoignages</router-link>
-                  <router-link to="/publications">Publications</router-link>
-                  <router-link to="/galerie">Évènements</router-link>
-                  <router-link to="/partenaires">Nos partenaires</router-link>
-                </li>
-                <li>
-                  <router-link to="/formations">Nos formations</router-link>
-                  <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
-                  <router-link to="/accompagnement">Demande d'accompagnement</router-link>
-                  <router-link to="/services">Nos services</router-link>
-                  <router-link to="/forum">Forum</router-link>
-                </li>
-              </ul>
+            <div class="site-dropdown site-dropdown--mega">
+              <div class="site-dropdown__col">
+                <span class="site-dropdown__eyebrow">
+                  <i class="bi bi-compass"></i> Découvrir
+                </span>
+                <a href="#">À la découverte du centre / école</a>
+                <a href="#">Les réalités du centre / école</a>
+                <a href="#">Hors des murs du centre</a>
+                <a href="#">Orientation et choix de vie</a>
+              </div>
+              <div class="site-dropdown__col">
+                <span class="site-dropdown__eyebrow">
+                  <i class="bi bi-people"></i> Partager
+                </span>
+                <router-link to="/temoignages">Témoignages</router-link>
+                <router-link to="/publications">Publications</router-link>
+                <router-link to="/galerie">Évènements</router-link>
+                <router-link to="/partenaires">Nos partenaires</router-link>
+              </div>
+              <div class="site-dropdown__col">
+                <span class="site-dropdown__eyebrow">
+                  <i class="bi bi-mortarboard"></i> Apprendre &amp; agir
+                </span>
+                <router-link to="/formations">Nos formations</router-link>
+                <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
+                <router-link to="/accompagnement">Demande d'accompagnement</router-link>
+                <router-link to="/services">Nos services</router-link>
+                <router-link to="/forum">Forum</router-link>
+              </div>
+            </div>
           </li>
 
           <li class="site-nav__item site-nav__item--dropdown">
@@ -54,11 +63,17 @@
               <span>Espace de vente</span>
               <i class="bi bi-chevron-down site-nav__indicator"></i>
             </a>
-            <ul class="site-dropdown">
-              <li><router-link to="/boutique" class="site-nav__link">Toute la boutique</router-link></li>
-              <li><router-link to="/e-book" class="site-nav__link">Nos e-books</router-link></li>
-              <li><router-link to="/boutique?type=objet_sacre" class="site-nav__link">Objets en vente</router-link></li>
-            </ul>
+            <div class="site-dropdown">
+              <router-link to="/boutique" class="site-dropdown__link">
+                <i class="bi bi-shop"></i> Toute la boutique
+              </router-link>
+              <router-link to="/e-book" class="site-dropdown__link">
+                <i class="bi bi-book"></i> Nos e-books
+              </router-link>
+              <router-link to="/boutique?type=objet_sacre" class="site-dropdown__link">
+                <i class="bi bi-gem"></i> Objets en vente
+              </router-link>
+            </div>
           </li>
 
           <li class="site-nav__item">
@@ -73,9 +88,9 @@
 
       <!-- Actions desktop -->
       <div class="site-actions">
-        <router-link to="/panier" class="site-btn site-btn--ghost position-relative" title="Panier">
+        <router-link to="/panier" class="site-btn site-btn--ghost site-btn--icon" title="Panier">
           <i class="bi bi-cart"></i>
-          <span v-if="cartStore.itemCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+          <span v-if="cartStore.itemCount > 0" class="site-badge">
             {{ cartStore.itemCount }}
           </span>
         </router-link>
@@ -106,6 +121,13 @@
 
     <!-- Navigation mobile -->
     <div class="site-mobile-nav" :class="{ 'site-mobile-nav--open': isMobileNavOpen }">
+      <div class="site-mobile-nav__header">
+        <span>Menu</span>
+        <button class="site-mobile-nav__close" @click="closeMobileNav" aria-label="Fermer le menu">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
       <ul>
         <li><router-link to="/" @click="closeMobileNav">Accueil</router-link></li>
 
@@ -216,6 +238,23 @@ onUnmounted(() => {
 
 <style scoped>
 /* ==========================================
+   TOKENS — palette et rythme partagés par
+   tout le header (cohérent avec le logo)
+   ========================================== */
+.site-header {
+  --ink: #0c2233;
+  --ink-soft: #24445e;
+  --brand-teal: #0f766e;
+  --brand-blue: #2563eb;
+  --brand-gold: #b1802f;
+  --surface: #ffffff;
+  --surface-soft: #f6f8fa;
+  --border-soft: rgba(12, 34, 51, 0.09);
+  --text-primary: #0f1f2e;
+  --text-muted: #5c6b7a;
+}
+
+/* ==========================================
    HEADER — hauteur pilotée par --header-height
    (définie dans App.vue), synchronisée avec #main
    ========================================== */
@@ -228,7 +267,7 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(12, 41, 69, 0.06);
+  border-bottom: 1px solid var(--border-soft);
   box-shadow: 0 8px 30px rgba(12, 41, 69, 0.08);
   transition: box-shadow 0.3s ease;
 }
@@ -256,7 +295,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
-  color: #0f172a;
+  color: var(--text-primary);
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -272,7 +311,7 @@ onUnmounted(() => {
   width: 46px;
   height: 46px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-blue) 100%);
   color: #fff;
   font-weight: 700;
   font-size: 1.1rem;
@@ -303,12 +342,12 @@ onUnmounted(() => {
 .site-logo__text strong {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .site-logo__text small {
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
   letter-spacing: 0.3px;
 }
@@ -320,12 +359,13 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   justify-content: center;
+  min-width: 0;
 }
 
 .site-nav__list {
   display: flex;
   align-items: center;
-  gap: 0.1rem;
+  gap: 0.15rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -338,106 +378,107 @@ onUnmounted(() => {
 .site-nav__link {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.6rem 0.9rem;
-  color: #0f172a;
+  gap: 0.35rem;
+  padding: 0.6rem 0.85rem;
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
-  border-radius: 8px; /* léger arrondi, pas de pilule complète */
+  font-size: 0.88rem;
+  border-radius: 8px;
   position: relative;
-  transition: color 0.25s ease, background 0.25s ease;
+  transition: color 0.2s ease, background 0.2s ease;
   white-space: nowrap;
 }
 
-/* Survol ET lien actif (page courante) : fond bleu nuit,
-   cohérent avec les dropdowns */
+.site-nav__link:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+
+/* Survol ET lien actif : fond bleu nuit uni, texte blanc,
+   contraste net et cohérent avec les dropdowns */
 .site-nav__link:hover,
 .site-nav__link.router-link-active {
   color: #ffffff;
-  background: linear-gradient(160deg, rgba(58, 94, 147, 0.95) 0%, rgba(59, 95, 147, 0.95) 100%);
+  background: var(--ink);
 }
 
-/* Trait dégradé : discret sous le lien, blanc pour rester
-   visible sur le fond bleu de l'état actif */
 .site-nav__link::after {
   content: '';
   position: absolute;
-  bottom: 2px;
+  bottom: 4px;
   left: 50%;
   width: 0;
-  height: 2.5px;
-  background: linear-gradient(90deg, #0f766e, #2563eb);
+  height: 2px;
+  background: var(--brand-gold);
   border-radius: 4px;
   transform: translateX(-50%);
-  transition: width 0.3s ease;
+  transition: width 0.25s ease;
 }
 
 .site-nav__link.router-link-active::after {
-  width: 40%;
-  background: #ffffff;
+  width: 32%;
 }
 
 .site-nav__indicator {
-  font-size: 0.7rem;
-  transition: transform 0.3s ease;
+  font-size: 0.65rem;
+  transition: transform 0.25s ease;
 }
 
-.site-nav__item--dropdown:hover .site-nav__indicator,
-.site-nav__link.router-link-active .site-nav__indicator {
+.site-nav__item--dropdown:hover .site-nav__indicator {
   transform: rotate(180deg);
 }
 
-/* Le lien "toggle" (Centre de formation/École, Espace de vente)
-   prend le même fond bleu quand son dropdown est ouvert */
 .site-nav__item--dropdown:hover .site-nav__link--toggle {
   color: #ffffff;
-  background: linear-gradient(160deg, rgba(58, 90, 139, 0.95) 0%, rgba(59, 99, 155, 0.95) 100%);
+  background: var(--ink);
 }
 
 /* ==========================================
-   DROPDOWN — fond bleu nuit, positionné par
-   rapport à SON PROPRE item
+   DROPDOWN SIMPLE ("Espace de vente")
    ========================================== */
 .site-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   left: 0;
   min-width: 260px;
-  padding: 0.85rem;
-  background: linear-gradient(160deg, rgba(58, 91, 141, 0.97) 0%, rgba(57, 94, 147, 0.97) 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(10, 20, 40, 0.28), 0 8px 20px rgba(0, 0, 0, 0.12);
+  padding: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  box-shadow: 0 24px 48px -12px rgba(12, 34, 51, 0.22), 0 4px 12px rgba(12, 34, 51, 0.06);
   list-style: none;
-  display: grid;
-  gap: 0.5rem;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(8px) scale(0.97);
-  transition: all 0.25s ease;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  overflow: hidden;
 }
 
-/* ★ CORRECTIF PRINCIPAL ★
-   Pont invisible qui comble le vide de 10px entre le lien et
-   le dropdown. Sans lui, le curseur "sort" du <li> en descendant
-   vers le menu, ce qui coupe le :hover et referme le dropdown
-   avant qu'on puisse cliquer sur un lien à l'intérieur. */
+/* Fin liseré de signature en haut du panneau, dégradé de marque */
+.site-dropdown::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand-teal), var(--brand-blue), var(--brand-gold));
+}
+
+/* Pont invisible qui comble le vide entre le lien et le dropdown,
+   pour ne jamais perdre le survol en descendant vers le menu */
 .site-nav__item--dropdown::before {
   content: '';
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  height: 14px;
+  height: 16px;
   z-index: 5;
 }
 
-/* La dernière dropdown ("Espace de vente") colle son bord droit
-   pour ne jamais déborder hors de l'écran */
 .site-nav__item--dropdown:not(.site-nav__item--mega) .site-dropdown {
   left: auto;
   right: 0;
@@ -447,39 +488,98 @@ onUnmounted(() => {
   opacity: 1;
   visibility: visible;
   pointer-events: all;
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
 }
 
-.site-dropdown a {
-  display: block;
-  padding: 0.55rem 0.7rem;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.78);
+.site-dropdown__link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 9px;
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
+  font-size: 0.87rem;
+  transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
 }
 
-.site-dropdown a:hover,
-.site-dropdown a.router-link-active {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+.site-dropdown__link i {
+  color: var(--brand-teal);
+  font-size: 0.95rem;
+  width: 1.1rem;
+  text-align: center;
+  flex-shrink: 0;
 }
 
-/* Mega menu : s'affiche toujours pleinement sous son lien,
-   largeur bornée par la fenêtre (jamais de débordement) */
+.site-dropdown__link:hover,
+.site-dropdown__link.router-link-active {
+  background: var(--surface-soft);
+  color: var(--brand-blue);
+  padding-left: 1rem;
+}
+
+.site-dropdown__link:hover i,
+.site-dropdown__link.router-link-active i {
+  color: var(--brand-blue);
+}
+
+/* ==========================================
+   MEGA MENU — colonnes structurées avec
+   en-têtes de catégorie, lisible et scannable
+   ========================================== */
 .site-dropdown--mega {
-  width: min(720px, 92vw);
+  width: min(760px, 90vw);
+  min-width: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  padding: 1.5rem 0.5rem 1rem;
 }
 
-.site-dropdown--mega li {
+.site-dropdown__col {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  padding: 0 1rem;
+  border-right: 1px solid var(--border-soft);
+}
+
+.site-dropdown__col:last-child {
+  border-right: none;
+}
+
+.site-dropdown__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-teal);
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.site-dropdown--mega a {
+  display: block;
+  padding: 0.5rem 0.6rem;
+  margin: 0 -0.6rem;
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
+}
+
+.site-dropdown--mega a:hover,
+.site-dropdown--mega a.router-link-active {
+  background: var(--surface-soft);
+  color: var(--brand-blue);
+  padding-left: 0.9rem;
 }
 
 /* ==========================================
@@ -500,32 +600,61 @@ onUnmounted(() => {
   padding: 0.6rem 1.1rem;
   border-radius: 999px;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.site-btn:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+
+.site-btn--icon {
+  padding: 0.6rem 0.75rem;
+  position: relative;
 }
 
 .site-btn--donate {
-  background: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-blue) 100%);
   color: #fff;
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.28);
 }
 
 .site-btn--donate:hover {
-  box-shadow: 0 12px 35px rgba(37, 99, 235, 0.4);
-  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.38);
+  transform: translateY(-2px);
 }
 
 .site-btn--ghost {
-  background: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
 }
 
 .site-btn--ghost:hover {
-  background: #e2e8f0;
-  border-color: #cbd5e1;
+  background: #eef1f4;
+  border-color: #d7dde3;
+}
+
+.site-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand-gold);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 /* ==========================================
@@ -533,12 +662,19 @@ onUnmounted(() => {
    ========================================== */
 .site-mobile-toggle {
   display: none;
-  background: none;
-  border: none;
-  font-size: 1.8rem;
-  color: #0f172a;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  font-size: 1.4rem;
+  color: var(--text-primary);
   cursor: pointer;
-  padding: 0.3rem;
+  padding: 0.4rem 0.6rem;
+  line-height: 1;
+}
+
+.site-mobile-toggle:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
 }
 
 /* ==========================================
@@ -549,13 +685,15 @@ onUnmounted(() => {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 85%;
-  max-width: 380px;
+  width: 88%;
+  max-width: 400px;
   height: 100vh;
-  background: #fff;
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
-  padding: calc(var(--header-height, 92px) + 16px) 1.5rem 2rem;
+  height: 100dvh;
+  background: var(--surface);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.12);
+  padding: 0 0 2rem;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   transition: right 0.35s ease;
   z-index: 1050;
 }
@@ -564,10 +702,42 @@ onUnmounted(() => {
   right: 0;
 }
 
+.site-mobile-nav__header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+  font-weight: 700;
+  color: var(--text-primary);
+  z-index: 2;
+}
+
+.site-mobile-nav__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
 .site-mobile-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.site-mobile-nav > ul {
+  padding: 0.5rem 1.25rem 0;
 }
 
 .site-mobile-nav > ul > li > a,
@@ -575,68 +745,84 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 0.5rem;
-  color: #0f172a;
+  padding: 0.85rem 0.25rem;
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--surface-soft);
 }
 
-/* Sous-menu mobile : même identité bleu nuit que le desktop,
-   pour une cohérence visuelle sur tous les écrans.
-   Le click-based toggle mobile n'a pas le problème de gap
-   du hover desktop, donc pas besoin de pont ici. */
+.site-mobile-nav > ul > li > .router-link-active {
+  color: var(--brand-blue);
+}
+
+/* Sous-menu mobile : identité bleu nuit unie, cohérente avec
+   le fond de survol desktop, plutôt qu'un dégradé bleu clair
+   qui cassait le contraste sur les petits écrans */
 .site-mobile-nav__dropdown ul {
-  padding-left: 0.75rem;
-  margin-top: 6px;
+  padding-left: 0.5rem;
+  margin-top: 4px;
   max-height: 0;
   overflow: hidden;
   border-radius: 12px;
-  background: linear-gradient(160deg, rgba(63, 112, 186, 0.97) 0%, rgba(63, 117, 192, 0.97) 100%);
-  transition: max-height 0.3s ease, padding 0.3s ease;
+  background: var(--ink);
+  transition: max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
 }
 
 .site-mobile-nav__dropdown.is-open ul {
-  max-height: 600px;
-  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  max-height: 700px;
+  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.5rem 0.4rem 1rem;
 }
 
 .site-mobile-nav__dropdown ul a {
   display: block;
-  padding: 0.6rem 0.5rem;
-  color: rgba(255, 255, 255, 0.8);
+  padding: 0.65rem 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.site-mobile-nav__dropdown ul a:hover {
+.site-mobile-nav__dropdown ul li:last-child a {
+  border-bottom: none;
+}
+
+.site-mobile-nav__dropdown ul a:hover,
+.site-mobile-nav__dropdown ul a.router-link-active {
   color: #ffffff;
 }
 
 .site-mobile-nav__dropdown i {
   transition: transform 0.3s ease;
+  color: var(--text-muted);
 }
 
 .site-mobile-nav__dropdown.is-open i {
   transform: rotate(180deg);
+  color: var(--brand-blue);
 }
 
 .site-mobile-nav__actions {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #f1f5f9;
+  gap: 0.7rem;
+  margin: 1.5rem 1.25rem 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.site-mobile-nav__actions .site-btn {
+  justify-content: center;
+  width: 100%;
 }
 
 .site-mobile-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(12, 34, 51, 0.45);
   backdrop-filter: blur(4px);
   z-index: 1040;
 }
@@ -653,6 +839,26 @@ onUnmounted(() => {
 /* ==========================================
    RESPONSIVE
    ========================================== */
+
+/* Zone intermédiaire : on garde le menu desktop mais on
+   resserre l'espacement pour éviter que ça déborde avant
+   le vrai point de bascule mobile */
+@media (max-width: 1200px) and (min-width: 992px) {
+  .site-nav__link {
+    padding: 0.55rem 0.6rem;
+    font-size: 0.82rem;
+  }
+
+  .site-actions {
+    gap: 0.4rem;
+  }
+
+  .site-btn {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.78rem;
+  }
+}
+
 @media (max-width: 991px) {
   .site-nav,
   .site-actions {
@@ -695,7 +901,8 @@ onUnmounted(() => {
   }
 
   .site-mobile-nav {
-    width: 90%;
+    width: 100%;
+    max-width: none;
   }
 }
 </style>
