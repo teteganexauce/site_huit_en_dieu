@@ -21,7 +21,7 @@
             </div>
             <div class="col-lg-6">
                <div class="content d-flex flex-column justify-content-center h-100">
-                 <h1><b>L'Ecole du Réveil Spirituel</b> </h1>
+                 <h1><b>L'École de l'Éveil Spirituel </b> </h1>
                  <p class="fst-italic">
                    Dénommée La Grande Ecole Universelle des Huit en Dieu est dirigée par Monsieur Firmin AMADJI, chercheur béninois sur la question des cultures, traditions et religions
                  </p>
