@@ -6,6 +6,7 @@ import FooterComponent from './includes/footer.vue'
 import { useAuthStore } from './stores/auth';
 import { useCartStore } from './stores/cart';
 import { useContentStore } from './stores/content';
+import ChatBot from './components/ChatBot.vue';
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
@@ -35,6 +36,7 @@ onMounted(() => {
 
    <FooterComponent v-if="!isAuthPage" />
 
+   <ChatBot />
 
 </template>
 
