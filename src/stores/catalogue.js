@@ -57,6 +57,7 @@ export const useCatalogueStore = defineStore('catalogue', {
             prix_asc: { sort_by: 'prix', sort_order: 'asc' },
             prix_desc: { sort_by: 'prix', sort_order: 'desc' },
             nom: { sort_by: 'nom', sort_order: 'asc' },
+            note: { sort_by: 'note' },
           };
           Object.assign(params, sortMap[f.tri] || sortMap.date);
         }

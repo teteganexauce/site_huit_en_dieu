@@ -67,7 +67,7 @@
               <router-link to="/boutique" class="site-dropdown__link">
                 <i class="bi bi-shop"></i> Toute la boutique
               </router-link>
-              <router-link to="/e-book" class="site-dropdown__link">
+              <router-link to="/boutique?type=ebook" class="site-dropdown__link">
                 <i class="bi bi-book"></i> Nos e-books
               </router-link>
               <router-link to="/boutique?type=objet_sacre" class="site-dropdown__link">
@@ -160,7 +160,7 @@
           </a>
           <ul>
             <li><router-link to="/boutique" @click="closeMobileNav">Toute la boutique</router-link></li>
-            <li><router-link to="/e-book" @click="closeMobileNav">Nos e-books</router-link></li>
+            <li><router-link to="/boutique?type=ebook" @click="closeMobileNav">Nos e-books</router-link></li>
             <li><router-link to="/boutique?type=objet_sacre" @click="closeMobileNav">Objets en vente</router-link></li>
           </ul>
         </li>

@@ -110,6 +110,15 @@ const handleAddToCart = async () => {
         {{ typeLabel }}
       </div>
 
+      <!-- Rating -->
+      <div class="card-rating" v-if="product.note_moyenne > 0">
+        <span class="rating-stars">
+          <span v-for="s in 5" :key="s" class="rating-star" :class="{ 'is-filled': product.note_moyenne >= s - 0.25 }">&#9733;</span>
+        </span>
+        <span class="rating-num">{{ Number(product.note_moyenne).toFixed(1) }}</span>
+        <span class="rating-count">({{ product.avis_count || 0 }})</span>
+      </div>
+
       <!-- Title -->
       <router-link :to="`/boutique/${product.id}`" class="product-title-link">
         <h6 class="product-title">{{ product.nom }}</h6>
@@ -280,6 +289,14 @@ const handleAddToCart = async () => {
   transition: color 0.2s;
 }
 .product-title-link:hover .product-title { color: #0ea2bd; }
+
+/* Rating */
+.card-rating { display: flex; align-items: center; gap: 5px; margin-bottom: 0.35rem; }
+.rating-stars { display: inline-flex; gap: 1px; }
+.rating-star { font-size: 0.78rem; color: #d9dce6; }
+.rating-star.is-filled { color: #f5a623; }
+.rating-num { font-size: 0.8rem; font-weight: 800; color: #1a2a3a; }
+.rating-count { font-size: 0.75rem; color: #adb5bd; }
 
 .product-desc {
   font-size: 0.82rem;

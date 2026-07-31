@@ -8,6 +8,7 @@ import shopService from '../services/shopService'
 import donService from '../services/donService'
 import accompagnementService from '../services/accompagnementService'
 import chercheurService from '../services/chercheurService'
+import avisService from '../services/avisService'
 import ArticleModal from '../components/ArticleModal.vue'
 import defaultAvatar from '../assets/img/portfolio/app-1.jpg'
 
@@ -22,6 +23,7 @@ const isLoadingOrders = ref(true)
 const isLoadingDons = ref(true)
 const isLoadingAccompagnements = ref(true)
 const isLoadingArticles = ref(true)
+const isLoadingAvis = ref(true)
 
 const orders = ref([])
 const purchasedBooks = ref([])
@@ -29,6 +31,7 @@ const inscriptions = ref([])
 const dons = ref([])
 const accompagnements = ref([])
 const articlesChercheur = ref([])
+const mesAvis = ref([])
 
 const showPaymentModal = ref(false)
 const selectedBook = ref(null)
@@ -342,6 +345,29 @@ async function confirmDeleteArticle() {
   }
 }
 
+async function loadAvis() {
+  isLoadingAvis.value = true
+  try {
+    const res = await avisService.getMesAvis()
+    mesAvis.value = res.data || res || []
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingAvis.value = false
+  }
+}
+
+function removeAvis(id) {
+  avisService.deleteAvis(id)
+    .then(() => {
+      mesAvis.value = mesAvis.value.filter(a => a.id !== id)
+    })
+    .catch(e => {
+      console.error(e)
+      alert("Erreur lors de la suppression de l'avis")
+    })
+}
+
 onMounted(async () => {
   initializeForm()
   try {
@@ -360,6 +386,7 @@ onMounted(async () => {
   loadDons()
   loadAccompagnements()
   loadArticles()
+  loadAvis()
 })
 
 const handleLogout = async () => {
@@ -574,6 +601,11 @@ const formatDemandeDate = (dateString) => {
                 </button>
               </li>
               <li class="nav-item" role="presentation">
+                <button class="nav-link" :class="{ active: activeTab === 'avis' }" @click="activeTab = 'avis'">
+                  <i class="bi bi-star me-1"></i>Mes avis <span v-if="mesAvis.length" class="badge bg-warning ms-1">{{ mesAvis.length }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
                 <button class="nav-link" :class="{ active: activeTab === 'settings' }" @click="activeTab = 'settings'">
                   <i class="bi bi-gear me-1"></i>Paramètres
                 </button>
@@ -691,7 +723,7 @@ const formatDemandeDate = (dateString) => {
               <div v-else-if="!purchasedBooks.length" class="text-center py-5 text-muted">
                 <i class="bi bi-book display-3"></i>
                 <h5 class="mt-3">Vous n'avez pas encore acheté de livres</h5>
-                <router-link to="/e-book" class="btn btn-primary mt-3">Découvrir les e-books</router-link>
+                <router-link to="/boutique?type=ebook" class="btn btn-primary mt-3">Découvrir les e-books</router-link>
               </div>
               <div v-else class="row g-3">
                 <div v-for="book in purchasedBooks" :key="book.id" class="col-md-6">
@@ -960,6 +992,55 @@ const formatDemandeDate = (dateString) => {
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            <!-- Mes avis -->
+            <div v-if="activeTab === 'avis'">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Mes avis et notes</h5>
+                <span class="text-muted small">{{ mesAvis.length }} avis</span>
+              </div>
+              <div v-if="isLoadingAvis" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+              </div>
+              <div v-else-if="!mesAvis.length" class="text-center py-5 text-muted">
+                <i class="bi bi-star display-3"></i>
+                <h5 class="mt-3">Vous n'avez pas encore laissé d'avis</h5>
+                <p>Après avoir suivi une formation ou acheté un produit dans la boutique, vous pourrez laisser votre avis.</p>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                  <router-link to="/formations" class="btn btn-outline-primary mt-2">Voir les formations</router-link>
+                  <router-link to="/boutique" class="btn btn-outline-success mt-2">Visiter la boutique</router-link>
+                </div>
+              </div>
+              <div v-else>
+                <div v-for="av in mesAvis" :key="av.id" class="border rounded-3 p-3 mb-3">
+                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                      <router-link :to="av.formation ? `/formations/${av.formation_id}` : `/boutique/${av.produit_id}`" class="text-decoration-none">
+                        <h6 class="fw-bold mb-1">{{ av.formation ? av.formation.titre : av.produit.nom }}</h6>
+                      </router-link>
+                      <div class="mb-1">
+                        <span v-for="s in 5" :key="s" class="small" :class="s <= av.note ? 'text-warning' : 'text-muted'">&#9733;</span>
+                        <small class="text-muted ms-2">{{ av.note }}/5</small>
+                        <span v-if="av.formation" class="badge bg-info bg-opacity-10 text-info ms-2"><i class="bi bi-mortarboard me-1"></i>Formation</span>
+                        <span v-else class="badge bg-success bg-opacity-10 text-success ms-2"><i class="bi bi-bag me-1"></i>Produit</span>
+                      </div>
+                      <p class="small text-muted mb-0">{{ av.contenu }}</p>
+                      <small class="text-muted">{{ new Date(av.date).toLocaleDateString('fr-FR') }}</small>
+                    </div>
+                    <div class="text-end">
+                      <span class="badge" :class="av.estApprouve ? 'bg-success' : av.refuse_le ? 'bg-danger' : 'bg-warning'">
+                        {{ av.estApprouve ? 'Approuvé' : av.refuse_le ? 'Refusé' : 'En attente' }}
+                      </span>
+                      <div class="mt-2">
+                        <button v-if="!av.estApprouve" class="btn btn-sm btn-outline-danger" @click="removeAvis(av.id)">
+                          <i class="bi bi-trash me-1"></i>Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -9,6 +9,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 
 import { useContentStore } from '@/stores/content';
+import ProductCard from './shop/ProductCard.vue';
 
 const contentStore = useContentStore();
 import defaultImg from '../assets/img/blog/blog-2.jpg'
@@ -52,10 +53,13 @@ const temoignages = ref([])
 const partenaires = ref([])
 const publications = ref([])
 const boutiqueItems = ref([])
+const formationsMieuxNotees = ref([])
+const produitsMieuxNotes = ref([])
 const isLoadingBoutique = ref(true)
 const isLoadingPublications = ref(true)
 const isLoadingTemoignages = ref(true)
 const isLoadingPartenaires = ref(true)
+const isLoadingMieuxNotes = ref(true)
 
 // On duplique la liste des partenaires pour garantir assez de slides
 // à Swiper afin que le loop soit fluide et ne s'arrête jamais,
@@ -80,12 +84,15 @@ onMounted(async () => {
     partenaires.value = contentStore.homeData.partenaires || [];
     boutiqueProduits.value = contentStore.homeData.boutique_images || [];
     publicationsRecentes.value = contentStore.homeData.publications || [];
+    formationsMieuxNotees.value = contentStore.homeData.formations_mieux_notees || [];
+    produitsMieuxNotes.value = contentStore.homeData.produits_mieux_notes || [];
     
     isLoadingPublications.value = false;
     isLoadingBoutique.value = false;
     isLoadingFormations.value = false;
     isLoadingTemoignages.value = false;
     isLoadingPartenaires.value = false;
+    isLoadingMieuxNotes.value = false;
   }
 })
 
@@ -125,6 +132,79 @@ const getImageUrl = (url) => {
         <div v-if="!isLoadingFormations && !formationsPopulaires.length" class="text-center text-muted py-3">
           <p>Aucune formation disponible pour le moment.</p>
         </div>
+      </div>
+   </section>
+
+   <section id="mieux-notes" class="mieux-notes">
+      <div class="container">
+         <div class="mieux-notes-header text-center mb-4" data-aos="fade-up" data-aos-duration="1000">
+            <h2 class="mieux-notes-title">Les mieux notés</h2>
+            <p class="mieux-notes-subtitle">Découvrez les formations et produits préférés de nos apprenants et clients, notés par nos visiteurs.</p>
+         </div>
+
+         <div v-if="isLoadingMieuxNotes" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+         </div>
+
+         <div v-else-if="!formationsMieuxNotees.length && !produitsMieuxNotes.length" class="text-center text-muted py-3">
+            <p>Aucun avis pour le moment. Les mieux notés apparaîtront ici dès les premiers avis approuvés.</p>
+         </div>
+
+         <div v-else class="row g-4">
+            <div class="col-lg-6" v-if="formationsMieuxNotees.length">
+               <div class="mieux-notes-block">
+                  <div class="mieux-notes-block-head">
+                     <i class="bi bi-mortarboard me-2"></i>Formations les mieux notées
+                  </div>
+                  <div v-for="f in formationsMieuxNotees" :key="f.id" class="mieux-item">
+                     <router-link :to="`/formations/${f.id}`" class="mieux-item-img">
+                        <img :src="f.imageUrl || defaultImg" :alt="f.titre">
+                     </router-link>
+                     <div class="mieux-item-body">
+                        <router-link :to="`/formations/${f.id}`" class="mieux-item-title">{{ f.titre }}</router-link>
+                        <div class="mieux-item-stars">
+                           <span v-for="s in 5" :key="s" class="star" :class="s <= Math.round(f.avis_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
+                           <small class="text-muted ms-2">{{ f.avis_moyenne || 0 }}/5 ({{ f.avis_count || 0 }} avis)</small>
+                        </div>
+                        <div class="mieux-item-meta">
+                           <span class="badge bg-light text-dark"><i class="bi bi-people me-1"></i>{{ f.inscrits_count || 0 }} inscrits</span>
+                           <span v-if="f.prix > 0" class="fw-bold text-primary">{{ Number(f.prix).toLocaleString('fr-FR') }} FCFA</span>
+                           <span v-else class="badge bg-success">Gratuit</span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="col-lg-6" v-if="produitsMieuxNotes.length">
+               <div class="mieux-notes-block">
+                  <div class="mieux-notes-block-head">
+                     <i class="bi bi-gem me-2"></i>Produits les mieux notés
+                  </div>
+                  <div v-for="p in produitsMieuxNotes" :key="p.id" class="mieux-item">
+                     <router-link :to="`/boutique/${p.id}`" class="mieux-item-img">
+                        <img :src="p.imageUrl || defaultImg" :alt="p.nom">
+                     </router-link>
+                     <div class="mieux-item-body">
+                        <router-link :to="`/boutique/${p.id}`" class="mieux-item-title">{{ p.nom }}</router-link>
+                        <div class="mieux-item-stars">
+                           <span v-for="s in 5" :key="s" class="star" :class="s <= Math.round(p.note_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
+                           <small class="text-muted ms-2">{{ p.note_moyenne || 0 }}/5 ({{ p.avis_count || 0 }} avis)</small>
+                        </div>
+                        <div class="mieux-item-meta">
+                           <span class="badge bg-light text-dark"><i class="bi bi-bag me-1"></i>{{ p.type?.replace('_', ' ') }}</span>
+                           <span v-if="p.estGratuit" class="badge bg-success">Gratuit</span>
+                           <span v-else class="fw-bold text-primary">{{ Number(p.prixPromotion || p.prix).toLocaleString('fr-FR') }} FCFA</span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <div class="text-center mt-4" v-if="!isLoadingMieuxNotes">
+            <router-link to="/boutique" class="btn btn-outline-primary px-4">Voir toute la boutique</router-link>
+         </div>
       </div>
    </section>
 
@@ -381,6 +461,84 @@ const getImageUrl = (url) => {
 
 .blog-section-header p {
    color: #6c757d;
+}
+
+/* ============================================
+   MIEUX NOTÉS
+   ============================================ */
+.mieux-notes {
+   background: #ffffff;
+   padding: 48px 0 30px;
+}
+.mieux-notes-header { max-width: 640px; margin-left: auto; margin-right: auto; }
+.mieux-notes-title {
+   font-family: 'Playfair Display', 'Georgia', serif;
+   font-size: 2rem;
+   font-weight: 700;
+   color: #1f2937;
+   margin-bottom: 6px;
+}
+.mieux-notes-subtitle { color: #6c757d; font-size: 0.95rem; }
+
+.mieux-notes-block {
+   background: #f8fafc;
+   border: 1px solid #e9ecef;
+   border-radius: 16px;
+   padding: 1.1rem;
+   height: 100%;
+}
+.mieux-notes-block-head {
+   font-weight: 800;
+   font-size: 0.95rem;
+   color: #1f2937;
+   margin-bottom: 0.9rem;
+   display: flex;
+   align-items: center;
+   padding-bottom: 0.6rem;
+   border-bottom: 2px solid #0ea2bd;
+   width: fit-content;
+}
+.mieux-notes-block-head i { color: #0ea2bd; }
+
+.mieux-item {
+   display: flex;
+   gap: 12px;
+   padding: 10px 6px;
+   border-radius: 12px;
+   transition: background 0.2s;
+   align-items: center;
+}
+.mieux-item:hover { background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+.mieux-item-img {
+   width: 74px;
+   height: 74px;
+   border-radius: 12px;
+   overflow: hidden;
+   flex-shrink: 0;
+   display: block;
+   border: 1px solid #e9ecef;
+}
+.mieux-item-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+.mieux-item:hover .mieux-item-img img { transform: scale(1.08); }
+.mieux-item-body { min-width: 0; flex: 1; }
+.mieux-item-title {
+   font-weight: 700;
+   font-size: 0.92rem;
+   color: #1f2937;
+   text-decoration: none;
+   display: block;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+.mieux-item-title:hover { color: #0ea2bd; }
+.mieux-item-stars { display: flex; align-items: center; margin: 3px 0 5px; font-size: 0.8rem; }
+.mieux-item-stars .star { font-size: 0.85rem; margin-right: 1px; }
+.mieux-item-stars small { white-space: nowrap; }
+.mieux-item-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.82rem; }
+
+@media (max-width: 575px) {
+   .mieux-notes-title { font-size: 1.6rem; }
 }
 
 /* ============================================
