@@ -16,6 +16,11 @@ const publicService = {
     return response.data;
   },
 
+  async getAProposData() {
+    const response = await api.get('/apropos');
+    return response.data;
+  },
+
   async getPartners() {
     const response = await api.get('/partenaires');
     return response.data;
@@ -48,11 +53,6 @@ const publicService = {
 
   async getRubriquesCulture() {
     const response = await api.get('/rubriques-culture');
-    return response.data;
-  },
-
-  async getPage(slug) {
-    const response = await api.get(`/pages/${slug}`);
     return response.data;
   },
 
