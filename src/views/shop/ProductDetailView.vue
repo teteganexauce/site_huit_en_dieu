@@ -3,7 +3,7 @@
     <BreadcombsComponent :title="product?.nom || 'Détail du produit'" />
     <div class="container my-5" v-if="product">
       <div class="row">
-        <div class="col-lg-5">
+        <div class="col-lg-5" data-aos="fade-right" data-aos-duration="1000">
           <div class="main-image mb-3">
             <img :src="mainImage || product.imageUrl || defaultImg" :alt="product.nom" class="img-fluid rounded">
           </div>
@@ -14,7 +14,7 @@
           </div>
         </div>
 
-        <div class="col-lg-7">
+        <div class="col-lg-7" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="150">
           <h2 class="fw-bold">{{ product.nom }}</h2>
 
           <!-- Note moyenne -->
@@ -84,7 +84,7 @@
       </div>
 
       <!-- ═══ Avis & notes ═══ -->
-      <div class="pd-avis-section mt-5">
+      <div class="pd-avis-section mt-5" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
         <h4 class="pd-avis-title"><i class="bi bi-chat-quote me-2"></i>Avis des clients
           <span v-if="avisCount" class="pd-avis-title-count">({{ avisCount }})</span>
         </h4>
@@ -100,7 +100,7 @@
           </div>
 
           <div v-else class="pd-avis-list">
-            <div v-for="a in avisList" :key="a.id" class="pd-avis-item">
+            <div v-for="(a, i) in avisList" :key="a.id" class="pd-avis-item" data-aos="fade-up" data-aos-duration="800" :data-aos-delay="Math.min(i * 80, 400)">
               <div class="pd-avis-head">
                 <img :src="a.user?.photoUrl || defaultAvatar" class="pd-avis-avatar" alt="">
                 <div>
@@ -157,8 +157,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import AOS from 'aos'
 import { useCatalogueStore } from '../../stores/catalogue'
 import { useCartStore } from '../../stores/cart'
 import { useAuthStore } from '../../stores/auth'
@@ -288,6 +289,8 @@ onMounted(async () => {
   }
   loading.value = false
   await Promise.all([loadAvis(), loadStatutAvis()])
+  await nextTick()
+  setTimeout(() => AOS.refresh(), 150)
 })
 </script>
 

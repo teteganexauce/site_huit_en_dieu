@@ -55,7 +55,7 @@
       <div class="row g-5">
         <div class="col-lg-8">
           <article class="fd-article">
-            <div class="fd-head">
+            <div class="fd-head" data-aos="fade-up" data-aos-duration="1000">
               <div>
                 <span class="fd-badge" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span>
                 <h1 class="fd-title">{{ formation.titre }}</h1>
@@ -72,17 +72,17 @@
               <h5 class="fd-h5">Description</h5>
               <p class="fd-text">{{ formation.description }}</p>
 
-              <div v-if="formation.objectifs" class="fd-block">
+              <div v-if="formation.objectifs" class="fd-block" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="100">
                 <h5 class="fd-h5">Objectifs</h5>
                 <p class="fd-text fd-pre">{{ formation.objectifs }}</p>
               </div>
 
-              <div v-if="formation.publicCible" class="fd-block">
+              <div v-if="formation.publicCible" class="fd-block" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
                 <h5 class="fd-h5">Public cible</h5>
                 <p class="fd-text">{{ formation.publicCible }}</p>
               </div>
 
-              <div class="fd-block">
+              <div class="fd-block" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">
                 <h5 class="fd-h5 fd-mb-3">Programme</h5>
                 <div v-if="modulesLoading" class="fd-loading-inline"><div class="fd-spinner fd-spinner-sm"></div></div>
                 <div v-else-if="!modules.length" class="fd-text-muted">Aucun module pour le moment.</div>
@@ -114,7 +114,7 @@
                 </div>
               </div>
 
-              <div class="fd-block" id="avis">
+              <div class="fd-block" id="avis" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">
                 <h5 class="fd-h5 fd-mb-3"><i class="bi bi-chat-quote me-1"></i>Avis des participants
                   <span v-if="avisCount" class="fd-avis-count">({{ avisCount }})</span>
                 </h5>
@@ -130,7 +130,7 @@
                 <div v-if="avisLoading" class="fd-loading-inline"><div class="fd-spinner fd-spinner-sm"></div></div>
                 <div v-else-if="!avisList.length" class="fd-text-muted">Aucun avis pour le moment. Soyez le premier à partager votre expérience !</div>
                 <div v-else class="fd-avis-list">
-                  <div v-for="a in avisList" :key="a.id" class="fd-avis-item">
+                  <div v-for="(a, i) in avisList" :key="a.id" class="fd-avis-item" data-aos="fade-up" data-aos-duration="800" :data-aos-delay="Math.min(i * 80, 400)">
                     <div class="fd-avis-head">
                       <img :src="a.user?.photoUrl || defaultAvatar" class="fd-avis-avatar" alt="">
                       <div>
@@ -178,7 +178,7 @@
 
         <div class="col-lg-4">
           <div class="fd-sticky">
-            <div class="fd-buy-card">
+            <div class="fd-buy-card" data-aos="fade-right" data-aos-duration="1000" data-aos-delay="150">
               <img :src="formation.imageUrl || defaultImg" class="fd-buy-img" :alt="formation.titre">
               <div class="fd-buy-body">
                 <div class="fd-price">{{ formatPrice(formation.prix) }}</div>
@@ -288,8 +288,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AOS from 'aos'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
 import shopService from '../services/shopService'
@@ -563,6 +564,8 @@ onMounted(async () => {
     formation.value = null
   } finally {
     loading.value = false
+    await nextTick()
+    setTimeout(() => AOS.refresh(), 150)
   }
 })
 </script>

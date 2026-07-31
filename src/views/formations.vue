@@ -1,7 +1,7 @@
 <template>
   <BreadcombsComponent title="Nos formations" />
   <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2" data-aos="fade-up" data-aos-duration="1000">
       <h3 class="fw-bold text-primary mb-0">Toutes nos formations</h3>
       <div class="d-flex gap-2">
         <button class="btn btn-sm" :class="filterType === '' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = ''">Toutes</button>
@@ -29,7 +29,7 @@
     </div>
 
     <div v-else class="row g-4">
-      <div v-for="f in filteredFormations" :key="f.id" class="col-lg-6">
+      <div v-for="(f, index) in filteredFormations" :key="f.id" class="col-lg-6" data-aos="fade-up" data-aos-duration="1000" :data-aos-delay="(index % 2) * 150">
         <router-link :to="`/formations/${f.id}`" class="text-decoration-none">
           <div class="card border-0 shadow-sm h-100">
             <div class="row g-0">
@@ -68,7 +68,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import AOS from 'aos'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
 import defaultImg from '../assets/img/blog/blog-4.jpg'
@@ -114,6 +115,8 @@ onMounted(async () => {
     console.error('Erreur chargement formations:', e)
   } finally {
     loading.value = false
+    await nextTick()
+    setTimeout(() => AOS.refresh(), 150)
   }
 })
 </script>
