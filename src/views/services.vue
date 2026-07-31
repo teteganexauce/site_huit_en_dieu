@@ -1,65 +1,283 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useContentStore } from '../stores/content'
+import { ref } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 
-const contentStore = useContentStore()
-
 const services = ref([
-   { nom: "Accompagnement spirituel", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
-   { nom: "Formation initiale", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
-   { nom: "Formation spécialisée", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
-   { nom: "Demandez un accompagnement", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
-   { nom: "Les formations gratuites", description: "Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi" },
+  {
+    nom: "Consultation du Fâ",
+    description:
+      "La géomancie divinatoire traditionnelle pour éclairer votre chemin de vie. Le Fâ, système de sagesse ancestrale, vous guide dans vos décisions et vous révèle les messages des orisha.",
+    icon: "bi bi-moon-stars",
+    image: "https://images.unsplash.com/photo-1501139083538-0139583c060f?q=80&w=800&auto=format&fit=crop",
+    cta: "Prendre rendez-vous",
+    link: "/contact",
+    accent: "#4a3f6b"
+  },
+  {
+    nom: "Initiation au Vodoun",
+    description:
+      "Comprenez les cultes, les rites et les traditions ancestrales du Vodoun. Une plongée authentique au cœur des pratiques spirituelles béninoises, transmises de génération en génération.",
+    icon: "bi bi-sun",
+    image: "http://localhost:8000/storage/formations/Hu0SCbGtwBW631vdlaCPSNyXYO2lJM2T7lhEm3pT.webp",
+    cta: "En savoir plus",
+    link: "/rubriques-culture",
+    accent: "#b8860b"
+  },
+  {
+    nom: "Accompagnement spirituel",
+    description:
+      "Un suivi personnalisé pour votre éveil et votre croissance intérieure. Nos guides vous accompagnent dans votre cheminement avec bienveillance, écoute et discrétion.",
+    icon: "bi bi-heart-fill",
+    image: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?q=80&w=800&auto=format&fit=crop",
+    cta: "Demander un accompagnement",
+    link: "/accompagnement",
+    accent: "#c0392b"
+  },
+  {
+    nom: "Cérémonies & Rituels",
+    description:
+      "Organisation de cérémonies traditionnelles sur demande : bénédictions, purifications, offrandes, cérémonies de passage et rites de protection selon les coutumes ancestrales.",
+    icon: "bi bi-fire",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+    cta: "Nous contacter",
+    link: "/contact",
+    accent: "#d35400"
+  },
+  {
+    nom: "Enseignement ésotérique",
+    description:
+      "Formation aux savoirs ancestraux, à la sagesse divine et à la connaissance de soi. Découvrez les enseignements cachés derrière les symboles, les mythes et les traditions.",
+    icon: "bi bi-book-fill",
+    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=800&auto=format&fit=crop",
+    cta: "Voir les formations",
+    link: "/formations",
+    accent: "#2980b9"
+  },
+  {
+    nom: "Retraites spirituelles",
+    description:
+      "Sessions de recueillement, méditation et prière en groupe. Vivez une expérience immersive de déconnexion pour vous recentrer sur l'essentiel et renouveler votre foi.",
+    icon: "bi bi-tree-fill",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop",
+    cta: "S'inscrire",
+    link: "/contact",
+    accent: "#27ae60"
+  }
 ])
-
-const items = computed(() => contentStore.rubriques.length > 0 ? contentStore.rubriques : services.value)
-
-onMounted(() => {
-   contentStore.fetchRubriquesCulture()
-})
 </script>
 
 <template>
-   <BreadcombsComponent title="Nos services" />
-   <section id="featured-services" class="featured-services">
-      <div class="container">
+  <BreadcombsComponent title="Nos services" />
 
-         <div class="row gy-4">
-
-             <div v-for="(item, index) in items" :key="index" class="col-lg-3 col-md-4 d-flex aos-init aos-animate" data-aos="zoom-out">
-                <div class="border service-item position-relative w-100 px-4">
-                   <div class="icon p-0 bg-ps-primary d-flex justify-content-center align-items-center rounded-circle"><i class="bi bi-star text-white icon p-0 m-0"></i></div>
-                   <h4 class="mb-2"><a href="" class="stretched-link">{{item.nom}}</a></h4>
-                   <p class="">{{item.description}}</p>
-                </div>
-             </div><!-- End Service Item -->
-         </div>
+  <!-- Section d'introduction -->
+  <section class="services-hero py-5">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-tag">Ce que nous offrons</span>
+        <h1 class="display-5 fw-bold mb-3">Nos <span class="text-primary">Services</span></h1>
+        <p class="lead text-muted mx-auto" style="max-width: 700px;">
+          Plongez au cœur de la spiritualité, de la tradition et de la sagesse ancestrale.
+          Nous vous accompagnons sur le chemin de la connaissance et de l'éveil intérieur.
+        </p>
       </div>
-   </section>
+    </div>
+  </section>
+
+  <!-- Grille des services -->
+  <section class="services-grid pb-5">
+    <div class="container">
+      <div class="row g-4">
+        <div
+          v-for="(service, index) in services"
+          :key="index"
+          class="col-xl-4 col-md-6 d-flex"
+          data-aos="fade-up"
+          :data-aos-delay="50 * index"
+        >
+          <div class="service-card card border-0 shadow-sm w-100 overflow-hidden">
+            <!-- Image d'illustration -->
+            <div class="card-img-wrapper position-relative">
+              <img
+                :src="service.image"
+                :alt="service.nom"
+                class="card-img-top"
+              />
+              <div class="card-img-overlay d-flex align-items-center justify-content-center">
+                <div class="icon-circle">
+                  <i :class="service.icon"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Corps de la carte -->
+            <div class="card-body d-flex flex-column p-4">
+              <h3 class="card-title fw-bold mb-3">{{ service.nom }}</h3>
+              <p class="card-text text-muted flex-grow-1">{{ service.description }}</p>
+              <router-link
+                :to="service.link"
+                class="btn rounded-pill mt-3 align-self-start px-4"
+                :style="{ background: service.accent, color: '#fff', border: 'none' }"
+              >
+                {{ service.cta }}
+                <i class="bi bi-arrow-right ms-2"></i>
+              </router-link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section d'appel à l'action -->
+  <section class="services-cta py-5 bg-primary text-white">
+    <div class="container text-center py-4">
+      <h2 class="fw-bold mb-3">Vous ne trouvez pas ce que vous cherchez ?</h2>
+      <p class="lead mb-4 text-white-50" style="max-width: 600px; margin-left: auto; margin-right: auto;">
+        Chaque cheminement est unique. Contactez-nous pour un service personnalisé adapté à vos besoins spirituels.
+      </p>
+      <router-link to="/contact" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">
+        <i class="bi bi-chat-dots me-2"></i>Parlons-en
+      </router-link>
+    </div>
+  </section>
 </template>
 
 <style scoped>
-div.icon{
-   width: 40px;
-   height: 40px;
+/* ===== SECTION TAG ===== */
+.section-tag {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #2c3e91;
+  margin-bottom: 8px;
 }
-div.icon i{
-   font-size: 20px !important;
+
+/* ===== HERO ===== */
+.services-hero {
+  background: #f8f9fc;
+  border-bottom: 1px solid #edeef3;
 }
-.service-item h4{
-   font-size: 20px !important;
+
+.services-hero h1 {
+  color: #1a1a2e;
 }
-.service-item {
-margin-bottom: 0% !important;
-padding-bottom: 1em !important;
-padding-top: 1em !important;
+
+/* ===== SERVICE CARD ===== */
+.service-card {
+  border-radius: 14px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
 }
-.service-item p{
-   font-size: 14px !important;
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12) !important;
 }
-/* *{
-   margin: 0% !important;
-   padding: 0% !important;
-} */
+
+/* Image wrapper */
+.card-img-wrapper {
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.service-card:hover .card-img-wrapper img {
+  transform: scale(1.08);
+}
+
+/* Overlay avec icône */
+.card-img-overlay {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.service-card:hover .card-img-overlay {
+  opacity: 1;
+}
+
+.icon-circle {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #2c3e91;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: scale(0.8);
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .icon-circle {
+  transform: scale(1);
+}
+
+/* Titre */
+.card-title {
+  font-size: 1.25rem;
+  color: #1a1a2e;
+  position: relative;
+  padding-bottom: 12px;
+}
+
+.card-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: #2c3e91;
+  border-radius: 2px;
+}
+
+/* Texte */
+.card-text {
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+/* Bouton CTA */
+.service-card .btn {
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.service-card .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== CTA SECTION ===== */
+.services-cta {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2c3e91 100%) !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .card-img-wrapper {
+    height: 180px;
+  }
+
+  .services-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+}
 </style>

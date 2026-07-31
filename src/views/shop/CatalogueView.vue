@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCatalogueStore } from '../../stores/catalogue'
 import BreadcombsComponent from '../../includes/breadcombs.vue'
@@ -16,13 +16,20 @@ const resetFilters = () => {
   store.fetchCatalogue()
 }
 
-onMounted(async () => {
+const applyRouteFilters = () => {
+  store.resetFilters()
   if (route.query.type) store.filters.type = route.query.type
   if (route.query.categorie) store.filters.categorie = route.query.categorie
+  store.fetchCatalogue()
+}
+
+onMounted(async () => {
   await store.fetchCategories()
   categories.value = store.categories
-  store.fetchCatalogue()
+  applyRouteFilters()
 })
+
+watch(() => route.query, applyRouteFilters)
 
 const pageRange = (current, last) => {
   const range = []
@@ -186,6 +193,7 @@ const pageRange = (current, last) => {
               <i class="bi bi-sort-down me-1 text-muted"></i>
               <select class="sort-select" v-model="store.filters.tri" @change="onFilterChange">
                 <option value="date">Plus récents</option>
+                <option value="note">Mieux notés</option>
                 <option value="prix_asc">Prix croissant</option>
                 <option value="prix_desc">Prix décroissant</option>
                 <option value="nom">Nom (A-Z)</option>

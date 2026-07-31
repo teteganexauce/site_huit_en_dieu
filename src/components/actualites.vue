@@ -39,13 +39,13 @@ const goToPensees = () => {
 
 <template>
   <div class="pensees-section container-fluid mt-5 px-5">
-    <div class="container px-0">
+    <div class="container px-0" data-aos="fade-up" data-aos-duration="1000">
       <h4 class="border-bottom pb-3 border-4 border-primary text-secondary">
         <b>Les Pensées quotidiennes</b>
       </h4>
     </div>
 
-    <div class="mb-2 mt-4" v-if="pensees.length > 0">
+    <div class="mb-2 mt-4" v-if="pensees.length > 0" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="150">
       <swiper
         :modules="modules"
         :slides-per-view="1"
@@ -103,12 +103,12 @@ const goToPensees = () => {
       </swiper>
     </div>
 
-    <div v-else class="text-center py-5 text-muted">
+    <div v-else class="text-center py-5 text-muted" data-aos="fade-up">
       <p>Aucune pensée disponible pour aujourd'hui.</p>
     </div>
 
     <!-- Link to full page -->
-    <div class="text-center mt-3 mb-3">
+    <div class="text-center mt-3 mb-3" data-aos="fade-up" data-aos-delay="200">
       <router-link to="/pensees" class="btn btn-outline-primary btn-sm">
         Voir toutes les pensées <i class="bi bi-arrow-right"></i>
       </router-link>

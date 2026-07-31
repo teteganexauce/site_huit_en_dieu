@@ -1,13 +1,21 @@
 <template>
   <BreadcombsComponent title="Nos formations" />
   <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2" data-aos="fade-up" data-aos-duration="1000">
       <h3 class="fw-bold text-primary mb-0">Toutes nos formations</h3>
       <div class="d-flex gap-2">
         <button class="btn btn-sm" :class="filterType === '' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = ''">Toutes</button>
         <button class="btn btn-sm" :class="filterType === 'initiale' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'initiale'">Initiale</button>
         <button class="btn btn-sm" :class="filterType === 'specialisee' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'specialisee'">Spécialisée</button>
         <button class="btn btn-sm" :class="filterType === 'gratuite' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'gratuite'">Gratuite</button>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label class="text-muted small mb-0">Trier :</label>
+        <select class="form-select form-select-sm w-auto" v-model="sortBy">
+          <option value="recent">Plus récentes</option>
+          <option value="note">Mieux notées</option>
+          <option value="inscrits">Plus d'inscrits</option>
+        </select>
       </div>
     </div>
 
@@ -21,7 +29,7 @@
     </div>
 
     <div v-else class="row g-4">
-      <div v-for="f in filteredFormations" :key="f.id" class="col-lg-6">
+      <div v-for="(f, index) in filteredFormations" :key="f.id" class="col-lg-6" data-aos="fade-up" data-aos-duration="1000" :data-aos-delay="(index % 2) * 150">
         <router-link :to="`/formations/${f.id}`" class="text-decoration-none">
           <div class="card border-0 shadow-sm h-100">
             <div class="row g-0">
@@ -36,8 +44,8 @@
                   </div>
                   <p class="card-text text-muted small flex-grow-1">{{ f.description?.substring(0, 150) }}{{ f.description?.length > 150 ? '...' : '' }}</p>
                   <div class="mb-1">
-                    <span v-for="s in 5" :key="s" class="small" :class="s <= Math.round(f.note_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
-                    <small class="text-muted ms-1">({{ f.notes_count || 0 }})</small>
+                    <span v-for="s in 5" :key="s" class="small" :class="s <= Math.round(f.avis_moyenne || f.note_moyenne || 0) ? 'text-warning' : 'text-muted'">&#9733;</span>
+                    <small class="text-muted ms-1">({{ f.avis_count || f.notes_count || 0 }} avis)</small>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mt-auto">
                     <div class="small text-muted">
@@ -60,7 +68,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import AOS from 'aos'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
 import defaultImg from '../assets/img/blog/blog-4.jpg'
@@ -68,10 +77,18 @@ import defaultImg from '../assets/img/blog/blog-4.jpg'
 const formations = ref([])
 const loading = ref(true)
 const filterType = ref('')
+const sortBy = ref('recent')
 
 const filteredFormations = computed(() => {
-  if (!filterType.value) return formations.value
-  return formations.value.filter(f => f.type === filterType.value)
+  let list = filterType.value ? formations.value.filter(f => f.type === filterType.value) : [...formations.value]
+  if (sortBy.value === 'note') {
+    list.sort((a, b) => (b.avis_moyenne || b.note_moyenne || 0) - (a.avis_moyenne || a.note_moyenne || 0) || (b.avis_count || b.notes_count || 0) - (a.avis_count || a.notes_count || 0))
+  } else if (sortBy.value === 'inscrits') {
+    list.sort((a, b) => (b.inscrits_count || 0) - (a.inscrits_count || 0))
+  } else {
+    list.sort((a, b) => new Date(b.created_at || b.dateDebut || 0) - new Date(a.created_at || a.dateDebut || 0))
+  }
+  return list
 })
 
 const formatPrice = (price) => {
@@ -98,6 +115,8 @@ onMounted(async () => {
     console.error('Erreur chargement formations:', e)
   } finally {
     loading.value = false
+    await nextTick()
+    setTimeout(() => AOS.refresh(), 150)
   }
 })
 </script>

@@ -32,7 +32,7 @@
                 <router-link to="/profile-inscrit" class="btn btn-primary">
                   <i class="bi bi-person me-1"></i>Voir mes achats
                 </router-link>
-                <router-link to="/e-book" class="btn btn-outline-primary">
+                <router-link to="/boutique?type=ebook" class="btn btn-outline-primary">
                   <i class="bi bi-book me-1"></i>Lire mes e-books
                 </router-link>
                 <router-link to="/boutique" class="btn btn-outline-secondary">

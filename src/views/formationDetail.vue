@@ -55,7 +55,7 @@
       <div class="row g-5">
         <div class="col-lg-8">
           <article class="fd-article">
-            <div class="fd-head">
+            <div class="fd-head" data-aos="fade-up" data-aos-duration="1000">
               <div>
                 <span class="fd-badge" :class="badgeClass(formation.type)">{{ badgeLabel(formation.type) }}</span>
                 <h1 class="fd-title">{{ formation.titre }}</h1>
@@ -72,17 +72,17 @@
               <h5 class="fd-h5">Description</h5>
               <p class="fd-text">{{ formation.description }}</p>
 
-              <div v-if="formation.objectifs" class="fd-block">
+              <div v-if="formation.objectifs" class="fd-block" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="100">
                 <h5 class="fd-h5">Objectifs</h5>
                 <p class="fd-text fd-pre">{{ formation.objectifs }}</p>
               </div>
 
-              <div v-if="formation.publicCible" class="fd-block">
+              <div v-if="formation.publicCible" class="fd-block" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
                 <h5 class="fd-h5">Public cible</h5>
                 <p class="fd-text">{{ formation.publicCible }}</p>
               </div>
 
-              <div class="fd-block">
+              <div class="fd-block" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">
                 <h5 class="fd-h5 fd-mb-3">Programme</h5>
                 <div v-if="modulesLoading" class="fd-loading-inline"><div class="fd-spinner fd-spinner-sm"></div></div>
                 <div v-else-if="!modules.length" class="fd-text-muted">Aucun module pour le moment.</div>
@@ -113,13 +113,72 @@
                   </details>
                 </div>
               </div>
+
+              <div class="fd-block" id="avis" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">
+                <h5 class="fd-h5 fd-mb-3"><i class="bi bi-chat-quote me-1"></i>Avis des participants
+                  <span v-if="avisCount" class="fd-avis-count">({{ avisCount }})</span>
+                </h5>
+
+                <div v-if="noteMoyenne > 0" class="fd-avis-summary">
+                  <div class="fd-avis-score">{{ noteMoyenne }}<span>/5</span></div>
+                  <div class="fd-avis-stars">
+                    <span v-for="s in 5" :key="s" class="fd-avis-star" :class="{ 'is-filled': noteMoyenne >= s - 0.25 }">&#9733;</span>
+                    <small class="fd-avis-summary-count">{{ avisCount }} avis</small>
+                  </div>
+                </div>
+
+                <div v-if="avisLoading" class="fd-loading-inline"><div class="fd-spinner fd-spinner-sm"></div></div>
+                <div v-else-if="!avisList.length" class="fd-text-muted">Aucun avis pour le moment. Soyez le premier à partager votre expérience !</div>
+                <div v-else class="fd-avis-list">
+                  <div v-for="(a, i) in avisList" :key="a.id" class="fd-avis-item" data-aos="fade-up" data-aos-duration="800" :data-aos-delay="Math.min(i * 80, 400)">
+                    <div class="fd-avis-head">
+                      <img :src="a.user?.photoUrl || defaultAvatar" class="fd-avis-avatar" alt="">
+                      <div>
+                        <strong class="fd-avis-author">{{ a.user?.name || 'Utilisateur' }}</strong>
+                        <span v-if="a.user?.id === authStore.user?.id && !a.estApprouve" class="badge bg-warning text-dark ms-2 align-middle">En attente de validation</span>
+                        <div class="fd-avis-stars-mini">
+                          <span v-for="s in 5" :key="s" class="fd-star-mini" :class="{ 'is-filled': a.note >= s }">&#9733;</span>
+                          <small class="ms-2">{{ formatDate(a.date) }}</small>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="fd-avis-contenu">{{ a.contenu }}</p>
+                  </div>
+                </div>
+
+                <div v-if="authStore.isAuthenticated" class="fd-avis-form">
+                  <h6 class="fd-info-title"><i class="bi bi-pencil-square me-1"></i>Laisser un avis</h6>
+                  <template v-if="peutCommenter">
+                    <div class="fd-stars fd-stars-left">
+                      <span
+                        v-for="s in 5" :key="s"
+                        class="fd-star"
+                        :class="{ 'is-filled': (avisNote || avisHover) >= s }"
+                        @mouseover="avisHover = s"
+                        @mouseleave="avisHover = 0"
+                        @click="avisNote = s"
+                      >&#9733;</span>
+                    </div>
+                    <textarea v-model="avisContenu" class="fd-textarea" rows="3" maxlength="2000" placeholder="Partagez votre expérience avec cette formation..."></textarea>
+                    <button class="fd-btn fd-btn-primary fd-btn-sm mt-2" @click="submitAvis" :disabled="avisEnvoi">
+                      <span v-if="avisEnvoi" class="fd-spinner fd-spinner-sm"></span>
+                      <template v-else><i class="bi bi-send me-1"></i>Envoyer mon avis</template>
+                    </button>
+                    <p v-if="avisMessage" class="fd-note-message fd-text-start" :class="avisMessageType === 'success' ? 'is-success' : avisMessageType === 'info' ? 'is-info' : 'is-danger'">{{ avisMessage }}</p>
+                  </template>
+                  <p v-else class="fd-note-hint fd-m-0">Seuls les participants ayant suivi cette formation peuvent laisser un avis.</p>
+                </div>
+                <p v-else class="fd-note-hint fd-m-0">
+                  <router-link :to="{ name: 'login', query: { redirect: route.fullPath } }" class="fd-login-link">Connectez-vous</router-link> pour laisser un avis.
+                </p>
+              </div>
             </div>
           </article>
         </div>
 
         <div class="col-lg-4">
           <div class="fd-sticky">
-            <div class="fd-buy-card">
+            <div class="fd-buy-card" data-aos="fade-right" data-aos-duration="1000" data-aos-delay="150">
               <img :src="formation.imageUrl || defaultImg" class="fd-buy-img" :alt="formation.titre">
               <div class="fd-buy-body">
                 <div class="fd-price">{{ formatPrice(formation.prix) }}</div>
@@ -229,14 +288,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AOS from 'aos'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
 import shopService from '../services/shopService'
+import avisService from '../services/avisService'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import defaultImg from '../assets/img/blog/blog-4.jpg'
+import defaultAvatar from '../assets/default.jpg'
 
 const route = useRoute()
 const router = useRouter()
@@ -318,6 +380,86 @@ const loadUserNote = async () => {
     const maNote = notes.find(n => n.user_id === authStore.user?.id)
     if (maNote) noteUtilisateur.value = maNote.note
   } catch (e) { /* pas de note existante */ }
+}
+
+/* ─────────── Avis (note + commentaire) ─────────── */
+const avisList = ref([])
+const avisLoading = ref(false)
+const noteMoyenne = ref(0)
+const avisCount = ref(0)
+const avisNote = ref(0)
+const avisHover = ref(0)
+const avisContenu = ref('')
+const avisEnvoi = ref(false)
+const avisMessage = ref('')
+const avisMessageType = ref('')
+const peutCommenter = ref(false)
+
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : ''
+
+const loadAvis = async () => {
+  avisLoading.value = true
+  try {
+    const res = await avisService.getFormationAvis(route.params.id)
+    const data = res.data || res
+    avisList.value = data.avis?.data || data.avis || []
+    noteMoyenne.value = parseFloat(data.note_moyenne || 0)
+    avisCount.value = parseInt(data.avis_count ?? avisList.value.length)
+  } catch (e) {
+    console.error(e)
+  } finally {
+    avisLoading.value = false
+  }
+}
+
+const loadStatutAvis = async () => {
+  if (!authStore.isAuthenticated) return
+  try {
+    const res = await avisService.getStatut({ formation_id: route.params.id })
+    const data = res.data || res
+    peutCommenter.value = !!data.peut_commenter_formation
+    const monAvis = data.mon_avis_formation
+    if (monAvis) {
+      avisNote.value = monAvis.note
+      avisContenu.value = monAvis.contenu
+      avisMessage.value = monAvis.estApprouve
+        ? 'Votre avis est publié. Merci !'
+        : 'Votre avis est en attente de validation par un administrateur.'
+      avisMessageType.value = monAvis.estApprouve ? 'success' : 'info'
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const submitAvis = async () => {
+  avisMessage.value = ''
+  if (!avisNote.value) {
+    avisMessage.value = 'Choisissez une note (1 à 5 étoiles).'
+    avisMessageType.value = 'danger'
+    return
+  }
+  if (avisContenu.value.trim().length < 5) {
+    avisMessage.value = 'Votre avis doit contenir au moins 5 caractères.'
+    avisMessageType.value = 'danger'
+    return
+  }
+  avisEnvoi.value = true
+  try {
+    const res = await avisService.submitAvis({
+      formation_id: route.params.id,
+      note: avisNote.value,
+      contenu: avisContenu.value,
+    })
+    avisMessage.value = res.message || 'Avis soumis avec succès !'
+    avisMessageType.value = 'success'
+    await Promise.all([loadAvis(), loadStatutAvis()])
+  } catch (e) {
+    avisMessage.value = e.response?.data?.message || 'Erreur lors de l\'envoi de l\'avis'
+    avisMessageType.value = 'danger'
+  } finally {
+    avisEnvoi.value = false
+  }
 }
 
 const formatPrice = (price) => {
@@ -416,11 +558,14 @@ onMounted(async () => {
       } catch (e) { /* ignore */ }
     }
     await loadUserNote()
+    await Promise.all([loadAvis(), loadStatutAvis()])
   } catch (e) {
     console.error(e)
     formation.value = null
   } finally {
     loading.value = false
+    await nextTick()
+    setTimeout(() => AOS.refresh(), 150)
   }
 })
 </script>
@@ -542,7 +687,53 @@ onMounted(async () => {
 .fd-note-message { text-align: center; font-size: 0.82rem; margin: 0; }
 .fd-note-message.is-success { color: var(--fd-success); }
 .fd-note-message.is-danger { color: var(--fd-danger); }
+.fd-note-message.is-info { color: var(--fd-primary); }
 .fd-note-hint { text-align: center; font-size: 0.82rem; color: var(--fd-muted); margin: 0; }
+.fd-text-start { text-align: left; }
+.fd-m-0 { margin: 0; }
+.fd-mt-2 { margin-top: 8px; }
+.fd-login-link { color: var(--fd-primary); font-weight: 600; text-decoration: none; }
+.fd-login-link:hover { text-decoration: underline; }
+.fd-avis-count { color: var(--fd-muted); font-weight: 600; font-size: 0.85rem; }
+
+/* ---- section avis ---- */
+.fd-avis-summary {
+  display: flex; align-items: center; gap: 18px; padding: 16px 20px;
+  background: #fff; border: 1px solid var(--fd-border); border-radius: 14px; margin-bottom: 14px;
+}
+.fd-avis-score { font-size: 2.2rem; font-weight: 800; color: var(--fd-ink); line-height: 1; }
+.fd-avis-score span { font-size: 1rem; color: var(--fd-muted); font-weight: 600; }
+.fd-avis-stars { display: flex; flex-direction: column; gap: 2px; }
+.fd-avis-star { color: #D9DCE6; font-size: 1.15rem; letter-spacing: 2px; }
+.fd-avis-star.is-filled { color: var(--fd-warning); }
+.fd-avis-summary-count { color: var(--fd-muted); font-size: 0.8rem; }
+
+.fd-avis-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+.fd-avis-item {
+  background: #fff; border: 1px solid var(--fd-border); border-radius: 14px; padding: 16px 18px;
+}
+.fd-avis-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.fd-avis-avatar {
+  width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  border: 2px solid #E6E9F2;
+}
+.fd-avis-author { font-size: 0.9rem; }
+.fd-avis-stars-mini { display: flex; align-items: center; }
+.fd-star-mini { color: #D9DCE6; font-size: 0.85rem; }
+.fd-star-mini.is-filled { color: var(--fd-warning); }
+.fd-avis-stars-mini small { color: var(--fd-muted); }
+.fd-avis-contenu { margin: 0; color: #3C4257; font-size: 0.88rem; line-height: 1.6; }
+
+.fd-avis-form {
+  background: #fff; border: 1px solid var(--fd-border); border-radius: 14px; padding: 16px 18px;
+}
+.fd-stars-left { text-align: left; }
+.fd-textarea {
+  width: 100%; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--fd-border);
+  background: #F7F8FC; font-size: 0.88rem; color: var(--fd-ink); resize: vertical;
+  font-family: inherit; outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.fd-textarea:focus { border-color: var(--fd-primary); box-shadow: 0 0 0 3px rgba(41,82,227,.12); background: #fff; }
 
 /* ---- boutons ---- */
 .fd-btn {

@@ -28,7 +28,7 @@
             <ul>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/temoignages">Témoignages</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/formations">Formations</router-link></li>
-              <li><i class="bi bi-chevron-right"></i> <router-link to="/e-book">E-books</router-link></li>
+              <li><i class="bi bi-chevron-right"></i> <router-link to="/boutique?type=ebook">E-books</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/boutique">Boutique</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/rubriques-culture">Rubriques Culturelles</router-link></li>
             </ul>
