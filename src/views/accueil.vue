@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
+import AOS from 'aos'
 import BanniereComponent from '../components/banniere.vue'
 import ActualiteComponent from '../components/actualites.vue'
 import BlocImageTextComponent from '../components/blocImageText.vue'
@@ -13,6 +14,10 @@ const compteurAffiche = ref(0)
 
 onMounted(async () => {
   await contentStore.fetchHomeData()
+  await nextTick()
+  setTimeout(() => {
+    AOS.refresh()
+  }, 150)
   animerCompteur()
 })
 
@@ -52,19 +57,19 @@ function animerCompteur() {
      <BlocImageTextComponent />
      <ListInlineBlocComponnent />
 
-   <section class="py-5 bg-white border-top border-bottom">
+   <section class="py-5 bg-white border-top border-bottom" data-aos="fade-up" data-aos-duration="1000">
      <div class="container text-center text-dark">
-       <h3 class="fw-bold mb-2">Soutenez notre mission</h3>
-       <p class="text-muted mb-4">Ensemble, faisons la différence. Chaque don compte.</p>
+       <h3 class="fw-bold mb-2" data-aos="fade-up" data-aos-delay="100">Soutenez notre mission</h3>
+       <p class="text-muted mb-4" data-aos="fade-up" data-aos-delay="200">Ensemble, faisons la différence. Chaque don compte.</p>
         <div class="row justify-content-center g-3 mb-4">
-          <div class="col-md-3">
+          <div class="col-md-3" data-aos="zoom-in" data-aos-delay="300">
             <div class="bg-light shadow-sm border rounded-3 p-3">
               <div class="fs-2 fw-bold">{{ compteurAffiche }}</div>
               <small class="text-muted">Donateurs</small>
             </div>
           </div>
         </div>
-       <router-link to="/dons" class="btn btn-primary btn-lg px-5">
+       <router-link to="/dons" class="btn btn-primary btn-lg px-5" data-aos="zoom-in" data-aos-delay="400">
          <i class="bi bi-heart-fill me-2"></i>Faire un don
        </router-link>
      </div>

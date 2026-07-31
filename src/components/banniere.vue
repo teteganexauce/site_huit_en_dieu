@@ -12,13 +12,15 @@
          </div>
       </section>
    </div>
-   <div class="position-relative">
+   <div class="position-relative" data-aos="zoom-out" data-aos-duration="1200">
       <div class="bg-white" v-if="!isLoading && slides.length > 0">
           <swiper :slides-per-view="1" :space-between="50" loop navigation :pagination="{ clickable: true }" :autoplay="{ delay: 6000, disableOnInteraction: false }"
              @swiper="onSwiper" @slideChange="onSlideChange" :modules="[Navigation, Pagination, A11y, Autoplay]">
              <swiper-slide v-for="(item, index) in slides" :key="item.id || index">
                 <div class="swiper-item position-relative">
-                   <img :src="item.imageUrl || defaultImg" :alt="item.titre">
+                   <div class="kenburns-wrapper">
+                      <img :src="item.imageUrl || defaultImg" :alt="item.titre">
+                   </div>
                    <div class="banniere-overlay">
                       <section id="hero-static" class="h-100 hero-static d-flex align-items-center">
                          <div
@@ -114,12 +116,33 @@ onMounted(async () => {
    display: flex;
    justify-content: center;
    align-items: center;
+   overflow: hidden;
 }
 
-.swiper-item img {
+.kenburns-wrapper {
+   position: absolute;
+   inset: 0;
+   overflow: hidden;
+}
+
+.kenburns-wrapper img {
    width: 100%;
    height: 100%;
    object-fit: cover;
+   animation: kenburns 18s ease-in-out infinite alternate;
+   will-change: transform;
+}
+
+@keyframes kenburns {
+   0% {
+      transform: scale(1) translate(0, 0);
+   }
+   50% {
+      transform: scale(1.12) translate(-1.5%, 1%);
+   }
+   100% {
+      transform: scale(1.06) translate(1%, -1%);
+   }
 }
 
 .banniere-overlay {
@@ -129,5 +152,29 @@ onMounted(async () => {
    height: 100%;
    background-color: rgba(22, 22, 22, 0.356) !important;
    z-index: 9999;
+}
+
+/* Entrée en cascade du contenu quand le slide devient actif */
+.swiper-slide-active .container h2 {
+   animation: heroTextUp 0.9s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both;
+}
+
+.swiper-slide-active .container p {
+   animation: heroTextUp 0.9s cubic-bezier(0.23, 1, 0.32, 1) 0.35s both;
+}
+
+.swiper-slide-active .container .d-flex {
+   animation: heroTextUp 0.9s cubic-bezier(0.23, 1, 0.32, 1) 0.55s both;
+}
+
+@keyframes heroTextUp {
+   from {
+      opacity: 0;
+      transform: translateY(40px);
+   }
+   to {
+      opacity: 1;
+      transform: translateY(0);
+   }
 }
 </style>

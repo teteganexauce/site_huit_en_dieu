@@ -1,8 +1,8 @@
 <template>
    <section id="onfocus" class="onfocus">
-      <div class="container-fluid p-0 aos-init aos-animate" data-aos="fade-up">
+      <div class="container-fluid p-0">
          <div class="row g-0">
-            <div class="col-lg-6 video-play position-relative d-flex align-items-center justify-content-center overflow-hidden" :class="{ 'video-empty': !videoUrl }">
+            <div class="col-lg-6 video-play position-relative d-flex align-items-center justify-content-center overflow-hidden" :class="{ 'video-empty': !videoUrl }" data-aos="fade-right" data-aos-duration="1100">
                <video v-if="videoUrl" ref="videoRef" :src="videoUrl" class="w-100" style="object-fit: cover; max-height: 500px;" :controls="isPlaying" playsinline @click="togglePlay"></video>
                <div v-if="videoUrl && !isPlaying" class="play-overlay" @click="togglePlay">
                   <div class="play-btn-pulse"></div>
@@ -20,7 +20,7 @@
                </div>
             </div>
             <div class="col-lg-6">
-               <div class="content d-flex flex-column justify-content-center h-100">
+               <div class="content d-flex flex-column justify-content-center h-100" data-aos="fade-left" data-aos-duration="1100" data-aos-delay="150">
                  <h1><b>L'Ecole du Réveil Spirituel</b> </h1>
                  <p class="fst-italic">
                    Dénommée La Grande Ecole Universelle des Huit en Dieu est dirigée par Monsieur Firmin AMADJI, chercheur béninois sur la question des cultures, traditions et religions

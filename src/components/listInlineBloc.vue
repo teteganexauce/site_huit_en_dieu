@@ -99,12 +99,12 @@ const getImageUrl = (url) => {
 <template>
    <section id="featured-services" class="featured-services">
       <div class="container">
-        <h3 class="w-100 text-primary fw-bold text-center mb-5">Nos Formations</h3>
+        <h3 class="w-100 text-primary fw-bold text-center mb-5" data-aos="fade-up" data-aos-duration="1000">Nos Formations</h3>
         <div v-if="isLoadingFormations" class="text-center py-5">
           <div class="spinner-border text-primary" role="status"></div>
         </div>
         <div v-else class="row gy-4">
-          <div v-for="f in formationsPopulaires" :key="f.id" class="col-xl-3 col-md-6 d-flex">
+          <div v-for="(f, index) in formationsPopulaires" :key="f.id" class="col-xl-3 col-md-6 d-flex" data-aos="fade-up" data-aos-duration="1000" :data-aos-delay="120 * index">
             <div class="service-item position-relative">
               <div class="icon"><i class="bi bi-star-fill icon"></i></div>
               <h4><router-link :to="`/formations/${f.id}`" class="stretched-link">{{ f.titre }}</router-link></h4>
@@ -131,16 +131,16 @@ const getImageUrl = (url) => {
    <section id="espace-vente" class="espace-vente bg-light mb-5">
       <div class="container">
          <div class="row espace vente">
-            <div class="col-md-6 d-flex align-items-center mb-4 mb-md-0">
+            <div class="col-md-6 d-flex align-items-center mb-4 mb-md-0" data-aos="fade-right" data-aos-duration="1100">
                <div class="title">
                   <h1>Espace de vente d'article, de document et d'artéfact</h1>
                   <p class="w-75 mt-4 text-muted">Découvrez notre boutique en ligne regroupant une sélection exclusive d'articles de recherche, d'e-books spécialisés, et d'artéfacts traditionnels. Parcourez notre collection pour approfondir vos connaissances et soutenir notre mission.</p>
                     <router-link to="/boutique" class="btn btn-warning rounded-1 mt-4 text-white">Visiter la boutique <i class="bi bi-arrow-right"></i></router-link>
                </div>
             </div>
-            <div class="col-md-6 d-flex align-items-center">
+            <div class="col-md-6 d-flex align-items-center" data-aos="fade-left" data-aos-duration="1100" data-aos-delay="150">
                <div class="row p-0">
-                  <div class="col-6 grid-img" v-for="(item, index) in boutiqueItems.slice(0, 4)" :key="index">
+                  <div class="col-6 grid-img" v-for="(item, index) in boutiqueItems.slice(0, 4)" :key="index" data-aos="zoom-in" data-aos-delay="100 * (index % 4) + 300">
                        <img v-if="item.imageUrl && !item.imageUrl.includes('placeholder.jpg')" :src="item.imageUrl" :alt="item.nom || 'Article'" style="object-fit: cover; width: 100%; height: 100%;">
                        <img v-else src="../assets/img/faq.jpg" alt="Article boutique" style="object-fit: cover; width: 100%; height: 100%;">
                     </div>
@@ -151,16 +151,16 @@ const getImageUrl = (url) => {
    </section>
 
    <section id="blog" class="blog mt-4 pt-4">
-      <div class="container aos-init aos-animate">
+      <div class="container">
          <div class="row g-5">
             <div class="col-lg-12">
-               <div class="blog-section-header text-center mb-5">
+               <div class="blog-section-header text-center mb-5" data-aos="fade-up" data-aos-duration="1000">
                    <h2>Nos dernières publications</h2>
                    <p>Découvrez les travaux de recherche, thèses, livres et artéfacts récents.</p>
                 </div>
                 <div class="row gy-4 posts-list">
 
-                   <div class="col-lg-4" v-for="pub in publications.slice(0, 3)" :key="pub.id">
+                   <div class="col-lg-4" v-for="(pub, index) in publications.slice(0, 3)" :key="pub.id" data-aos="fade-up" data-aos-duration="1000" :data-aos-delay="150 * index">
                       <article class="d-flex flex-column h-100">
 
                         <div class="post-img">
@@ -217,7 +217,7 @@ const getImageUrl = (url) => {
       <div class="testimonials-pattern"></div>
       
       <div class="container position-relative mt-0">
-         <div class="section-header-premium text-center mb-3">
+         <div class="section-header-premium text-center mb-3" data-aos="fade-up" data-aos-duration="1000">
             <span class="section-subtitle">Ce qu'ils disent de nous</span>
             <h3 class="section-title">Témoignages</h3>
             <div class="section-divider">
@@ -233,7 +233,7 @@ const getImageUrl = (url) => {
            </div>
          </div>
          
-         <div v-else class="testimonials-slider swiper">
+         <div v-else class="testimonials-slider swiper" data-aos="fade-up" data-aos-duration="1100" data-aos-delay="200">
             <swiper
                :slides-per-view="1"
                :space-between="30"
@@ -284,14 +284,14 @@ const getImageUrl = (url) => {
    </section>
 
    <section id="clients" class="clients mt-5">
-      <h3 class="w-100 text-primary fw-bold text-center mb-5">Partenaires</h3>
+      <h3 class="w-100 text-primary fw-bold text-center mb-5" data-aos="fade-up" data-aos-duration="1000">Partenaires</h3>
       <div class="container">
          <div v-if="isLoadingPartenaires" class="text-center py-3">
            <div class="spinner-border text-primary" role="status">
              <span class="visually-hidden">Chargement...</span>
            </div>
          </div>
-            <div v-else class="clients-slider swiper">
+            <div v-else class="clients-slider swiper" data-aos="fade-up" data-aos-duration="1100" data-aos-delay="150">
                <swiper
                   :slides-per-view="7"
                   :space-between="16"
@@ -338,12 +338,27 @@ const getImageUrl = (url) => {
    height: 200px;
    border: 2px solid transparent;
    padding: 0;
+   overflow: hidden;
 }
 
 .grid-img img {
    object-fit: cover;
    width: 100%;
    height: 100%;
+   transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.grid-img:hover img {
+   transform: scale(1.12);
+}
+
+.post-img {
+   overflow: hidden;
+   border-radius: 10px;
+}
+
+.post-img:hover img {
+   transform: scale(1.08);
 }
 
 /* ============================================
@@ -352,7 +367,7 @@ const getImageUrl = (url) => {
 .post-img img {
    max-height: 150px !important;
    object-fit: cover;
-   transition: .5s;
+   transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), max-height 0.3s;
    width: 100% !important;
 }
 
