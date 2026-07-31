@@ -24,7 +24,7 @@ api.interceptors.request.use(
 );
 
 // Routes publiques qui ne doivent PAS déclencher une redirection 401
-const PUBLIC_ROUTES = ['home', 'publications', 'publications-category', 'pub-detail', 'catalogue', 'product-detail', 'formations', 'formationDetail', 'forum', 'forum-topic', 'partenaires', 'galerie', 'temoignage', 'equipe', 'services', 'contact', 'donate', 'pensees', 'rubriquesCulture'];
+const PUBLIC_ROUTES = ['home', 'publications', 'publications-category', 'pub-detail', 'catalogue', 'product-detail', 'formations', 'formationDetail', 'forum', 'forum-topic', 'partenaires', 'galerie', 'temoignage', 'equipe', 'services', 'contact', 'donate', 'pensees', 'rubriquesCulture', 'a-propos'];
 
 // Interceptor de réponse
 api.interceptors.response.use(

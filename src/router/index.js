@@ -13,7 +13,6 @@ import temoignage from "../views/temoignage.vue";
 import EvenementsGalerie from "../views/EvenementsGalerie.vue";
 import formationDetail from '../views/formationDetail.vue';
 import profileInscrit from "../views/profileInscrit.vue";
-import PageView from "../views/PageView.vue";
 import RubriquesCulture from "../views/RubriquesCulture.vue";
 import Partenaires from "../views/Partenaires.vue";
 
@@ -63,10 +62,10 @@ const router = createRouter({
     { path: "/publications/detail/:id", name: "pub-detail", component: pubDetail },
     { path: "/contact", name: "contact", component: contact },
     { path: "/objets", name: "objets", component: objets },
-    { path: "/equipe-animation", name: "equipe", component: teamAnimation },
+    { path: "/a-propos", name: "a-propos", component: teamAnimation },
+    { path: "/equipe-animation", redirect: "/a-propos" },
     { path: "/temoignages", name: "temoignage", component: temoignage },
     { path: "/galerie", name: "galerie", component: EvenementsGalerie },
-    { path: "/page/:slug", name: "page", component: PageView },
     { path: "/rubriques-culture", name: "rubriquesCulture", component: RubriquesCulture },
     { path: "/partenaires", name: "partenaires", component: Partenaires },
     { path: "/accompagnement", name: "accompagnement", component: AccompagnementView, meta: { requiresAuth: true } },

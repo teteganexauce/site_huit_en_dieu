@@ -28,29 +28,16 @@
             </a>
             <div class="site-dropdown site-dropdown--mega">
               <div class="site-dropdown__col">
-                <span class="site-dropdown__eyebrow">
-                  <i class="bi bi-compass"></i> Découvrir
-                </span>
-                <a href="#">À la découverte du centre / école</a>
-                <a href="#">Les réalités du centre / école</a>
-                <a href="#">Hors des murs du centre</a>
-                <a href="#">Orientation et choix de vie</a>
-              </div>
-              <div class="site-dropdown__col">
-                <span class="site-dropdown__eyebrow">
-                  <i class="bi bi-people"></i> Partager
-                </span>
                 <router-link to="/temoignages">Témoignages</router-link>
                 <router-link to="/publications">Publications</router-link>
                 <router-link to="/galerie">Évènements</router-link>
-                <router-link to="/partenaires">Nos partenaires</router-link>
               </div>
               <div class="site-dropdown__col">
-                <span class="site-dropdown__eyebrow">
-                  <i class="bi bi-mortarboard"></i> Apprendre &amp; agir
-                </span>
+                <router-link to="/partenaires">Nos partenaires</router-link>
                 <router-link to="/formations">Nos formations</router-link>
                 <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
+              </div>
+              <div class="site-dropdown__col">
                 <router-link to="/accompagnement">Demande d'accompagnement</router-link>
                 <router-link to="/services">Nos services</router-link>
                 <router-link to="/forum">Forum</router-link>
@@ -77,7 +64,7 @@
           </li>
 
           <li class="site-nav__item">
-            <router-link to="/equipe-animation" class="site-nav__link">À propos</router-link>
+            <router-link to="/a-propos" class="site-nav__link">À propos</router-link>
           </li>
 
           <li class="site-nav__item">
@@ -137,10 +124,7 @@
             <i class="bi bi-chevron-down"></i>
           </a>
           <ul>
-            <li><a href="#">À la découverte du centre / école</a></li>
-            <li><a href="#">Les réalités du centre / école</a></li>
-            <li><a href="#">Hors des murs du centre</a></li>
-            <li><a href="#">Orientation et choix de vie</a></li>
+
             <li><router-link to="/temoignages" @click="closeMobileNav">Témoignages</router-link></li>
             <li><router-link to="/publications" @click="closeMobileNav">Publications</router-link></li>
             <li><router-link to="/galerie" @click="closeMobileNav">Évènements</router-link></li>
@@ -165,7 +149,7 @@
           </ul>
         </li>
 
-        <li><router-link to="/equipe-animation" @click="closeMobileNav">À propos</router-link></li>
+        <li><router-link to="/a-propos" @click="closeMobileNav">À propos</router-link></li>
 
         <li><router-link to="/contact" @click="closeMobileNav">Contact</router-link></li>
       </ul>
