@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
+import { trackVisit } from "./services/tracking";
 
 
 import "aos/dist/aos.css"; // You can also use <link> for styles
@@ -31,5 +32,9 @@ const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
 app.use(router);
+
+router.afterEach((to) => {
+  trackVisit(to);
+});
 
 app.mount("#app");

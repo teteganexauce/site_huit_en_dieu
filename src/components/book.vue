@@ -36,7 +36,7 @@
    </div>
 </template>
 <script setup>
-import { defineProps, computed } from 'vue'
+import { computed } from 'vue'
 import defaultImg from '../assets/img/faq.jpg'
 
 const props = defineProps({
