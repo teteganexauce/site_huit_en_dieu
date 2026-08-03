@@ -1,15 +1,46 @@
 <template>
   <BreadcombsComponent title="Nos formations" />
   <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2" data-aos="fade-up" data-aos-duration="1000">
-      <h3 class="fw-bold text-primary mb-0">Toutes nos formations</h3>
-      <div class="d-flex gap-2">
-        <button class="btn btn-sm" :class="filterType === '' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = ''">Toutes</button>
-        <button class="btn btn-sm" :class="filterType === 'initiale' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'initiale'">Initiale</button>
-        <button class="btn btn-sm" :class="filterType === 'specialisee' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'specialisee'">Spécialisée</button>
-        <button class="btn btn-sm" :class="filterType === 'gratuite' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'gratuite'">Gratuite</button>
+    <section
+      class="position-relative overflow-hidden rounded-4 p-3 p-md-4 mb-4 border-0 shadow-sm"
+      data-aos="fade-up"
+      data-aos-duration="1000"
+      style="background: linear-gradient(135deg, #f5f8fc 0%, #e9f0f8 100%); min-height: 180px; border: 1px solid #dfe8f2;"
+    >
+      <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(90deg, rgba(19, 78, 130, 0.04) 0%, rgba(19, 78, 130, 0.01) 100%);"></div>
+      <div class="row align-items-center position-relative">
+        <div class="col-lg-8">
+          <div class="d-flex flex-wrap gap-2 mb-2">
+            <span class="badge bg-primary text-white fw-semibold">Formations</span>
+            <span class="badge bg-white text-muted border">Catalogue</span>
+          </div>
+          <h3 class="fw-bold text-dark mb-2">Découvrez des formations pensées pour votre transformation</h3>
+          <p class="text-muted mb-0 lh-base small">
+            Au Bénin, la transmission de la spiritualité se fait à travers deux grandes voies distinctes :
+            l'initiation traditionnelle endogène pour le Vodoun et l'enseignement académique ou pastoral pour le Christianisme.
+          </p>
+        </div>
+        <div class="col-lg-4 mt-3 mt-lg-0">
+          <div class="rounded-4 p-3 border" style="background: #ffffff; border-color: #dfe8f2;">
+            <div class="small text-muted">Catalogue complet</div>
+            <div class="display-6 fw-bold text-primary">{{ formations.length }}</div>
+            <div class="small text-muted">formations disponibles</div>
+          </div>
+        </div>
       </div>
-      <div class="d-flex align-items-center gap-2">
+    </section>
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="150">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <h3 class="fw-bold text-primary mb-0">Toutes nos formations</h3>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-sm" :class="filterType === '' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = ''">Toutes</button>
+          <button class="btn btn-sm" :class="filterType === 'initiale' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'initiale'">Initiale</button>
+          <button class="btn btn-sm" :class="filterType === 'specialisee' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'specialisee'">Spécialisée</button>
+          <button class="btn btn-sm" :class="filterType === 'gratuite' ? 'btn-primary' : 'btn-outline-primary'" @click="filterType = 'gratuite'">Gratuite</button>
+        </div>
+      </div>
+      <div class="d-flex justify-content-end align-items-center gap-2 mt-3 flex-wrap">
         <label class="text-muted small mb-0">Trier :</label>
         <select class="form-select form-select-sm w-auto" v-model="sortBy">
           <option value="recent">Plus récentes</option>
@@ -31,14 +62,14 @@
     <div v-else class="row g-4">
       <div v-for="(f, index) in filteredFormations" :key="f.id" class="col-lg-6" data-aos="fade-up" data-aos-duration="1000" :data-aos-delay="(index % 2) * 150">
         <router-link :to="`/formations/${f.id}`" class="text-decoration-none">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="row g-0">
+          <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+            <div class="row g-0 h-100">
               <div class="col-md-4">
-                <img :src="f.imageUrl || defaultImg" class="img-fluid rounded-start h-100" style="object-fit: cover; min-height: 200px;" :alt="f.titre">
+                <img :src="f.imageUrl || defaultImg" class="img-fluid h-100 w-100" style="object-fit: cover; min-height: 200px;" :alt="f.titre">
               </div>
               <div class="col-md-8">
                 <div class="card-body d-flex flex-column h-100">
-                  <div class="d-flex justify-content-between align-items-start mb-1">
+                  <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
                     <h5 class="card-title fw-bold text-dark mb-0">{{ f.titre }}</h5>
                     <span class="badge" :class="badgeClass(f.type)">{{ badgeLabel(f.type) }}</span>
                   </div>
@@ -68,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import AOS from 'aos'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import publicService from '../services/publicService'
