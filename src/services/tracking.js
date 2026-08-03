@@ -1,4 +1,5 @@
 import api from './api';
+import { hasConsent } from './cookieConsent';
 
 const STORAGE_KEY = 'huit_en_dieu_visiteur';
 const MIN_INTERVAL_MS = 10000;
@@ -31,6 +32,8 @@ let dernierChemin = null;
 let dernierEnvoi = 0;
 
 export function trackVisit(to) {
+  if (!hasConsent('statistics')) return;
+
   const identifiant = getVisitorId();
   if (!identifiant) return;
 

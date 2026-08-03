@@ -49,6 +49,9 @@
         <div class="copyright">
           &copy; Copyright <strong><span>{{ siteStore.siteName }}</span></strong>. Tous droits réservés
         </div>
+        <button type="button" class="cookie-manage-btn" @click="openBanner(true)">
+          <i class="bi bi-cookie me-1"></i>Gérer mes cookies
+        </button>
       </div>
     </div>
   </footer>
@@ -57,6 +60,7 @@
 import { ref } from 'vue'
 import { useSiteStore } from '../stores/site'
 import api from '../services/api'
+import { openBanner } from '../services/cookieConsent'
 
 const siteStore = useSiteStore()
 const email = ref('')
@@ -82,6 +86,20 @@ const subscribe = async () => {
 }
 </script>
 <style>
+.cookie-manage-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  margin-top: 6px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.cookie-manage-btn:hover {
+  opacity: 1;
+  color: var(--color-primary);
+}
 .newsletter-msg {
   padding: 6px 10px;
   border-radius: 6px;

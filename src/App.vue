@@ -7,6 +7,8 @@ import { useAuthStore } from './stores/auth';
 import { useCartStore } from './stores/cart';
 import { useContentStore } from './stores/content';
 import ChatBot from './components/ChatBot.vue';
+import CookieBanner from './components/CookieBanner.vue';
+import { openBanner } from './services/cookieConsent';
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
@@ -21,6 +23,7 @@ onMounted(() => {
     authStore.fetchProfile();
     cartStore.fetchCart();
   }
+  openBanner();
 });
 </script>
 
@@ -37,6 +40,8 @@ onMounted(() => {
    <FooterComponent v-if="!isAuthPage" />
 
    <ChatBot />
+
+   <CookieBanner />
 
 </template>
 
