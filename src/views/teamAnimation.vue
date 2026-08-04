@@ -48,24 +48,42 @@ const parseMissionCards = computed(() => {
   const icons = ['bi-bullseye', 'bi-eye', 'bi-compass', 'bi-lightning']
   let currentCard = null
 
-  Array.from(div.children).forEach(el => {
-    const text = el.textContent.trim()
-    const isHeading = text.length > 0 && (
-      el.tagName.match(/^H[1-6]$/) || 
-      (el.tagName === 'P' && el.querySelector('strong') && text === el.querySelector('strong').textContent.trim())
-    )
-                     
-    if (isHeading) {
-      if (currentCard) cards.push(currentCard)
-      currentCard = { title: text, html: '', icon: icons[cards.length % icons.length] }
-    } else {
-      if (!currentCard) {
-        currentCard = { title: 'Objectif', html: '', icon: icons[0] }
+  // On parcourt TOUS les noeuds (y compris les text nodes non vides)
+  Array.from(div.childNodes).forEach(node => {
+    // Si c'est un noeud texte pur qui n'est pas vide
+    if (node.nodeType === 3) {
+      if (node.textContent.trim().length > 0) {
+        if (!currentCard) currentCard = { title: 'Objectif', html: '', icon: icons[0] }
+        currentCard.html += `<p>${node.textContent}</p>`
       }
-      currentCard.html += el.outerHTML
+      return
+    }
+    
+    // Si c'est un élément
+    if (node.nodeType === 1) {
+      const tagName = node.tagName.toUpperCase()
+      const text = node.textContent.trim()
+      
+      const isHeading = tagName.match(/^H[1-6]$/) || (tagName === 'P' && node.querySelector('strong') && text === node.querySelector('strong').textContent.trim())
+      
+      if (isHeading) {
+        if (currentCard) cards.push(currentCard)
+        currentCard = { title: text, html: '', icon: icons[cards.length % icons.length] }
+      } else {
+        if (!currentCard) {
+          currentCard = { title: 'Objectif', html: '', icon: icons[0] }
+        }
+        currentCard.html += node.outerHTML
+      }
     }
   })
   if (currentCard) cards.push(currentCard)
+  
+  // Si le parsing n'a rien donné, on crée une carte par défaut avec tout le contenu
+  if (cards.length === 0 && sections.value.mission.contenu.trim()) {
+    return [{ title: sections.value.mission.titre, html: sections.value.mission.contenu, icon: icons[0] }]
+  }
+  
   return cards
 })
 
@@ -75,14 +93,21 @@ const parseValeursCards = computed(() => {
   const div = document.createElement('div')
   div.innerHTML = sections.value.valeurs.contenu
   
-  const blocks = Array.from(div.querySelectorAll('p, li'))
+  let blocks = Array.from(div.querySelectorAll('p, li, div'))
                       .map(el => el.textContent.trim())
                       .filter(text => text.length > 3)
+                      
+  if (blocks.length === 0) {
+    // Fallback: séparer par les sauts de ligne si aucun élément p n'est trouvé
+    blocks = sections.value.valeurs.contenu.replace(/<[^>]*>?/gm, '\n').split('\n')
+                      .map(text => text.trim())
+                      .filter(text => text.length > 3)
+  }
                       
   const icons = ['bi-heart-fill', 'bi-people-fill', 'bi-shield-check', 'bi-brightness-high-fill', 'bi-star-fill']
   const colors = ['text-primary', 'text-info', 'text-success', 'text-warning', 'text-danger']
   
-  return blocks.map((text, idx) => {
+  const cards = blocks.map((text, idx) => {
     let title = 'Valeur'
     let desc = text
     if (text.includes(':')) {
@@ -98,9 +123,15 @@ const parseValeursCards = computed(() => {
       title,
       text: desc,
       icon: icons[idx % icons.length],
-      color: colors[idx % colors.length]
+      colorClass: colors[idx % colors.length]
     }
   })
+  
+  if (cards.length === 0 && sections.value.valeurs.contenu.trim()) {
+     return [{ title: 'Nos Valeurs', text: sections.value.valeurs.contenu.replace(/<[^>]*>?/gm, ''), icon: icons[0], colorClass: colors[0] }]
+  }
+  
+  return cards
 })
 
 // Centre sections définies par ordre

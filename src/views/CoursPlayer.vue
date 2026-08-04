@@ -128,13 +128,23 @@
 
       <!-- Contenu principal -->
       <main class="cp-main">
-        <div v-if="!currentCours && mode !== 'evaluation' && !showCompletion" class="cp-placeholder">
+        <div v-if="isSwitchingCours" class="cp-placeholder">
+          <div class="cp-spinner" style="margin-bottom: 1rem; width: 40px; height: 40px;"></div>
+          <h5>Chargement du cours...</h5>
+        </div>
+
+        <div v-else-if="chargementEvaluation" class="cp-placeholder">
+          <div class="cp-spinner" style="margin-bottom: 1rem; width: 40px; height: 40px;"></div>
+          <h5>Chargement de l'évaluation...</h5>
+        </div>
+
+        <div v-else-if="!currentCours && mode !== 'evaluation' && !showCompletion && !showModuleCompletion && !showFinalWarning" class="cp-placeholder">
           <i class="bi bi-play-circle"></i>
           <h5>Sélectionnez un cours pour commencer</h5>
         </div>
 
         <!-- Mode Évaluation -->
-        <template v-if="mode === 'evaluation' && evaluationData">
+        <template v-else-if="mode === 'evaluation' && evaluationData">
           <div class="cp-scroll-area">
             <div class="cp-eval-header">
               <h4>{{ evaluationData.evaluation.titre }}</h4>
@@ -144,16 +154,154 @@
               </span>
             </div>
 
-            <div v-if="quizTermine && scoreFinal" class="cp-result" :class="scoreFinal.reussite ? 'is-success' : 'is-fail'">
-              <div class="cp-result-icon">
-                <i :class="scoreFinal.reussite ? 'bi bi-check-lg' : 'bi bi-x-lg'"></i>
+            <!-- ═══════════════════════════════════════════
+                 PAGE DE RÉSULTAT
+            ═══════════════════════════════════════════ -->
+            <div v-if="quizTermine && scoreFinal" class="cp-result-page">
+
+              <!-- Bande de statut : réussi ou échec -->
+              <div class="cp-result-hero" :class="scoreFinal.reussite ? 'is-success' : 'is-fail'">
+                <div class="cp-result-hero-glow"></div>
+
+                <!-- Icône cercle -->
+                <div class="cp-result-circle">
+                  <i :class="scoreFinal.reussite ? 'bi bi-trophy-fill' : 'bi bi-clipboard-x-fill'"></i>
+                </div>
+
+                <h2 class="cp-result-title">
+                  {{ scoreFinal.reussite ? 'Félicitations !' : 'Non réussi' }}
+                </h2>
+                <p class="cp-result-subtitle">
+                  {{ scoreFinal.reussite
+                    ? 'Vous avez validé l\'examen avec succès.'
+                    : 'Vous n\'avez pas atteint le seuil de réussite. Pas d\'inquiétude, réessayez !'
+                  }}
+                </p>
+
+                <!-- Scorecard -->
+                <div class="cp-scorecard">
+                  <div class="cp-scorecard-item">
+                    <span class="cp-scorecard-val">{{ scoreFinal.score }}%</span>
+                    <span class="cp-scorecard-label">Score obtenu</span>
+                  </div>
+                  <div class="cp-scorecard-divider"></div>
+                  <div class="cp-scorecard-item">
+                    <span class="cp-scorecard-val">{{ scoreFinal.points_obtenus }}/{{ scoreFinal.total_points }}</span>
+                    <span class="cp-scorecard-label">Points</span>
+                  </div>
+                  <div class="cp-scorecard-divider"></div>
+                  <div class="cp-scorecard-item">
+                    <span class="cp-scorecard-val">{{ evaluationData.evaluation.seuil_reussite }}%</span>
+                    <span class="cp-scorecard-label">Seuil requis</span>
+                  </div>
+                </div>
+
+                <p v-if="scoreFinal.resultat?.termine_le" class="cp-result-date">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  Terminé le {{ formatDate(scoreFinal.resultat.termine_le) }}
+                </p>
+
+                <!-- Barre de progression visuelle -->
+                <div class="cp-score-bar-wrap">
+                  <div class="cp-score-bar-bg">
+                    <div class="cp-score-bar-fill" :style="{ width: scoreFinal.score + '%' }" :class="scoreFinal.reussite ? 'is-success' : 'is-fail'"></div>
+                    <div class="cp-score-bar-threshold" :style="{ left: evaluationData.evaluation.seuil_reussite + '%' }"></div>
+                  </div>
+                  <div class="cp-score-bar-labels">
+                    <span>0%</span>
+                    <span>Seuil {{ evaluationData.evaluation.seuil_reussite }}%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+
+                <button v-if="!scoreFinal.reussite" class="cp-btn-retry" @click="recommencerEvaluation">
+                  <i class="bi bi-arrow-clockwise me-2"></i>Recommencer l'examen
+                </button>
               </div>
-              <div>
-                <h5>{{ scoreFinal.reussite ? 'Réussi !' : 'Non réussi' }}</h5>
-                <p>Score : {{ scoreFinal.score }}% · {{ scoreFinal.points_obtenus }}/{{ scoreFinal.total_points }} point(s)</p>
-                <p v-if="scoreFinal.resultat?.termine_le">Terminé le {{ formatDate(scoreFinal.resultat.termine_le) }}</p>
+
+              <!-- Détail des réponses -->
+              <div v-if="scoreFinal.corrections && !scoreFinal.reussite" class="cp-detail-section">
+                <div class="cp-detail-header">
+                  <div class="cp-detail-header-left">
+                    <div class="cp-detail-icon"><i class="bi bi-journal-text"></i></div>
+                    <div>
+                      <h3 class="cp-detail-title">Détail des réponses</h3>
+                      <p class="cp-detail-sub">
+                        {{ scoreFinal.corrections.filter(c => c.est_correct).length }}/{{ scoreFinal.corrections.length }} bonnes réponses
+                      </p>
+                    </div>
+                  </div>
+                  <div class="cp-detail-progress-ring">
+                    <svg viewBox="0 0 44 44">
+                      <circle class="cp-ring-track" cx="22" cy="22" r="18" />
+                      <circle
+                        class="cp-ring-fill-detail"
+                        cx="22" cy="22" r="18"
+                        :style="{
+                          strokeDasharray: ringCircumference,
+                          strokeDashoffset: ringCircumference * (1 - (scoreFinal.corrections.filter(c => c.est_correct).length / scoreFinal.corrections.length))
+                        }"
+                      />
+                    </svg>
+                    <span>{{ Math.round((scoreFinal.corrections.filter(c => c.est_correct).length / scoreFinal.corrections.length) * 100) }}%</span>
+                  </div>
+                </div>
+
+                <div class="cp-detail-explanation mb-3">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Ce pourcentage reflète le ratio de vos bonnes réponses. Votre vrai score (ci-dessus) est calculé selon la valeur en points de chaque question.
+                </div>
+
+                <div class="cp-corrections-grid">
+                  <div
+                    v-for="(corr, index) in scoreFinal.corrections"
+                    :key="corr.question_id"
+                    class="cp-corr-card"
+                    :class="corr.est_correct ? 'is-ok' : 'is-ko'"
+                  >
+                    <div class="cp-corr-meta">
+                      <span class="cp-corr-num">Q{{ index + 1 }}</span>
+                      <span class="cp-corr-badge" :class="corr.est_correct ? 'ok' : 'ko'">
+                        <i :class="corr.est_correct ? 'bi bi-check2' : 'bi bi-x'"></i>
+                        {{ corr.est_correct ? 'Correct' : 'Faux' }}
+                      </span>
+                    </div>
+
+                    <p class="cp-corr-qtext">{{ corr.texte }}</p>
+
+                    <div class="cp-corr-answers">
+                      <!-- Réponse de l'utilisateur -->
+                      <div class="cp-corr-row" :class="corr.est_correct ? 'ok' : 'ko'">
+                        <div class="cp-corr-dot" :class="corr.est_correct ? 'ok' : 'ko'"></div>
+                        <div class="cp-corr-text">
+                          <span class="cp-corr-alabel">Votre réponse</span>
+                          <span class="cp-corr-aval">{{ corr.reponse_utilisateur || '— (aucune)' }}</span>
+                        </div>
+                        <i v-if="corr.est_correct" class="bi bi-check-circle-fill cp-corr-icon ok"></i>
+                        <i v-else class="bi bi-x-circle-fill cp-corr-icon ko"></i>
+                      </div>
+
+                      <!-- Bonne réponse si différente -->
+                      <div v-if="!corr.est_correct" class="cp-corr-row correct">
+                        <div class="cp-corr-dot ok"></div>
+                        <div class="cp-corr-text">
+                          <span class="cp-corr-alabel">Bonne réponse</span>
+                          <span class="cp-corr-aval bold">{{ corr.bonne_reponse_texte }}</span>
+                        </div>
+                        <i class="bi bi-check-circle-fill cp-corr-icon ok"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rappel du bouton bas de page -->
+                <div class="cp-detail-footer">
+                  <button class="cp-btn-retry" @click="recommencerEvaluation">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Recommencer l'examen
+                  </button>
+                </div>
               </div>
-              <button class="cp-btn cp-btn-ghost cp-ms-auto" @click="recommencerEvaluation">Recommencer</button>
+
             </div>
 
             <div v-else>
@@ -166,7 +314,7 @@
                   :class="{
                     'is-selected': evaluationReponses[questionCourante.id] === opt.value,
                     'is-correct': questionValidee && opt.value === questionCourante.bonne_reponse,
-                    'is-wrong': questionValidee && evaluationReponses[questionCourante.id] === opt.value && opt.value !== questionCourante.bonne_reponse,
+                    'is-wrong': questionValidee && evaluationReponses[questionCourante.id] === opt.value && opt.value !== questionCourante.bonne_reponse
                   }"
                 >
                   <input
@@ -178,19 +326,12 @@
                   >
                   <span class="cp-option-dot"></span>
                   <span>{{ opt.label }}</span>
+                  <i v-if="questionValidee && opt.value === questionCourante.bonne_reponse" class="bi bi-check-circle-fill text-success ms-auto"></i>
+                  <i v-if="questionValidee && evaluationReponses[questionCourante.id] === opt.value && opt.value !== questionCourante.bonne_reponse" class="bi bi-x-circle-fill text-danger ms-auto"></i>
                 </label>
               </div>
 
-              <div v-if="questionValidee" class="cp-feedback-bar">
-                <span v-if="reponseCorrecte" class="cp-feedback-correct">
-                  <i class="bi bi-check-circle-fill me-1"></i>Bonne réponse !
-                </span>
-                <span v-else class="cp-feedback-wrong">
-                  <i class="bi bi-x-circle-fill me-1"></i>Mauvaise réponse. La bonne réponse est : {{ libelleBonneReponse }}
-                </span>
-              </div>
-
-              <div class="cp-eval-actions">
+              <div class="cp-eval-actions mt-4">
                 <button
                   v-if="!questionValidee"
                   class="cp-btn cp-btn-primary"
@@ -221,7 +362,7 @@
         </template>
 
         <!-- Mode Cours -->
-        <template v-else-if="currentCours">
+        <template v-else-if="currentCours && !isSwitchingCours">
           <div class="cp-video-zone">
             <div v-if="currentCours.video" class="cp-video-frame">
               <video
@@ -275,12 +416,36 @@
           </div>
         </template>
 
-        <!-- Fin de formation -->
-        <div v-if="showCompletion" class="cp-completion">
+        <!-- Fin de module -->
+        <div v-if="showModuleCompletion" class="cp-completion">
+          <div class="cp-completion-glow"></div>
+          <div class="cp-trophy"><i class="bi bi-star-fill" style="color: var(--cp-primary);"></i></div>
+          <h4>Félicitations !</h4>
+          <p>Vous avez terminé tous les cours de ce module.</p>
+          <p class="cp-completion-sub">Passez au module suivant ou à l'évaluation pour continuer votre progression.</p>
+          <button class="cp-btn cp-btn-primary cp-btn-lg" @click="passerAuSuivant">
+            Continuer <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+
+        <!-- Fin de formation avec évaluations restantes -->
+        <div v-else-if="showFinalWarning" class="cp-completion">
+          <div class="cp-completion-glow" style="background: radial-gradient(circle at center, rgba(245,166,35,0.15) 0%, transparent 60%);"></div>
+          <div class="cp-trophy" style="background: rgba(245,166,35,0.1); color: var(--cp-warning);"><i class="bi bi-exclamation-circle-fill"></i></div>
+          <h4>Presque terminé !</h4>
+          <p>Vous avez visionné tous les cours de cette formation.</p>
+          <p class="cp-completion-sub">Cependant, il vous reste des évaluations à réussir (ou à passer) pour valider la formation et obtenir votre certificat.</p>
+          <button class="cp-btn cp-btn-primary cp-btn-lg mt-3" @click="passerAEvaluation">
+            Passer à l'évaluation <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+
+        <!-- Fin de formation complète -->
+        <div v-else-if="showCompletion" class="cp-completion">
           <div class="cp-completion-glow"></div>
           <div class="cp-trophy"><i class="bi bi-trophy-fill"></i></div>
           <h4>Félicitations !</h4>
-          <p>Vous avez terminé tous les cours de cette formation.</p>
+          <p>Vous avez terminé tous les cours et validé toutes les évaluations.</p>
           <p class="cp-completion-sub">Votre progression est de 100&nbsp;%. Vous pouvez télécharger votre certificat.</p>
           <button class="cp-btn cp-btn-warning cp-btn-lg" @click="verifierCertificat">
             <i class="bi bi-award me-1"></i>Obtenir mon certificat
@@ -331,8 +496,11 @@ const suivant = ref(null)
 const coursCompletesIds = ref([])
 const completing = ref(false)
 const showCompletion = ref(false)
+const showModuleCompletion = ref(false)
+const showFinalWarning = ref(false)
 const showCertificatModal = ref(false)
 const certificatError = ref({ title: '', message: '' })
+const isSwitchingCours = ref(false)
 
 const mode = ref('cours')
 const evaluationData = ref(null)
@@ -341,6 +509,7 @@ const evaluationResultats = ref({})
 const moduleEvaluationId = ref(null)
 const formationEvaluations = ref([])
 const soumettant = ref(false)
+const chargementEvaluation = ref(false)
 
 const currentQuestionIndex = ref(0)
 const questionValidee = ref(false)
@@ -350,11 +519,7 @@ const scoreFinal = ref(null)
 
 const nbQuestions = computed(() => evaluationData.value?.evaluation?.questions?.length || 0)
 const questionCourante = computed(() => evaluationData.value?.evaluation?.questions?.[currentQuestionIndex.value] || {})
-const libelleBonneReponse = computed(() => {
-  if (!questionCourante.value.options || !questionCourante.value.bonne_reponse) return ''
-  const opt = questionCourante.value.options.find(o => o.value === questionCourante.value.bonne_reponse)
-  return opt ? opt.label : ''
-})
+
 
 const videoEl = ref(null)
 const dureesReelles = ref({})
@@ -441,8 +606,47 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+function verifierEtAfficherFin() {
+  const allEvalsPassed = formationEvaluations.value.length === 0 || formationEvaluations.value.every(e => e.reussite)
+  if (allEvalsPassed) {
+    showCompletion.value = true
+  } else {
+    showFinalWarning.value = true
+  }
+}
+
+function passerAuSuivant() {
+  showModuleCompletion.value = false
+  if (suivant.value) {
+    ouvrirCours(suivant.value)
+  } else {
+    verifierEtAfficherFin()
+  }
+}
+
+function passerAEvaluation() {
+  const nextEval = formationEvaluations.value.find(e => !e.reussite);
+  if (nextEval) {
+    ouvrirEvaluationById(nextEval.id);
+  } else if (formationEvaluations.value.length > 0) {
+    ouvrirEvaluationById(formationEvaluations.value[0].id);
+  }
+}
+
 function demarrerCompteur() {
   if (countdownInterval) clearInterval(countdownInterval)
+  
+  if (currentCours.value && modules.value.length > 0) {
+    const currentModule = modules.value.find(m => m.id === currentCours.value.module_id)
+    if (currentModule && currentModule.cours.length > 0) {
+      const isLast = currentModule.cours[currentModule.cours.length - 1].id === currentCours.value.id
+      if (isLast) {
+        showModuleCompletion.value = true
+        return
+      }
+    }
+  }
+
   nextCountdown.value = 5
   countdownInterval = setInterval(() => {
     nextCountdown.value--
@@ -452,7 +656,7 @@ function demarrerCompteur() {
       if (suivant.value) {
         ouvrirCours(suivant.value)
       } else {
-        showCompletion.value = true
+        verifierEtAfficherFin()
       }
     }
   }, 1000)
@@ -462,10 +666,9 @@ async function onVideoEnded() {
   if (!currentCours.value || completing.value || nextCountdown.value > 0) return
   completing.value = true
   try {
-    await formationService.completerCours(currentCours.value.id)
-    const res = await formationService.getApprentissage(inscriptionId.value)
-    coursCompletesIds.value = res.cours_completes_ids || []
-    if (formationData.value) formationData.value.progression = res.progression
+    const resCompleter = await formationService.completerCours(currentCours.value.id)
+    coursCompletesIds.value = resCompleter.cours_completes_ids || []
+    if (formationData.value) formationData.value.progression = resCompleter.progression
     currentCours.value.est_complete = true
     completing.value = false
     demarrerCompteur()
@@ -476,7 +679,7 @@ async function onVideoEnded() {
 }
 
 async function ouvrirCours(coursId) {
-  if (!coursId) return
+  if (!coursId || isSwitchingCours.value) return
   if (countdownInterval) {
     clearInterval(countdownInterval)
     countdownInterval = null
@@ -485,12 +688,17 @@ async function ouvrirCours(coursId) {
   mode.value = 'cours'
   evaluationData.value = null
   showCompletion.value = false
+  showModuleCompletion.value = false
+  showFinalWarning.value = false
   sidebarOuvert.value = false
+  isSwitchingCours.value = true
+  
   router.replace({
     name: 'coursPlayerCours',
     params: { inscriptionId: inscriptionId.value, coursId: coursId }
   })
   await chargerCours(coursId)
+  isSwitchingCours.value = false
 }
 
 async function chargerCours(coursId) {
@@ -501,8 +709,6 @@ async function chargerCours(coursId) {
     precedent.value = res.precedent
     suivant.value = res.suivant
     coursCompletesIds.value = res.cours_completes_ids || []
-    const learningRes = await formationService.getApprentissage(inscriptionId.value)
-    formationData.value.progression = learningRes.progression
     await nextTick()
     if (videoEl.value && dureesReelles.value[coursId]) {
       dureeActuelle.value = dureesReelles.value[coursId]
@@ -512,9 +718,13 @@ async function chargerCours(coursId) {
   }
 }
 
-async function ouvrirEvaluationById(evaluationId) {
+async function ouvrirEvaluationById(evaluationId, forceRetry = false) {
+  chargementEvaluation.value = true
   mode.value = 'evaluation'
   currentCours.value = null
+  showModuleCompletion.value = false
+  showFinalWarning.value = false
+  showCompletion.value = false
   moduleEvaluationId.value = evaluationId
   sidebarOuvert.value = false
   currentQuestionIndex.value = 0
@@ -526,21 +736,23 @@ async function ouvrirEvaluationById(evaluationId) {
     const res = await formationService.getEvaluationById(evaluationId)
     evaluationData.value = res
     evaluationReponses.value = {}
-    if (res.resultat) {
+    if (res.resultat && !forceRetry) {
       evaluationResultats.value[evaluationId] = res.resultat
       quizTermine.value = true
       scoreFinal.value = res.resultat
     }
   } catch (e) {
     console.error('Erreur chargement évaluation:', e)
+  } finally {
+    chargementEvaluation.value = false
   }
 }
 
+
 function validerQuestion() {
-  const q = questionCourante.value
-  if (!q || !evaluationReponses.value[q.id]) return
-  reponseCorrecte.value = evaluationReponses.value[q.id] === q.bonne_reponse
+  if (!evaluationReponses.value[questionCourante.value.id]) return
   questionValidee.value = true
+  reponseCorrecte.value = evaluationReponses.value[questionCourante.value.id] === questionCourante.value.bonne_reponse
 }
 
 function questionSuivante() {
@@ -570,6 +782,16 @@ async function terminerEvaluation() {
     const learningRes = await formationService.getApprentissage(inscriptionId.value)
     formationEvaluations.value = learningRes.evaluations || []
     if (formationData.value) formationData.value.progression = learningRes.progression
+    
+    const allEvalsPassed = formationEvaluations.value.length === 0 || formationEvaluations.value.every(e => e.reussite)
+    
+    if (learningRes.progression === 100 && allEvalsPassed) {
+      showCompletion.value = true
+      showFinalWarning.value = false
+    } else if (learningRes.progression === 100 && !allEvalsPassed) {
+      showCompletion.value = false
+      showFinalWarning.value = true
+    }
   } catch (e) {
     console.error('Erreur soumission évaluation:', e)
   } finally {
@@ -578,13 +800,9 @@ async function terminerEvaluation() {
 }
 
 function recommencerEvaluation() {
-  currentQuestionIndex.value = 0
-  questionValidee.value = false
-  reponseCorrecte.value = false
-  quizTermine.value = false
-  scoreFinal.value = null
-  evaluationReponses.value = {}
-  evaluationData.value = { ...evaluationData.value, resultat: null }
+  if (moduleEvaluationId.value) {
+    ouvrirEvaluationById(moduleEvaluationId.value, true);
+  }
 }
 
 async function verifierCertificat() {
@@ -625,8 +843,23 @@ async function chargerApprentissage() {
     if (!coursTarget) {
       coursTarget = res.premier_cours_non_complete || res.premier_cours
     }
-    if (coursTarget) await chargerCours(coursTarget)
-    if ((res.progression || 0) === 100) showCompletion.value = true
+    if (coursTarget) {
+      await chargerCours(coursTarget)
+    } else if (coursCompletesIds.value.length > 0) {
+      verifierEtAfficherFin()
+    }
+    
+    const allEvalsPassed = formationEvaluations.value.length === 0 || formationEvaluations.value.every(e => e.reussite)
+
+    if ((res.progression || 0) === 100 && allEvalsPassed) {
+      showCompletion.value = true
+      showFinalWarning.value = false
+      showModuleCompletion.value = false
+    } else if ((res.progression || 0) === 100 && !allEvalsPassed) {
+      showCompletion.value = false
+      showFinalWarning.value = true
+      showModuleCompletion.value = false
+    }
   } catch (e) {
     console.error('Erreur chargement apprentissage:', e)
     if (e.response?.data?.code === 'PAYMENT_REQUIRED') {
@@ -1002,7 +1235,522 @@ onMounted(chargerApprentissage)
 .cp-state-card p { color: #6B7280; margin-bottom: 22px; }
 .cp-state-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 
+/* ---------- Corrections Modernes ---------- */
+.cp-corrections-wrapper {
+  margin-top: 36px;
+  background: #FAFAFA;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--cp-border);
+}
+.cp-corrections-title {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  margin-bottom: 24px;
+  color: var(--cp-ink);
+  display: flex;
+  align-items: center;
+}
+.cp-corrections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cp-correction-card {
+  background: #FFF;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--cp-border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  transition: all 0.2s;
+  text-align: left;
+}
+.cp-correction-card.is-correct {
+  border-left: 4px solid var(--cp-success);
+}
+.cp-correction-card.is-wrong {
+  border-left: 4px solid var(--cp-danger);
+}
+.cp-correction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cp-correction-number {
+  font-weight: 700;
+  color: var(--cp-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.cp-badge-correct {
+  background: rgba(23,166,114,0.1);
+  color: var(--cp-success);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.cp-badge-wrong {
+  background: rgba(229,72,77,0.1);
+  color: var(--cp-danger);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.cp-correction-question {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 16px;
+  color: var(--cp-ink);
+  line-height: 1.5;
+}
+.cp-correction-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cp-answer-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #F8F9FA;
+}
+.cp-answer-row.user-answer {
+  background: #F8F9FA;
+}
+.cp-answer-row.correct-answer {
+  background: rgba(23,166,114,0.05);
+  border: 1px solid rgba(23,166,114,0.2);
+}
+.cp-answer-row i {
+  font-size: 1.1rem;
+  margin-top: 2px;
+}
+.cp-answer-content {
+  display: flex;
+  flex-direction: column;
+}
+.cp-answer-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+.cp-answer-text {
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   PAGE DE RÉSULTAT — DESIGN PREMIUM
+   ============================================================ */
+
+.cp-result-page {
+  padding: 0;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* --- Hero Banner --- */
+.cp-result-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 48px 40px 40px;
+  border-radius: 20px;
+  margin: 28px 28px 0;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--cp-border);
+  box-shadow: 0 8px 32px rgba(20,24,43,0.08);
+}
+.cp-result-hero.is-success {
+  background: linear-gradient(135deg, #f0fdf9 0%, #e6faf2 60%, #d6f5e8 100%);
+  border-color: rgba(23,166,114,0.25);
+}
+.cp-result-hero.is-fail {
+  background: linear-gradient(135deg, #fff5f5 0%, #fde8e8 60%, #fbd5d5 100%);
+  border-color: rgba(229,72,77,0.25);
+}
+.cp-result-hero-glow {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 300px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.is-success .cp-result-hero-glow {
+  background: radial-gradient(ellipse, rgba(23,166,114,0.12) 0%, transparent 70%);
+}
+.is-fail .cp-result-hero-glow {
+  background: radial-gradient(ellipse, rgba(229,72,77,0.12) 0%, transparent 70%);
+}
+
+/* --- Icône centrale --- */
+.cp-result-circle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 20px;
+  position: relative;
+  z-index: 1;
+}
+.is-success .cp-result-circle {
+  background: rgba(23,166,114,0.12);
+  color: var(--cp-success);
+  box-shadow: 0 0 0 12px rgba(23,166,114,0.06), 0 0 0 24px rgba(23,166,114,0.03);
+}
+.is-fail .cp-result-circle {
+  background: rgba(229,72,77,0.12);
+  color: var(--cp-danger);
+  box-shadow: 0 0 0 12px rgba(229,72,77,0.06), 0 0 0 24px rgba(229,72,77,0.03);
+}
+
+/* --- Titre / sous-titre --- */
+.cp-result-title {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 900;
+  font-size: 2rem;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+.is-success .cp-result-title { color: #0d5c3a; }
+.is-fail .cp-result-title { color: #8b1a1a; }
+
+.cp-result-subtitle {
+  font-size: 1rem;
+  opacity: 0.75;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+}
+.is-success .cp-result-subtitle { color: #0d5c3a; }
+.is-fail .cp-result-subtitle { color: #7c2d2d; }
+
+/* --- Scorecard 3 colonnes --- */
+.cp-scorecard {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.9);
+  padding: 16px 32px;
+  margin: 0 auto 20px;
+  max-width: 420px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.cp-scorecard-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.cp-scorecard-val {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: var(--cp-ink);
+}
+.cp-scorecard-label {
+  font-size: 0.72rem;
+  color: var(--cp-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.cp-scorecard-divider {
+  width: 1px;
+  background: var(--cp-border);
+  margin: 0 16px;
+}
+
+/* --- Date --- */
+.cp-result-date {
+  font-size: 0.82rem;
+  color: var(--cp-muted);
+  margin-bottom: 24px;
+}
+
+/* --- Barre de score --- */
+.cp-score-bar-wrap {
+  max-width: 440px;
+  margin: 0 auto 28px;
+  position: relative;
+  z-index: 1;
+}
+.cp-score-bar-bg {
+  height: 10px;
+  border-radius: 99px;
+  background: rgba(0,0,0,0.08);
+  position: relative;
+  overflow: visible;
+}
+.cp-score-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 1s cubic-bezier(.22,1,.36,1);
+  position: relative;
+  z-index: 1;
+}
+.cp-score-bar-fill.is-success { background: var(--cp-success); }
+.cp-score-bar-fill.is-fail { background: var(--cp-danger); }
+
+.cp-score-bar-threshold {
+  position: absolute;
+  top: -4px;
+  width: 3px;
+  height: calc(100% + 8px);
+  background: var(--cp-ink);
+  border-radius: 2px;
+  opacity: 0.3;
+  z-index: 2;
+}
+.cp-score-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--cp-muted);
+}
+
+/* --- Bouton Recommencer --- */
+.cp-btn-retry {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 32px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+  z-index: 1;
+  background: var(--cp-ink);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(20,24,43,0.25);
+}
+.cp-btn-retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(20,24,43,0.3);
+}
+.cp-btn-retry:active { transform: translateY(0); }
+
+/* ============================================================
+   SECTION DÉTAIL DES RÉPONSES
+   ============================================================ */
+.cp-detail-section {
+  margin: 24px 28px 40px;
+}
+.cp-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: #fff;
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.cp-detail-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.cp-detail-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e8eeff 0%, #d4dcff 100%);
+  color: var(--cp-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.cp-detail-title {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--cp-ink);
+  margin: 0 0 3px;
+}
+.cp-detail-sub {
+  font-size: 0.82rem;
+  color: var(--cp-muted);
+  margin: 0;
+}
+
+/* Mini ring pour le header de correction */
+.cp-detail-progress-ring {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+.cp-detail-progress-ring svg {
+  width: 56px;
+  height: 56px;
+  transform: rotate(-90deg);
+}
+.cp-ring-fill-detail {
+  fill: none;
+  stroke: var(--cp-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset .8s ease;
+}
+.cp-detail-progress-ring span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--cp-primary);
+}
+
+.cp-detail-explanation {
+  font-size: 0.85rem;
+  color: var(--cp-muted);
+  background: rgba(0,0,0,0.02);
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+}
+.cp-detail-explanation i {
+  color: var(--cp-primary);
+  font-size: 1rem;
+}
+
+/* Grille des corrections */
+.cp-corrections-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cp-corr-card {
+  background: #fff;
+  border: 1px solid var(--cp-border);
+  border-radius: 14px;
+  padding: 20px;
+  transition: box-shadow .2s;
+}
+.cp-corr-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+.cp-corr-card.is-ok { border-left: 4px solid var(--cp-success); }
+.cp-corr-card.is-ko { border-left: 4px solid var(--cp-danger); }
+
+.cp-corr-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cp-corr-num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--cp-muted);
+}
+.cp-corr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.cp-corr-badge.ok { background: rgba(23,166,114,0.1); color: var(--cp-success); }
+.cp-corr-badge.ko { background: rgba(229,72,77,0.1); color: var(--cp-danger); }
+
+.cp-corr-qtext {
+  font-weight: 600;
+  font-size: 0.97rem;
+  color: var(--cp-ink);
+  margin: 0 0 14px;
+  line-height: 1.55;
+}
+.cp-corr-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cp-corr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+.cp-corr-row.ok { background: rgba(23,166,114,0.06); border: 1px solid rgba(23,166,114,0.15); }
+.cp-corr-row.ko { background: rgba(229,72,77,0.05); border: 1px solid rgba(229,72,77,0.15); }
+.cp-corr-row.correct { background: rgba(23,166,114,0.06); border: 1px solid rgba(23,166,114,0.15); }
+
+.cp-corr-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cp-corr-dot.ok { background: var(--cp-success); }
+.cp-corr-dot.ko { background: var(--cp-danger); }
+
+.cp-corr-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.cp-corr-alabel {
+  font-size: 0.72rem;
+  opacity: 0.65;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.cp-corr-aval {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--cp-ink);
+}
+.cp-corr-aval.bold { font-weight: 700; }
+
+.cp-corr-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.cp-corr-icon.ok { color: var(--cp-success); }
+.cp-corr-icon.ko { color: var(--cp-danger); }
+
+/* Footer de la section */
+.cp-detail-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 28px;
+}
+
 /* ---------- Chargement ---------- */
+
 .cp-loading {
   min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 14px; color: #6B7280; font-family: 'Inter', sans-serif;
