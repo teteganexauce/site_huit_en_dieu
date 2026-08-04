@@ -389,11 +389,6 @@ onMounted(async () => {
   loadAvis()
 })
 
-const handleLogout = async () => {
-  await authStore.logout()
-  router.push({ name: 'home' })
-}
-
 const handleFileChange = (e) => {
   const file = e.target.files[0]
   if (file) {
@@ -552,10 +547,6 @@ const formatDemandeDate = (dateString) => {
                 <small class="text-muted">Publications</small>
               </div>
             </div>
-            <hr>
-            <button @click="handleLogout" class="btn btn-outline-danger btn-sm w-100">
-              <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
-            </button>
           </div>
         </div>
       </div>

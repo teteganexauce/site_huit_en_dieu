@@ -85,14 +85,76 @@
           <i class="bi bi-heart-fill"></i>
           Faire un don
         </router-link>
-        <router-link v-if="!authStore.isAuthenticated" to="/login" class="site-btn site-btn--ghost">
-          <i class="bi bi-box-arrow-in-right"></i>
-          Connexion
-        </router-link>
-        <router-link v-else to="/profile-inscrit" class="site-btn site-btn--ghost">
-          <i class="bi bi-person-circle"></i>
-          Mon profil
-        </router-link>
+        <!-- Visiteur : dropdown Connexion / S'inscrire -->
+        <div v-if="!authStore.isAuthenticated" ref="guestWrapRef" class="site-user site-account" :class="{ 'site-user--open': isAccountMenuOpen }">
+          <button
+            type="button"
+            class="site-btn site-btn--ghost site-account__trigger"
+            aria-haspopup="true"
+            :aria-expanded="isAccountMenuOpen"
+            @click.stop="isAccountMenuOpen = !isAccountMenuOpen"
+            @keydown.esc="isAccountMenuOpen = false"
+          >
+            <i class="bi bi-person-circle"></i>
+            <span>Connexion</span>
+            <i class="bi bi-chevron-down site-user__caret"></i>
+          </button>
+
+          <div class="site-user__menu site-account__menu" role="menu" @click.stop>
+            <div class="site-user__head">
+              <span class="site-user__mini site-user__mini--initials">N</span>
+              <div class="site-user__meta">
+                <strong>Bienvenue</strong>
+                <small>Rejoignez Institut Nubudo</small>
+              </div>
+            </div>
+            <router-link to="/login" class="site-user__link" role="menuitem" @click="isAccountMenuOpen = false">
+              <i class="bi bi-box-arrow-in-right"></i> Connexion
+            </router-link>
+            <router-link to="/register" class="site-user__link" role="menuitem" @click="isAccountMenuOpen = false">
+              <i class="bi bi-person-plus"></i> S'inscrire
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Profil connecté : avatar + dropdown -->
+        <div v-else ref="userWrapRef" class="site-user" :class="{ 'site-user--open': isUserMenuOpen }">
+          <button
+            type="button"
+            class="site-user__trigger"
+            aria-haspopup="true"
+            :aria-expanded="isUserMenuOpen"
+            @click.stop="isUserMenuOpen = !isUserMenuOpen"
+            @keydown.esc="isUserMenuOpen = false"
+          >
+            <img
+              v-if="userPhoto"
+              :src="userPhoto"
+              alt="Photo de profil"
+              class="site-user__avatar"
+              @error="onPhotoError"
+            >
+            <span v-else class="site-user__avatar site-user__avatar--initials">{{ userInitials }}</span>
+            <i class="bi bi-chevron-down site-user__caret"></i>
+          </button>
+
+          <div class="site-user__menu" role="menu" @click.stop>
+            <div class="site-user__head">
+              <img v-if="userPhoto" :src="userPhoto" alt="" class="site-user__mini">
+              <span v-else class="site-user__mini site-user__mini--initials">{{ userInitials }}</span>
+              <div class="site-user__meta">
+                <strong>{{ userFullName }}</strong>
+                <small>{{ userRoleLabel }}</small>
+              </div>
+            </div>
+            <router-link to="/profile-inscrit" class="site-user__link" role="menuitem" @click="isUserMenuOpen = false">
+              <i class="bi bi-person"></i> Mon profil
+            </router-link>
+            <button type="button" class="site-user__link site-user__link--danger" role="menuitem" @click="handleLogout">
+              <i class="bi bi-box-arrow-right"></i> Déconnexion
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Toggle mobile -->
@@ -162,20 +224,32 @@
         <router-link to="/#about" class="site-btn site-btn--donate" @click="closeMobileNav">
           <i class="bi bi-heart-fill"></i> Faire un don
         </router-link>
-        <router-link v-if="!authStore.isAuthenticated" to="/login" class="site-btn site-btn--ghost" @click="closeMobileNav">
-          <i class="bi bi-box-arrow-in-right"></i> Connexion
-        </router-link>
-        <router-link v-else to="/profile-inscrit" class="site-btn site-btn--ghost" @click="closeMobileNav">
-          <i class="bi bi-person-circle"></i> Mon profil
-        </router-link>
+        <template v-if="!authStore.isAuthenticated">
+          <router-link to="/login" class="site-btn site-btn--ghost" @click="closeMobileNav">
+            <i class="bi bi-box-arrow-in-right"></i> Connexion
+          </router-link>
+          <router-link to="/register" class="site-btn site-btn--ghost" @click="closeMobileNav">
+            <i class="bi bi-person-plus"></i> S'inscrire
+          </router-link>
+        </template>
+        <span v-else class="site-mobile-profile">
+          <router-link to="/profile-inscrit" class="site-btn site-btn--ghost" @click="closeMobileNav">
+            <img v-if="userPhoto" :src="userPhoto" alt="" class="site-mobile-profile__avatar" @error="onPhotoError">
+            <span v-else class="site-mobile-profile__avatar site-mobile-profile__avatar--initials">{{ userInitials }}</span>
+            Mon profil
+          </router-link>
+          <button type="button" class="site-btn site-btn--ghost site-btn--logout" @click="handleLogout">
+            <i class="bi bi-box-arrow-right"></i> Déconnexion
+          </button>
+        </span>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
 import { useSiteStore } from '../stores/site'
@@ -184,9 +258,53 @@ const authStore = useAuthStore()
 const cartStore = useCartStore()
 const siteStore = useSiteStore()
 const route = useRoute()
+const router = useRouter()
 
 const isMobileNavOpen = ref(false)
 const isScrolled = ref(false)
+const isUserMenuOpen = ref(false)
+const isAccountMenuOpen = ref(false)
+const userWrapRef = ref(null)
+const guestWrapRef = ref(null)
+const photoFailed = ref(false)
+
+const userPhoto = computed(() => (!photoFailed.value ? authStore.user?.photo_profil_url || '' : ''))
+const userInitials = computed(() => {
+  const prenom = (authStore.user?.prenom || '').trim()
+  const nom = (authStore.user?.nom || '').trim()
+  const init1 = prenom ? prenom.charAt(0) : (nom ? nom.charAt(0) : 'U')
+  const init2 = nom ? nom.charAt(0) : (prenom ? prenom.charAt(prenom.length - 1) : '')
+  return (init1 + init2).toUpperCase()
+})
+const userFullName = computed(() => {
+  const prenom = (authStore.user?.prenom || '').trim()
+  const nom = (authStore.user?.nom || '').trim()
+  return [prenom, nom].filter(Boolean).join(' ') || authStore.user?.email || 'Utilisateur'
+})
+const userRoleLabel = computed(() => {
+  const role = authStore.user?.role ?? ''
+  const label = typeof role === 'object' ? role.value : role
+  return label === 'admin' ? 'Administrateur' : label === 'etudiant' ? 'Étudiant' : label === 'chercheur' ? 'Chercheur' : label || 'Utilisateur'
+})
+
+function onPhotoError() {
+  photoFailed.value = true
+}
+
+async function handleLogout() {
+  await authStore.logout()
+  isUserMenuOpen.value = false
+  router.push({ name: 'home' })
+}
+
+function onClickOutside(event) {
+  if (isUserMenuOpen.value && userWrapRef.value && !userWrapRef.value.contains(event.target)) {
+    isUserMenuOpen.value = false
+  }
+  if (isAccountMenuOpen.value && guestWrapRef.value && !guestWrapRef.value.contains(event.target)) {
+    isAccountMenuOpen.value = false
+  }
+}
 
 function toggleMobileNav() {
   isMobileNavOpen.value = !isMobileNavOpen.value
@@ -207,16 +325,20 @@ function handleScroll() {
 
 watch(() => route.fullPath, () => {
   closeMobileNav()
+  isUserMenuOpen.value = false
+  isAccountMenuOpen.value = false
   siteStore.fetchSettings()
 })
 
 onMounted(() => {
   siteStore.fetchSettings()
   window.addEventListener('scroll', handleScroll, { passive: true })
+  document.addEventListener('click', onClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.removeEventListener('click', onClickOutside)
 })
 </script>
 
@@ -642,6 +764,250 @@ onUnmounted(() => {
 }
 
 /* ==========================================
+   PROFIL UTILISATEUR — avatar + dropdown
+   ========================================== */
+.site-user {
+  position: relative;
+}
+
+.site-user__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-soft);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.site-user__trigger:hover,
+.site-user--open .site-user__trigger {
+  border-color: rgba(15, 118, 110, 0.4);
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(12, 34, 51, 0.1);
+}
+
+.site-user__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(12, 34, 51, 0.12);
+  background: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-blue) 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.site-user__avatar--initials {
+  font-size: 0.8rem;
+}
+
+.site-user__caret {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.site-user--open .site-user__caret,
+.site-user:hover .site-user__caret {
+  transform: rotate(180deg);
+}
+
+.site-user__menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 260px;
+  padding: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px -12px rgba(12, 34, 51, 0.22), 0 4px 12px rgba(12, 34, 51, 0.06);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
+  overflow: hidden;
+}
+
+/* Pont invisible pour ne pas perdre le survol */
+.site-user::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: 16px;
+}
+
+.site-user:hover .site-user__menu,
+.site-user--open .site-user__menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.site-user__menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand-teal), var(--brand-blue), var(--brand-gold));
+}
+
+.site-user__head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 0.4rem;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+}
+
+.site-user__mini {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(12, 34, 51, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-blue) 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.site-user__meta {
+  min-width: 0;
+}
+
+.site-user__meta strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-user__meta small {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.site-user__link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
+}
+
+.site-user__link i {
+  color: var(--brand-teal);
+  font-size: 1rem;
+  width: 1.15rem;
+  text-align: center;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.site-user__link:hover {
+  background: var(--surface-soft);
+  color: var(--brand-blue);
+  padding-left: 1rem;
+}
+
+.site-user__link:hover i {
+  color: var(--brand-blue);
+}
+
+.site-user__link--danger {
+  margin-top: 0.2rem;
+}
+
+.site-user__link--danger,
+.site-user__link--danger i {
+  color: var(--text-muted);
+}
+
+.site-user__link--danger i {
+  color: #dc3545;
+}
+
+.site-user__link--danger:hover,
+.site-user__link--danger:hover i {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.07);
+}
+
+/* ==========================================
+   COMPTE VISITEUR — dropdown Connexion / S'inscrire
+   ========================================== */
+.site-account {
+  display: flex;
+}
+
+.site-account__trigger {
+  position: relative;
+  padding-right: 0.85rem;
+}
+
+.site-account__trigger .site-user__caret {
+  font-size: 0.65rem;
+  margin-left: 0.15rem;
+}
+
+.site-account__trigger:hover,
+.site-account.site-user--open .site-account__trigger {
+  border-color: var(--brand-teal);
+  color: var(--brand-teal);
+}
+
+.site-account__menu {
+  width: 280px;
+}
+
+.site-account__menu .site-user__mini--initials {
+  background: linear-gradient(135deg, var(--brand-gold) 0%, #d4a24e 100%);
+}
+
+.site-account__menu .site-user__meta small {
+  text-transform: none;
+}
+
+/* ==========================================
    TOGGLE MOBILE
    ========================================== */
 .site-mobile-toggle {
@@ -801,6 +1167,40 @@ onUnmounted(() => {
 .site-mobile-nav__actions .site-btn {
   justify-content: center;
   width: 100%;
+}
+
+.site-mobile-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.site-mobile-profile__avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--brand-teal) 0%, var(--brand-blue) 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.6rem;
+}
+
+.site-mobile-profile__avatar--initials {
+  font-size: 0.62rem;
+}
+
+.site-btn--logout {
+  width: 100%;
+}
+
+.site-btn--logout:hover {
+  background: rgba(220, 53, 69, 0.07);
+  border-color: rgba(220, 53, 69, 0.35);
 }
 
 .site-mobile-backdrop {
