@@ -11,6 +11,11 @@ const publicService = {
     return response.data;
   },
 
+  async getServices() {
+    const response = await api.get('/services');
+    return response.data;
+  },
+
   async getTeam() {
     const response = await api.get('/equipe');
     return response.data;

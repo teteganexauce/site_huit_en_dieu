@@ -30,14 +30,14 @@
               <div class="site-dropdown__col">
                 <router-link to="/publications">Publications</router-link>
                 <router-link to="/galerie">Évènements</router-link>
+                <router-link to="/partenaires">Nos partenaires</router-link>
               </div>
               <div class="site-dropdown__col">
-                <router-link to="/partenaires">Nos partenaires</router-link>
                 <router-link to="/formations">Nos formations</router-link>
                 <router-link to="/rubriques-culture">Rubriques culturelles</router-link>
+                <router-link to="/accompagnement">Demande d'accompagnement</router-link>
               </div>
               <div class="site-dropdown__col">
-                <router-link to="/accompagnement">Demande d'accompagnement</router-link>
                 <router-link to="/services">Nos services</router-link>
                 <router-link to="/forum">Forum</router-link>
               </div>

@@ -1,69 +1,24 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
+import publicService from '../services/publicService'
 
-const services = ref([
-  {
-    nom: "Consultation du Fâ",
-    description:
-      "La géomancie divinatoire traditionnelle pour éclairer votre chemin de vie. Le Fâ, système de sagesse ancestrale, vous guide dans vos décisions et vous révèle les messages des orisha.",
-    icon: "bi bi-moon-stars",
-    image: "https://images.unsplash.com/photo-1501139083538-0139583c060f?q=80&w=800&auto=format&fit=crop",
-    cta: "Prendre rendez-vous",
-    link: "/contact",
-    accent: "#4a3f6b"
-  },
-  {
-    nom: "Initiation au Vodoun",
-    description:
-      "Comprenez les cultes, les rites et les traditions ancestrales du Vodoun. Une plongée authentique au cœur des pratiques spirituelles béninoises, transmises de génération en génération.",
-    icon: "bi bi-sun",
-    image: "http://localhost:8000/storage/formations/Hu0SCbGtwBW631vdlaCPSNyXYO2lJM2T7lhEm3pT.webp",
-    cta: "En savoir plus",
-    link: "/rubriques-culture",
-    accent: "#b8860b"
-  },
-  {
-    nom: "Accompagnement spirituel",
-    description:
-      "Un suivi personnalisé pour votre éveil et votre croissance intérieure. Nos guides vous accompagnent dans votre cheminement avec bienveillance, écoute et discrétion.",
-    icon: "bi bi-heart-fill",
-    image: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?q=80&w=800&auto=format&fit=crop",
-    cta: "Demander un accompagnement",
-    link: "/accompagnement",
-    accent: "#c0392b"
-  },
-  {
-    nom: "Cérémonies & Rituels",
-    description:
-      "Organisation de cérémonies traditionnelles sur demande : bénédictions, purifications, offrandes, cérémonies de passage et rites de protection selon les coutumes ancestrales.",
-    icon: "bi bi-fire",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-    cta: "Nous contacter",
-    link: "/contact",
-    accent: "#d35400"
-  },
-  {
-    nom: "Enseignement ésotérique",
-    description:
-      "Formation aux savoirs ancestraux, à la sagesse divine et à la connaissance de soi. Découvrez les enseignements cachés derrière les symboles, les mythes et les traditions.",
-    icon: "bi bi-book-fill",
-    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=800&auto=format&fit=crop",
-    cta: "Voir les formations",
-    link: "/formations",
-    accent: "#2980b9"
-  },
-  {
-    nom: "Retraites spirituelles",
-    description:
-      "Sessions de recueillement, méditation et prière en groupe. Vivez une expérience immersive de déconnexion pour vous recentrer sur l'essentiel et renouveler votre foi.",
-    icon: "bi bi-tree-fill",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop",
-    cta: "S'inscrire",
-    link: "/contact",
-    accent: "#27ae60"
+const services = ref([])
+const loading = ref(true)
+const error = ref(null)
+
+onMounted(async () => {
+  try {
+    const data = await publicService.getServices();
+    // L'API renvoie { data: [...] } si paginé ou { ... }
+    services.value = data.data || data;
+  } catch (err) {
+    console.error('Erreur lors du chargement des services:', err);
+    error.value = 'Impossible de charger les services pour le moment.';
+  } finally {
+    loading.value = false;
   }
-])
+})
 </script>
 
 <template>
@@ -98,8 +53,8 @@ const services = ref([
             <!-- Image d'illustration -->
             <div class="card-img-wrapper position-relative">
               <img
-                :src="service.image"
-                :alt="service.nom"
+                :src="service.imageUrl"
+                :alt="service.titre"
                 class="card-img-top"
               />
               <div class="card-img-overlay d-flex align-items-center justify-content-center">
@@ -111,7 +66,7 @@ const services = ref([
 
             <!-- Corps de la carte -->
             <div class="card-body d-flex flex-column p-4">
-              <h3 class="card-title fw-bold mb-3">{{ service.nom }}</h3>
+              <h3 class="card-title fw-bold mb-3">{{ service.titre }}</h3>
               <p class="card-text text-muted flex-grow-1">{{ service.description }}</p>
               <router-link
                 :to="service.link"
