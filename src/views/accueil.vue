@@ -57,7 +57,7 @@ function animerCompteur() {
      <BlocImageTextComponent />
      <ListInlineBlocComponnent />
 
-   <section class="py-5 bg-white border-top border-bottom" data-aos="fade-up" data-aos-duration="1000">
+   <section class="py-5 bg-white border-top" data-aos="fade-up" data-aos-duration="1000">
      <div class="container text-center text-dark">
        <h3 class="fw-bold mb-2" data-aos="fade-up" data-aos-delay="100">Soutenez notre mission</h3>
        <p class="text-muted mb-4" data-aos="fade-up" data-aos-delay="200">Ensemble, faisons la différence. Chaque don compte.</p>
