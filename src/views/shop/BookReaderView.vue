@@ -23,7 +23,7 @@ async function loadBook() {
     book.value = res.produit || null
   } catch (e) {
     console.error('Erreur chargement livre:', e)
-    error.value = "Impossible de charger ce livre. Vérifiez que vous avez bien acheté ce livre."
+    error.value = e.response?.data?.error || "Impossible de charger ce livre. Vérifiez que vous avez bien acheté ce livre."
   } finally {
     isLoading.value = false
   }
