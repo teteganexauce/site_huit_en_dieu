@@ -28,7 +28,6 @@
             </a>
             <div class="site-dropdown site-dropdown--mega">
               <div class="site-dropdown__col">
-                <router-link to="/temoignages">Témoignages</router-link>
                 <router-link to="/publications">Publications</router-link>
                 <router-link to="/galerie">Évènements</router-link>
               </div>
@@ -124,8 +123,6 @@
             <i class="bi bi-chevron-down"></i>
           </a>
           <ul>
-
-            <li><router-link to="/temoignages" @click="closeMobileNav">Témoignages</router-link></li>
             <li><router-link to="/publications" @click="closeMobileNav">Publications</router-link></li>
             <li><router-link to="/galerie" @click="closeMobileNav">Évènements</router-link></li>
             <li><router-link to="/partenaires" @click="closeMobileNav">Nos partenaires</router-link></li>

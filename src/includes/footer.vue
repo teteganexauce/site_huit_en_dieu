@@ -26,7 +26,6 @@
           <div class="col-lg-4 col-md-6 footer-links">
             <h4>Liens rapides</h4>
             <ul>
-              <li><i class="bi bi-chevron-right"></i> <router-link to="/temoignages">Témoignages</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/formations">Formations</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/boutique?type=ebook">E-books</router-link></li>
               <li><i class="bi bi-chevron-right"></i> <router-link to="/boutique">Boutique</router-link></li>
