@@ -3013,10 +3013,10 @@ section {
 .footer {
   color: var(--color-white);
   font-size: 14px;
+  background: #2C1E4A;
 }
 
 .footer .footer-content {
-  background: var(--color-secondary);
   padding: 60px 0 30px 0;
 }
 
@@ -3169,7 +3169,7 @@ section {
 
 .footer .footer-legal {
   padding: 30px 0;
-  background: var(--color-secondary-dark);
+  background: #1C1233;
 }
 
 .footer .footer-legal .credits {
