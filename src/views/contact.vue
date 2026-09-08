@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import BreadcombsComponent from '../includes/breadcombs.vue'
 import api from '../services/api'
+import { useSiteStore } from '../stores/site'
+
+const siteStore = useSiteStore()
 
 const form = ref({
   nom: '',
@@ -62,7 +65,7 @@ function closeModal() {
               </div>
               <div>
                 <h4>Adresse</h4>
-                <p>Bénin, Abomey, Bohicon</p>
+                <p>{{ siteStore.settings.ADRESSE || 'Bénin, Abomey, Bohicon' }}</p>
               </div>
             </div>
 
@@ -72,7 +75,7 @@ function closeModal() {
               </div>
               <div>
                 <h4>Email</h4>
-                <p>nubutoinstitut@gmail.com</p>
+                <p>{{ siteStore.settings.CONTACT_EMAIL || 'nubutoinstitut@gmail.com' }}</p>
               </div>
             </div>
 
@@ -82,26 +85,27 @@ function closeModal() {
               </div>
               <div>
                 <h4>Téléphone</h4>
-                <p>+229 0161422692 / 0143301462</p>
+                <p>{{ siteStore.settings.TELEPHONE || '+229 0161422692 / 0143301462' }}</p>
               </div>
             </div>
 
-            <div class="info-item">
+            <div v-if="siteStore.settings.HORAIRE" class="info-item">
               <div class="info-icon">
                 <i class="bi bi-clock"></i>
               </div>
               <div>
                 <h4>Horaires</h4>
-                <p>Lun - Vend : 08h à 18h<br>Samedi : 09h à 16h</p>
+                <p>{{ siteStore.settings.HORAIRE }}</p>
               </div>
             </div>
 
-            <div class="social-links">
-              <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-              <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
-              <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-              <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-              <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+            <div class="social-links mt-3">
+              <a v-if="siteStore.settings.FACEBOOK_URL" :href="siteStore.settings.FACEBOOK_URL" target="_blank" rel="noopener" title="Facebook"><i class="bi bi-facebook"></i></a>
+              <a v-if="siteStore.settings.TWITTER_URL" :href="siteStore.settings.TWITTER_URL" target="_blank" rel="noopener" title="Twitter"><i class="bi bi-twitter"></i></a>
+              <a v-if="siteStore.settings.INSTAGRAM_URL" :href="siteStore.settings.INSTAGRAM_URL" target="_blank" rel="noopener" title="Instagram"><i class="bi bi-instagram"></i></a>
+              <a v-if="siteStore.settings.YOUTUBE_URL" :href="siteStore.settings.YOUTUBE_URL" target="_blank" rel="noopener" title="YouTube"><i class="bi bi-youtube"></i></a>
+              <a v-if="siteStore.settings.LINKEDIN_URL" :href="siteStore.settings.LINKEDIN_URL" target="_blank" rel="noopener" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+              <a v-if="siteStore.settings.WHATSAPP_NUMBER" :href="'https://wa.me/' + siteStore.settings.WHATSAPP_NUMBER.replace(/[^0-9]/g, '')" target="_blank" rel="noopener" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
             </div>
           </div>
         </div>

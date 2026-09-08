@@ -10,6 +10,7 @@ import accompagnementService from '../services/accompagnementService'
 import chercheurService from '../services/chercheurService'
 import avisService from '../services/avisService'
 import ArticleModal from '../components/ArticleModal.vue'
+import Pagination from '../components/Pagination.vue'
 import defaultAvatar from '../assets/img/portfolio/app-1.jpg'
 
 const authStore = useAuthStore()
@@ -32,6 +33,25 @@ const dons = ref([])
 const accompagnements = ref([])
 const articlesChercheur = ref([])
 const mesAvis = ref([])
+
+// Pagination state
+const itemsPerPage = 10
+const pageBooks = ref(1)
+const pageFormations = ref(1)
+const pageOrders = ref(1)
+const pageDons = ref(1)
+const pageAccompagnements = ref(1)
+const pageArticles = ref(1)
+const pageAvis = ref(1)
+
+const paginatedBooks = computed(() => purchasedBooks.value.slice((pageBooks.value - 1) * itemsPerPage, pageBooks.value * itemsPerPage))
+const paginatedFormations = computed(() => inscriptions.value.slice((pageFormations.value - 1) * itemsPerPage, pageFormations.value * itemsPerPage))
+const paginatedOrders = computed(() => orders.value.slice((pageOrders.value - 1) * itemsPerPage, pageOrders.value * itemsPerPage))
+const paginatedDons = computed(() => dons.value.slice((pageDons.value - 1) * itemsPerPage, pageDons.value * itemsPerPage))
+const paginatedAccompagnements = computed(() => accompagnements.value.slice((pageAccompagnements.value - 1) * itemsPerPage, pageAccompagnements.value * itemsPerPage))
+const paginatedArticles = computed(() => articlesChercheur.value.slice((pageArticles.value - 1) * itemsPerPage, pageArticles.value * itemsPerPage))
+const paginatedAvis = computed(() => mesAvis.value.slice((pageAvis.value - 1) * itemsPerPage, pageAvis.value * itemsPerPage))
+
 
 const showPaymentModal = ref(false)
 const selectedBook = ref(null)
@@ -121,6 +141,35 @@ async function loadOrders() {
     console.error(e)
   } finally {
     isLoadingOrders.value = false
+  }
+}
+
+const showConfirmModal = ref(false)
+const orderToConfirm = ref(null)
+const isConfirming = ref(false)
+
+function openConfirmModal(orderId) {
+  orderToConfirm.value = orderId
+  showConfirmModal.value = true
+}
+
+function closeConfirmModal() {
+  showConfirmModal.value = false
+  orderToConfirm.value = null
+}
+
+async function processConfirmReception() {
+  if (!orderToConfirm.value) return;
+  isConfirming.value = true;
+  try {
+    await shopService.confirmOrderReception(orderToConfirm.value);
+    await loadOrders(); // Recharge pour mettre à jour le statut
+    closeConfirmModal();
+  } catch (e) {
+    console.error(e);
+    alert('Erreur lors de la confirmation de réception.');
+  } finally {
+    isConfirming.value = false;
   }
 }
 
@@ -717,7 +766,7 @@ const formatDemandeDate = (dateString) => {
                 <router-link to="/boutique?type=ebook" class="btn btn-primary mt-3">Découvrir les e-books</router-link>
               </div>
               <div v-else class="row g-3">
-                <div v-for="book in purchasedBooks" :key="book.id" class="col-md-6">
+                <div v-for="book in paginatedBooks" :key="book.id" class="col-md-6">
                   <div class="border rounded-3 p-3 h-100 d-flex book-card"
                        :class="{
                          'book-card-clickable': book.statut !== 'payee' && book.statut !== 'livree',
@@ -745,6 +794,7 @@ const formatDemandeDate = (dateString) => {
                     </div>
                   </div>
                 </div>
+                <Pagination v-model:currentPage="pageBooks" :totalItems="purchasedBooks.length" :itemsPerPage="itemsPerPage" />
               </div>
             </div>
 
@@ -763,7 +813,7 @@ const formatDemandeDate = (dateString) => {
                 <router-link to="/formations" class="btn btn-primary mt-3">Voir les formations</router-link>
               </div>
               <div v-else class="row g-3">
-                <div v-for="ins in inscriptions" :key="ins.id" class="col-md-6">
+                <div v-for="ins in paginatedFormations" :key="ins.id" class="col-md-6">
                   <div class="border rounded-3 p-3 h-100 d-flex">
                     <img :src="ins.formation?.imageUrl || defaultAvatar" class="rounded me-3" width="80" height="80" style="object-fit: cover;">
                     <div class="flex-grow-1 d-flex flex-column">
@@ -793,12 +843,14 @@ const formatDemandeDate = (dateString) => {
                     </div>
                   </div>
                 </div>
+                <Pagination v-model:currentPage="pageFormations" :totalItems="inscriptions.length" :itemsPerPage="itemsPerPage" />
               </div>
             </div>
 
             <!-- Orders -->
+            <!-- Orders -->
             <div v-if="activeTab === 'orders'">
-              <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="fw-bold mb-0">Mes commandes</h5>
               </div>
               <div v-if="isLoadingOrders" class="text-center py-5">
@@ -809,27 +861,51 @@ const formatDemandeDate = (dateString) => {
                 <h5 class="mt-3">Aucune commande pour le moment</h5>
                 <router-link to="/boutique" class="btn btn-primary mt-3">Découvrir la boutique</router-link>
               </div>
-              <div v-else>
-                <div v-for="order in orders" :key="order.id" class="border rounded-3 p-3 mb-3">
-                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                    <div>
-                      <h6 class="fw-bold mb-1">Commande #{{ order.id }}</h6>
-                      <small class="text-muted">{{ order.dateCommande ? new Date(order.dateCommande).toLocaleDateString('fr-FR') : '---' }}</small>
+              <div v-else class="row g-4">
+                <div v-for="order in paginatedOrders" :key="order.id" class="col-12">
+                  <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-3 border-0">
+                      <div>
+                        <h6 class="fw-bold mb-0">Commande #{{ order.id }}</h6>
+                        <small class="text-muted">{{ order.dateCommande ? new Date(order.dateCommande).toLocaleDateString('fr-FR') : '---' }}</small>
+                      </div>
+                      <div class="text-end">
+                        <span class="badge mb-1" :class="'bg-' + statusClass(order.statut)">{{ statusLabel(order.statut) }}</span>
+                        <div class="fw-bold text-primary">{{ formatPrice(order.montantTotal || 0) }}</div>
+                      </div>
                     </div>
-                    <div class="text-end">
-                      <span class="badge" :class="'bg-' + statusClass(order.statut)">{{ statusLabel(order.statut) }}</span>
-                      <div class="fw-bold text-primary mt-1">{{ formatPrice(order.montantTotal || 0) }}</div>
+                    <div class="card-body p-0">
+                      <ul class="list-group list-group-flush">
+                        <li v-for="l in order.lignes" :key="l.id" class="list-group-item p-3 d-flex align-items-center flex-wrap gap-3">
+                          <img :src="l.produit?.imageUrl || defaultImg" class="rounded" width="60" height="60" style="object-fit: cover;" :alt="l.produit?.nom">
+                          <div class="flex-grow-1 min-w-0">
+                            <h6 class="mb-1 text-truncate">{{ l.produit?.nom || 'Produit inconnu' }}</h6>
+                            <div class="small text-muted d-flex gap-2">
+                              <span class="text-capitalize"><i class="bi bi-tag-fill me-1"></i>{{ l.produit?.type?.replace('_', ' ') }}</span>
+                              <span><i class="bi bi-x"></i> {{ l.quantite }}</span>
+                            </div>
+                          </div>
+                          <div class="fw-bold">
+                            {{ formatPrice(l.prixUnitaire) }}
+                          </div>
+                        </li>
+                      </ul>
                     </div>
-                  </div>
-                  <div v-if="order.lignes?.length" class="mt-2">
-                    <small class="text-muted">{{ order.lignes.length }} article(s)</small>
-                    <div class="d-flex gap-2 mt-1 flex-wrap">
-                      <span v-for="l in order.lignes" :key="l.id" class="badge bg-light text-dark border">
-                        {{ l.produit?.nom || 'Produit' }} x{{ l.quantite }}
-                      </span>
+                    <div class="card-footer bg-white border-top-0 pt-0 pb-3 px-3">
+                      <div class="d-flex justify-content-end gap-2 mt-3">
+                        <template v-if="order.lignes?.some(l => l.produit?.type !== 'ebook')">
+                          <button v-if="order.statut === 'expediee'" class="btn btn-sm btn-success" @click="openConfirmModal(order.id)">
+                            <i class="bi bi-box-seam me-1"></i> J'ai bien reçu ma commande
+                          </button>
+                        </template>
+                        <router-link v-if="order.lignes?.some(l => l.produit?.type === 'ebook')" to="/profile?tab=books" class="btn btn-sm btn-outline-primary" @click="activeTab = 'books'">
+                          <i class="bi bi-book me-1"></i> Mes E-books
+                        </router-link>
+                      </div>
                     </div>
                   </div>
                 </div>
+                <Pagination v-model:currentPage="pageOrders" :totalItems="orders.length" :itemsPerPage="itemsPerPage" />
               </div>
             </div>
 
@@ -848,7 +924,7 @@ const formatDemandeDate = (dateString) => {
                 <router-link to="/dons" class="btn btn-danger mt-3">Faire un don</router-link>
               </div>
               <div v-else>
-                <div v-for="don in dons" :key="don.id" class="border rounded-3 p-3 mb-3">
+                <div v-for="don in paginatedDons" :key="don.id" class="border rounded-3 p-3 mb-3">
                   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                     <div>
                       <h6 class="fw-bold mb-1">Don #{{ don.id }}</h6>
@@ -862,6 +938,7 @@ const formatDemandeDate = (dateString) => {
                     </div>
                   </div>
                 </div>
+                <Pagination v-model:currentPage="pageDons" :totalItems="dons.length" :itemsPerPage="itemsPerPage" />
               </div>
             </div>
 
@@ -889,7 +966,7 @@ const formatDemandeDate = (dateString) => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="demande in accompagnements" :key="demande.id">
+                    <tr v-for="demande in paginatedAccompagnements" :key="demande.id">
                       <td>{{ formatDemandeDate(demande.dateDemande) }}</td>
                       <td>
                         <strong>{{ demande.titre }}</strong><br>
@@ -908,6 +985,7 @@ const formatDemandeDate = (dateString) => {
                     </tr>
                   </tbody>
                 </table>
+                <Pagination v-model:currentPage="pageAccompagnements" :totalItems="accompagnements.length" :itemsPerPage="itemsPerPage" />
               </div>
               <div class="mt-3 text-end">
                 <router-link to="/accompagnement" class="btn btn-outline-primary">Faire une nouvelle demande</router-link>
@@ -942,7 +1020,7 @@ const formatDemandeDate = (dateString) => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="art in articlesChercheur" :key="art.id">
+                    <tr v-for="art in paginatedArticles" :key="art.id">
                       <td>
                         <strong>{{ art.titre }}</strong><br>
                         <small class="text-muted">{{ new Date(art.created_at).toLocaleDateString('fr-FR') }}</small>
@@ -983,6 +1061,7 @@ const formatDemandeDate = (dateString) => {
                     </tr>
                   </tbody>
                 </table>
+                <Pagination v-model:currentPage="pageArticles" :totalItems="articlesChercheur.length" :itemsPerPage="itemsPerPage" />
               </div>
             </div>
 
@@ -1005,7 +1084,7 @@ const formatDemandeDate = (dateString) => {
                 </div>
               </div>
               <div v-else>
-                <div v-for="av in mesAvis" :key="av.id" class="border rounded-3 p-3 mb-3">
+                <div v-for="av in paginatedAvis" :key="av.id" class="border rounded-3 p-3 mb-3">
                   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                     <div>
                       <router-link :to="av.formation ? `/formations/${av.formation_id}` : `/boutique/${av.produit_id}`" class="text-decoration-none">
@@ -1032,6 +1111,7 @@ const formatDemandeDate = (dateString) => {
                     </div>
                   </div>
                 </div>
+                <Pagination v-model:currentPage="pageAvis" :totalItems="mesAvis.length" :itemsPerPage="itemsPerPage" />
               </div>
             </div>
 
@@ -1316,6 +1396,28 @@ const formatDemandeDate = (dateString) => {
     </div>
   </div>
 </div>
+
+<!-- Modal de confirmation de réception -->
+<div v-if="showConfirmModal" class="custom-modal-backdrop d-flex align-items-center justify-content-center">
+  <div class="custom-modal-content premium-light-card p-4 mx-3" style="max-width: 450px; width: 100%;" data-aos="zoom-in" data-aos-duration="200">
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+        <i class="bi bi-box-seam"></i>
+      </div>
+      <h4 class="fw-bold text-dark-blue">Confirmation de réception</h4>
+      <p class="text-muted mt-2 mb-0">Avez-vous bien reçu tous les articles physiques de cette commande ? Cette action est irréversible et marquera votre commande comme livrée.</p>
+    </div>
+    <div class="d-flex gap-3 justify-content-center">
+      <button class="btn btn-light border w-50" @click="closeConfirmModal" :disabled="isConfirming">
+        Non, annuler
+      </button>
+      <button class="btn btn-success w-50 d-flex align-items-center justify-content-center" @click="processConfirmReception" :disabled="isConfirming">
+        <span v-if="isConfirming" class="spinner-border spinner-border-sm me-2"></span>
+        Oui, j'ai reçu
+      </button>
+    </div>
+  </div>
+</div>
 </template>
 
 <style scoped>
@@ -1443,4 +1545,21 @@ const formatDemandeDate = (dateString) => {
 .stat-card-danger .stat-icon { background: rgba(197, 34, 31, 0.12); color: #c5221f; }
 .stat-card-danger .stat-value { color: #c5221f; }
 .stat-card-danger .stat-label { color: #c5221f; }
+
+/* Custom modal */
+.custom-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1055;
+}
+.custom-modal-content {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
 </style>

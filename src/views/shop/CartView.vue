@@ -152,14 +152,19 @@ onMounted(() => {
               </div>
 
               <!-- Quantité -->
-              <div class="item-qty">
-                <button class="qty-btn" @click="updateQte(ligne.id, ligne.quantite - 1)" :disabled="ligne.quantite <= 1">
-                  <i class="bi bi-dash"></i>
-                </button>
-                <span class="qty-value">{{ ligne.quantite }}</span>
-                <button class="qty-btn" @click="updateQte(ligne.id, ligne.quantite + 1)">
-                  <i class="bi bi-plus"></i>
-                </button>
+              <div class="item-qty-container d-flex flex-column align-items-center">
+                <div class="item-qty">
+                  <button class="qty-btn" @click="updateQte(ligne.id, ligne.quantite - 1)" :disabled="ligne.quantite <= 1">
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <span class="qty-value">{{ ligne.quantite }}</span>
+                  <button class="qty-btn" @click="updateQte(ligne.id, ligne.quantite + 1)" :disabled="ligne.produit?.type === 'ebook' || (ligne.produit?.type !== 'ebook' && ligne.quantite >= ligne.produit?.stock)">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+                <small v-if="ligne.produit?.type !== 'ebook'" class="text-muted mt-1" style="font-size: 0.7rem;">
+                  Max: {{ ligne.produit?.stock }}
+                </small>
               </div>
 
               <!-- Sous-total -->

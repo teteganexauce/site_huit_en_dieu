@@ -20,6 +20,21 @@ const hasBadges = computed(() =>
   props.product.estNouveaute || props.product.estCoupDeCoeur || props.product.estGratuit
 )
 
+const isEbookAlreadyInCart = computed(() => {
+  if (props.product.type !== 'ebook') return false
+  if (!cartStore.cart || !cartStore.cart.lignes) return false
+  return cartStore.cart.lignes.some(ligne => ligne.produit_id === props.product.id || (ligne.produit && ligne.produit.id === props.product.id))
+})
+
+const isOutOfStock = computed(() => props.product.type !== 'ebook' && props.product.stock <= 0)
+
+const stockLimitReached = computed(() => {
+  if (props.product.type === 'ebook') return false
+  if (!cartStore.cart || !cartStore.cart.lignes) return false
+  const ligne = cartStore.cart.lignes.find(l => l.produit_id === props.product.id || (l.produit && l.produit.id === props.product.id))
+  return ligne && ligne.quantite >= props.product.stock
+})
+
 const formatPrice = (price) => {
   const num = parseFloat(price)
   if (isNaN(num)) return '0 FCFA'
@@ -97,6 +112,14 @@ const handleAddToCart = async () => {
           <span v-if="product.estGratuit" class="tag tag-free">Gratuit</span>
         </div>
 
+        <!-- Stock badge -->
+        <div class="badges-zone stock-zone" v-if="product.type !== 'ebook'">
+          <span class="tag" :class="isOutOfStock ? 'tag-out' : 'tag-stock'">
+            <i class="bi" :class="isOutOfStock ? 'bi-x-circle' : 'bi-box-seam'"></i>
+            {{ isOutOfStock ? 'Rupture' : product.stock + ' en stock' }}
+          </span>
+        </div>
+
         <!-- Discount badge -->
         <div class="discount-badge" v-if="discount">-{{ discount }}%</div>
       </div>
@@ -138,15 +161,19 @@ const handleAddToCart = async () => {
 
         <button
           class="btn-add-cart"
-          :class="{ 'btn-added': justAdded, 'btn-loading': addingToCart }"
-          @click.prevent="handleAddToCart"
-          :disabled="addingToCart"
-          :title="justAdded ? 'Ajouté !' : 'Ajouter au panier'"
+          :class="{ 'btn-added': justAdded || isEbookAlreadyInCart, 'btn-loading': addingToCart, 'btn-disabled': isOutOfStock || stockLimitReached }"
+          @click.prevent="!(isEbookAlreadyInCart || isOutOfStock || stockLimitReached) && handleAddToCart()"
+          :disabled="addingToCart || isEbookAlreadyInCart || isOutOfStock || stockLimitReached"
+          :title="isOutOfStock ? 'En rupture de stock' : stockLimitReached ? 'Quantité max atteinte' : isEbookAlreadyInCart ? 'Déjà dans le panier' : justAdded ? 'Ajouté !' : 'Ajouter au panier'"
         >
           <span v-if="addingToCart" class="spinner-border spinner-border-sm"></span>
-          <i v-else-if="justAdded" class="bi bi-check-lg"></i>
+          <i v-else-if="justAdded || isEbookAlreadyInCart" class="bi bi-check-lg"></i>
+          <i v-else-if="isOutOfStock" class="bi bi-slash-circle"></i>
+          <i v-else-if="stockLimitReached" class="bi bi-exclamation-circle"></i>
           <i v-else class="bi bi-cart-plus"></i>
-          <span class="btn-label">{{ justAdded ? 'Ajouté' : addingToCart ? '' : 'Panier' }}</span>
+          <span class="btn-label">
+            {{ isOutOfStock ? 'Rupture' : stockLimitReached ? 'Max atteint' : isEbookAlreadyInCart ? 'Au panier' : justAdded ? 'Ajouté' : addingToCart ? '' : 'Panier' }}
+          </span>
         </button>
       </div>
 
@@ -233,9 +260,12 @@ const handleAddToCart = async () => {
   border-radius: 50px;
   letter-spacing: 0.04em;
 }
-.tag-new { background: #e74c3c; color: #fff; }
-.tag-fav { background: #fff3cd; color: #856404; }
-.tag-free { background: #198754; color: #fff; }
+.tag-new { background: #3b82f6; color: white; }
+.tag-fav { background: #f43f5e; color: white; }
+.tag-free { background: #10b981; color: white; }
+.tag-stock { background: rgba(16, 185, 129, 0.9); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.tag-out { background: rgba(239, 68, 68, 0.9); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.stock-zone { top: auto; bottom: 12px; left: 12px; right: auto; flex-direction: row; align-items: center; }
 
 /* Discount badge */
 .discount-badge {
@@ -361,10 +391,16 @@ const handleAddToCart = async () => {
   transform: translateY(-1px);
   box-shadow: 0 5px 16px rgba(14, 162, 189, 0.4);
 }
-.btn-add-cart:disabled { opacity: 0.75; cursor: not-allowed; }
-.btn-add-cart.btn-added {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  box-shadow: 0 3px 10px rgba(39, 174, 96, 0.3);
+.btn-add-cart:disabled,
+.btn-disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none !important;
+}
+.btn-added {
+  background: #10b981;
+  color: #fff;
 }
 .btn-label { font-size: 0.8rem; }
 

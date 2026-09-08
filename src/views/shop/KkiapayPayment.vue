@@ -175,8 +175,10 @@ import { useRoute } from 'vue-router'
 import AOS from 'aos'
 import BreadcombsComponent from '../../includes/breadcombs.vue'
 import api from '../../services/api'
+import { useCartStore } from '../../stores/cart'
 
 const route = useRoute()
+const cartStore = useCartStore()
 const paiementId = route.query.paiement_id
 const isLoading = ref(true)
 const paiement = ref(null)
@@ -202,6 +204,7 @@ async function loadPaiement() {
 
     if (paiement.value.statut === 'reussi') {
       success.value = true
+      await cartStore.fetchCart()
       return
     }
 
@@ -243,7 +246,10 @@ function openKkiapay() {
     try {
       await api.post('/paiements/confirmer/' + paiementId)
     } catch (e) {
-      console.error('Confirmation failed:', e)
+      console.error('Confirmation failed or already processed:', e)
+    } finally {
+      // On rafraîchit le panier quoi qu'il arrive (si le paiement a réussi, le backend créera un nouveau panier vide)
+      await cartStore.fetchCart()
     }
   })
 

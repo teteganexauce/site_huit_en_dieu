@@ -62,7 +62,7 @@ export const useCartStore = defineStore('cart', {
     async validateOrder() {
       try {
         const response = await shopService.validateOrder();
-        this.cart = null;
+        // Le panier sera vidé par le système uniquement après succès du paiement
         return { success: true, order: response.data || response };
       } catch (error) {
         return { success: false, error: error.response?.data?.message || 'Erreur validation' };

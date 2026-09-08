@@ -51,6 +51,11 @@ const shopService = {
     return response.data;
   },
 
+  async confirmOrderReception(id) {
+    const response = await api.post(`/commandes/${id}/reception`);
+    return response.data;
+  },
+
   async initPayment(paymentData) {
     const response = await api.post('/paiements/initier', paymentData);
     return response.data;
